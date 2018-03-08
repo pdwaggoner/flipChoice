@@ -24,7 +24,7 @@ dScore <- function(design)
 #   effects coding (TRUE) or dummy coding (FALSE).
 # prior is a vector of prior parameters for the attribute levels. Keeping prior = NULL uses a flat prior
 # See https://faculty.fuqua.duke.edu/~jch8/bio/Papers/Huber%20Zwerina%201996%20Marketing%20Research.pdf
-dErrorHZ <- function(design.matrix, attribute.levels, effects = TRUE, prior = NULL)
+calculateDError <- function(design.matrix, attribute.levels, effects = TRUE, prior = NULL)
 {
     K <- sum(attribute.levels - 1) # Total number of parameters
     J <- max(design.matrix[, 3]) # Number of alts per task

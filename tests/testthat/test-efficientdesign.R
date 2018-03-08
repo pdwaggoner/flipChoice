@@ -284,7 +284,8 @@ test_that("D-error calculation agrees with Huber Zwerina ex.",
     mm <- model.matrix(~as.factor(Attribute_1)+as.factor(Attribute_2)+as.factor(Attribute_3),
                        as.data.frame(hz.design))[, -1]
     expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, 3),
-          DerrorHZ(cbind(1, hz.design), attribute.levels = c(3,3,3), TRUE))
+                 calculateDError(cbind(1, hz.design),
+                                 attribute.levels = c(3,3,3), TRUE))
     expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, 3),
                  .192, tolerance = .0005)
 })
