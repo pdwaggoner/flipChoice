@@ -181,9 +181,11 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     if (design.algorithm == "Efficient")
     {
         code <- ifelse(any(design$model.matrix == -1), "E", "D")
-        cfun <- if (code == "E") contr.sum else contr.treatment
+        cfun <- if (code == "E") "contr.sum" else "contr.treatment"
         name.idx <- -(1:2)
         df <- as.data.frame(apply(design$design[, name.idx], 2, as.factor))
+        cfun <- as.list(rep(cfun, ncol(df)))
+        names(cfun) <- names(df)
         form <- as.formula(paste0("~",
                                   paste(colnames(design$design)[name.idx],
                                         collapse = "+", sep = "")))
