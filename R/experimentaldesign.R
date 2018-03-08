@@ -95,6 +95,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                               none.alternatives = 0,
                               labeled.alternatives = FALSE,
                               n.constant.attributes = NULL,
+                              extensive = FALSE,
                               output = "Labeled design",
                               seed = 54123) {
 
@@ -162,6 +163,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                        prohibitions = integer.prohibitions,
                        labeled.alternatives = labeled.alternatives,
                        n.constant.attributes = n.constant.attributes,
+                       extensive = extensive,
                        seed = seed)
 
     f <- formals(design.function)
@@ -197,7 +199,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     else if (design.algorithm == "Partial profiles")
     {
         result$d.criterion <- design$d.criterion
-        result$const.attributes.list <- design$const.attributes.list
+        result$const.attr.list <- design$const.attr.list
         design <- design$design
     }
 
