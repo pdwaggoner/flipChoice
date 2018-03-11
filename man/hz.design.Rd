@@ -4,7 +4,7 @@
 \name{hz.design}
 \alias{hz.design}
 \title{Choice Design from Huber and Zwerina}
-\format{A matrix with 27 rows and 5 columns}
+\format{A data frame with 27 rows and 5 columns}
 \usage{
 data(hz.design)
 }
@@ -16,9 +16,9 @@ example in Huber and Zwerina (1996).
 \itemize{
   \item Question. Question/Task number in the experiment
   \item Alternative. Alternative number within a question
-  \item Attribute_1. The first attribute in the design, consisting of three levels.
-  \item Attribute_2. The second attribute in the design, consisting of three levels.
-  \item Attribute_3. The third attribute in the design, consisting of three levels.
+  \item A. The first attribute in the design, consisting of three levels.
+  \item B. The second attribute in the design, consisting of three levels.
+  \item C. The third attribute in the design, consisting of three levels.
 }
 }
 \references{
