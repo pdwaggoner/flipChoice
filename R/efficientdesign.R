@@ -103,8 +103,8 @@ efficientDesign <- function(
 
     par.draws <- prior
     if (NCOL(prior) == 2L)
-        par.draws <- matrix(rnorm(n.coef*n.sim, prior[, 1], prior[, 2]),
-                            n.sim, n.coef, byrow = TRUE)
+        par.draws <- rbind(prior[, 1], matrix(rnorm(n.coef*(n.sim-1), prior[, 1], prior[, 2]),
+                            n.sim-1, n.coef, byrow = TRUE))
 
     out <- Modfed(candidates, n.sets = n.questions, n.alts = alternatives.per.question,
                   alt.cte = alt.specific.const, par.draws = par.draws)
