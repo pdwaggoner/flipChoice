@@ -278,16 +278,49 @@ test_that("Correct prior specification improves fit on sim data",
     expect_true(sd.good["price300"] < sd.bad["price300"])
 })
 
-test_that("D-error calculation agrees with Huber Zwerina ex.",
+test_that("D-error calculation agrees with Huber-Zwerina Table 1 3^3/3/9",
 {
     data("hz.design", package = "flipChoice")
-    mm <- model.matrix(~as.factor(Attribute_1)+as.factor(Attribute_2)+as.factor(Attribute_3),
-                       as.data.frame(hz.design))[, -1]
-    expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, 3),
-                 calculateDError(cbind(1, hz.design),
-                                 attribute.levels = c(3,3,3), TRUE))
-    expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, 3),
+    apq <- 3
+
+    ## effects coding
+    ca <- as.list(rep("contr.sum", 3))
+    names(ca) <- names(hz.design)[-(1:2)]
+    mm <- model.matrix(~A+B+C, hz.design, contrasts = ca)[, -1]
+    expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, apq),
+          calculateDError(cbind(1, hz.design), attribute.levels = c(3,3,3), TRUE))
+    expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, apq),
                  .192, tolerance = .0005)
+
+    ## non-zero beta
+    lvls <- c(a = 3, b = 3, c = 3)
+    pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
+    beta <- constrainedPrior(lvls, pmeans, coding = "E")
+    expect_equal(idefix:::Derr(beta, mm, apq),
+                 .381, tolerance = .04)
+
+    pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
+    pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
+    beta <- constrainedPrior(lvls, pmeans, coding = "E")
+    expect_equal(idefix:::Derr(beta, mm, apq),
+                 .475, tolerance = .025)
+
+    pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
+    pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
+    beta <- constrainedPrior(lvls, pmeans, coding = "E")
+    expect_equal(idefix:::Derr(beta, mm, apq),
+                 .305, tolerance = .0005)
+
+    ## dummy coding
+    ca <- as.list(rep("contr.treatment", 3))
+    names(ca) <- letters[1:3]
+    mm <- model.matrix(~A+B+C, hz.design, contrasts = ca)[, -1]
+    ## expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, 3),
+    ##       calculateDError(cbind(1, hz.design), attribute.levels = c(3,3,3), TRUE))
+    expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, apq),
+                 .577, tolerance = .0005)
+
+
 })
 
 test_that("Efficient outperforms choiceDes",
@@ -311,3 +344,585 @@ test_that("Efficient outperforms choiceDes",
     expect_true(idefix:::Derr(numeric(ncol(mm)), mm, apq) <
                 idefix:::Derr(numeric(ncol(mm)), as.matrix(des$effects$design), apq))
 })
+
+
+test_that("HZ paper Table 2, 3^3/3/9",
+{
+    seed <- 1001
+    d.err.pub <- .577 ## dummy coding
+    levs <- rep.int(3L, 3)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 3
+    n.q <- 9
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+   out$d.error/d.err.pub
+})
+
+
+## test_that("HZ paper Table 2, 3^3/3/9",
+## {
+##     d.err.effects <- .192
+##     d.err.dummy <- .577
+##     levs <- rep.int(3L, 3)
+##     attr.list <- lapply(levs, seq.int)
+##     names(attr.list) <- letters[seq_along(levs)]
+##     apq <- 3
+##     n.q <- 9
+##     out <- ChoiceModelDesign(design.algorithm = "Efficient",
+##                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+##                          seed = seed, alternatives.per.question = apq,
+##                          labeled.alternatives = FALSE, none.alternative = TRUE)
+
+## })
+
+test_that("HZ paper Table 2, 3^4/2/15",
+{
+    seed <- 10101
+    d.error.ave.relab <- .163
+    levs <- rep.int(3L, 4)
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 2
+    n.q <- 15
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    mm <- model.matrix(~a+b+c+d, df, contrasts = ca)[, -1]
+    d.err <- idefix:::Derr(numeric(sum(levs - 1)), mm, apq)
+    d.err/d.error.ave.relab
+})
+
+test_that("HZ paper Table 2, 4^4/4/16",
+{
+    seed <- 101010
+    d.error.ave.relab <- .157
+    levs <- rep.int(4L, 4)
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 4
+    n.q <- 16
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    mm <- model.matrix(~a+b+c+d, df, contrasts = ca)[, -1]
+    d.err <- idefix:::Derr(numeric(sum(levs - 1)), mm, apq)
+    d.err/d.error.ave.relab
+})
+
+test_that("HZ paper Table 2, 4*3^3/3/48",
+{
+    seed <- 1010101
+    d.error.ave.relab <- .102
+    levs <- c(4, rep.int(3L, 3))
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 3
+    n.q <- 48
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    d.err <- idefix:::Derr(numeric(sum(levs - 1)), mm, apq)
+    d.err/d.error.ave.relab
+})
+
+
+test_that("HZ paper Table 2, 9*8*4*3^4*2^3/3/63",
+{
+    ## extremely slow
+    skip_on_travis()
+    seed <- 10101010
+    d.error.ave.relab <- .068
+    levs <- c(9, 8, 4, rep.int(3L, 4), rep.int(2L, 3))
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 3
+    n.q <- 63
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    d.err <- idefix:::Derr(numeric(sum(levs - 1)), mm, apq)
+    d.err/d.error.ave.relab
+})
+
+test_that("HZ paper Table 2, 3^3/3/9, non-zero beta",
+{
+    seed <- 7
+    d.err.orig <- .381
+    d.err.swap <- .280  ## effects coding
+    levs <- c(a = 3, b = 3, c = 3)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 3
+    n.q <- 9
+
+    pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+
+    ## get effects coding d-error
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    expect_true(d.err/d.err.orig <= 1)
+})
+
+test_that("HZ paper Table 2, 3^4/2/15, non-zero beta",
+{
+    seed <- 777
+    d.error.best.relab <- .297
+    d.error.swap <- .253
+    levs <- rep.int(3L, 4)
+    names(levs) <- letters[1:4]
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 2
+    n.q <- 15
+    pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    mm <- model.matrix(~a+b+c+d, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    d.err/d.error.best.relab
+    d.err/d.error.swap
+})
+
+test_that("HZ paper Table 2, 4^4/4/16, non-zero beta",
+{
+    seed <- 77777
+    d.error.ave.relab <- .307
+    d.error.best.relab <- .263
+    d.error.swap <- .198
+    levs <- rep.int(4L, 4)
+    names(levs) <- letters[seq_along(levs)]
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 4
+    n.q <- 16
+    pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
+    names(pmeans) <- names(levs)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    expect_true(d.err/d.error.best.relab <= 1)
+})
+
+test_that("HZ paper Table 2, 4*3^3/3/48, non-zero beta",
+{
+    seed <- 7777777
+    d.error.ave.relab <- .231
+    d.error.best.relab <- .199
+    d.error.swap <- .142
+    levs <- c(4, rep.int(3L, 3))
+    names(levs) <- letters[seq_along(levs)]
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(levs)
+    apq <- 3
+    n.q <- 48
+    pmeans <- vector("list", length(levs))
+    pmeans[[1]] <- c(-1, -1/3, 1/3, 1)
+    pmeans[2:4] <- replicate(3, c(-1, 0, 1), simplify = FALSE)
+    names(pmeans) <- names(levs)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    expect_true(d.err/d.error.best.relab <= 1)
+})
+
+test_that("HZ paper Table 2, 3^3/3/9, non-zero beta*1.25",
+{
+    seed <- 22
+    d.err.orig <- .475  ## effects coding
+    d.err.swap <- .311
+    levs <- c(a = 3, b = 3, c = 3)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 3
+    n.q <- 9
+
+    pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
+    pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+
+    ## get effects coding d-error
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    expect_true(d.err/d.err.orig <= 1)
+})
+
+test_that("HZ paper Table 2, 3^4/2/15, non-zero beta*1.25",
+{
+    seed <- 22
+    d.error.best.relab <- .335
+    d.error.swap <- .265
+    levs <- rep.int(3L, 4)
+    names(levs) <- letters[1:4]
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 2
+    n.q <- 15
+    pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
+    pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    mm <- model.matrix(~a+b+c+d, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    d.err/d.error.best.relab
+    d.err/d.error.swap
+})
+
+test_that("HZ paper Table 2, 4^4/4/16, non-zero beta*1.25",
+{
+    seed <- 222
+    d.error.ave.relab <- .384
+    d.error.best.relab <- .301
+    d.error.swap <- .208
+    levs <- rep.int(4L, 4)
+    names(levs) <- letters[seq_along(levs)]
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 4
+    n.q <- 16
+    pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
+    pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
+    names(pmeans) <- names(levs)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    expect_true(d.err/d.error.best.relab <= 1)
+})
+
+test_that("HZ paper Table 2, 4*3^3/3/48, non-zero beta*1.25",
+{
+    seed <- 2222
+    d.error.ave.relab <- .295
+    d.error.best.relab <- .238
+    d.error.swap <- .146
+    levs <- c(4, rep.int(3L, 3))
+    names(levs) <- letters[seq_along(levs)]
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(levs)
+    apq <- 3
+    n.q <- 48
+    pmeans <- vector("list", length(levs))
+    pmeans[[1]] <- c(-1, -1/3, 1/3, 1)
+    pmeans[2:4] <- replicate(3, c(-1, 0, 1), simplify = FALSE)
+    pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
+    names(pmeans) <- names(levs)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    expect_true(d.err/d.error.best.relab <= 1)
+})
+
+test_that("HZ paper Table 2, 3^3/3/9, non-zero beta*.75",
+{
+    seed <- 9
+    d.err.orig <- .305  ## effects coding
+    d.err.swap <- .259
+    levs <- c(a = 3, b = 3, c = 3)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 3
+    n.q <- 9
+
+    pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
+    pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+
+    ## get effects coding d-error
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    expect_true(d.err/d.err.orig <= 1)
+})
+
+test_that("HZ paper Table 2, 3^4/2/15, non-zero beta*.75",
+{
+    seed <- 99
+    d.error.best.relab <- .256
+    d.error.swap <- .231
+    levs <- rep.int(3L, 4)
+    names(levs) <- letters[1:4]
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 2
+    n.q <- 15
+    pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
+    pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    mm <- model.matrix(~a+b+c+d, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    d.err/d.error.best.relab
+    d.err/d.error.swap
+})
+
+test_that("HZ paper Table 2, 4^4/4/16, non-zero beta*.75",
+{
+    seed <- 999
+    d.error.ave.relab <- .244
+    d.error.best.relab <- .222
+    d.error.swap <- .188
+    levs <- rep.int(4L, 4)
+    names(levs) <- letters[seq_along(levs)]
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- letters[seq_along(levs)]
+    apq <- 4
+    n.q <- 16
+    pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
+    pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
+    names(pmeans) <- names(levs)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    expect_true(d.err/d.error.best.relab <= 1)
+})
+
+test_that("HZ paper Table 2, 4*3^3/3/48, non-zero beta*.75",
+{
+    seed <- 9999
+    d.error.ave.relab <- .178
+    d.error.best.relab <- .163
+    d.error.swap <- .133
+    levs <- c(4, rep.int(3L, 3))
+    names(levs) <- letters[seq_along(levs)]
+    n.attr <- length(levs)
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(levs)
+    apq <- 3
+    n.q <- 48
+    pmeans <- vector("list", length(levs))
+    pmeans[[1]] <- c(-1, -1/3, 1/3, 1)
+    pmeans[2:4] <- replicate(3, c(-1, 0, 1), simplify = FALSE)
+    pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
+    names(pmeans) <- names(levs)
+    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = beta, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    ca <- as.list(rep("contr.sum", length(attr.list)))
+    names(ca) <- names(attr.list)
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    beta <- constrainedPrior(levs, pmeans, coding = "E")
+    d.err <- idefix:::Derr(beta, mm, apq)
+    expect_true(d.err/d.error.best.relab <= 1)
+})
+
+test_that("Burgess and Street 1992, p. 91: 3x3x6/5/9",
+{
+    seed <- 11000
+    data("bs1.design", package = "flipChoice")
+    ca <- as.list(rep("contr.treatment", 3))
+    names(ca) <- names(bs1.design)[-(1:2)]
+
+    maxes <- as.numeric(apply(bs1.design, 2,
+                              function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
+    n.q <- maxes[1]
+    apq <- maxes[2]
+    levs <- maxes[-(1:2)]
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(ca)
+    mm <- model.matrix(~A+B+C, bs1.design, contrasts = ca)[, -1]
+    d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    expect_true(out$d.error/d.err.pub <= 1)
+})
+
+test_that("Burgess and Street 1992, Appendix A.2: 4^5x2x8^2x9/3/99",
+{
+    skip_on_travis()
+    seed <- 110011
+    data("bs2.design", package = "flipChoice")
+    ca <- as.list(rep("contr.treatment", ncol(bs2.design) - 2))
+    names(ca) <- names(bs2.design)[-(1:2)]
+    maxes <- as.numeric(apply(bs2.design, 2,
+                              function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
+    n.q <- maxes[1]
+    apq <- maxes[2]
+    levs <- maxes[-(1:2)]
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(ca)
+
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, bs2.design, contrasts = ca)[, -1]
+
+    d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+   expect_true(out$d.error/d.err.pub < 1L)
+})
+
+
+test_that("Sandor and Wedel 2001: 3^5/2/15",
+{
+    seed <- 11001100
+    data("sw.design", package = "flipChoice")
+    ca <- as.list(rep("contr.treatment", ncol(sw.design) - 2))
+    names(ca) <- names(sw.design)[-(1:2)]
+    maxes <- as.numeric(apply(sw.design, 2,
+                              function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
+    n.q <- maxes[1]
+    apq <- maxes[2]
+    levs <- maxes[-(1:2)]
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(ca)
+
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, sw.design, contrasts = ca)[, -1]
+
+    d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+   out$d.error/d.err.pub
+})
+
+## test_that("SAS tech doc. mr2010f,"
+## {
+##     seed <- 11
+##     pd <- cbind(c("brand", letters[1:4]), c("price", 1:3, ""))
+##     n.q <- 18
+##     apq <- 4
+##     out <- ChoiceModelDesign(design.algorithm = "Efficient",
+##                              attribute.levels = pd, prior = NULL, n.questions = n.q,
+##                              seed = seed, alternatives.per.question = 4,
+##                              labeled.alternatives = FALSE, none.alternative = TRUE)
+## })
