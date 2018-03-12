@@ -2,7 +2,7 @@
 #'
 #' A dataset containing a \code{3^2*6/5/18} choice model experimental design
 #' chosen to minimize D-error used in an example in Burgess and Street
-#' (1992).
+#' (2007).
 #'
 #' \itemize{
 #'   \item Question. Question/Task number in the experiment
@@ -11,7 +11,8 @@
 #'   \item B. The second attribute in the design, consisting of three levels.
 #'   \item C. The third attribute in the design, consisting of six levels.
 #' }
-#' @references Burgess and Street (1992).
+#' @references Burgess and Street (2007). The Construction of Optimal Stated
+#' Choice Experiments: Theory and Methods. John Wiley && Sons.
 #' @docType data
 #' @keywords datasets
 #' @name bs1.design

@@ -1,4 +1,4 @@
-#' Choice Design from Sandor and Wendel
+#' First Choice Design from Sandor and Wendel
 #'
 #' A dataset containing a \code{3^5/2/15} choice model experimental design
 #' chosen to minimize D-error used in an example in Sandor and Wendel
@@ -17,7 +17,7 @@
 #' Prior Beliefs.
 #' @docType data
 #' @keywords datasets
-#' @name sw.design
-#' @usage data(sw.design)
+#' @name sw1.design
+#' @usage data(sw1.design)
 #' @format A data frame with 30 rows and 7 columns
 NULL

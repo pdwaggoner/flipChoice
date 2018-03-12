@@ -11,7 +11,7 @@ data(bs1.design)
 \description{
 A dataset containing a \code{3^2*6/5/18} choice model experimental design
 chosen to minimize D-error used in an example in Burgess and Street
-(1992).
+(2007).
 }
 \details{
 \itemize{
@@ -23,6 +23,7 @@ chosen to minimize D-error used in an example in Burgess and Street
 }
 }
 \references{
-Burgess and Street (1992).
+Burgess and Street (2007). The Construction of Optimal Stated
+Choice Experiments: Theory and Methods. John Wiley && Sons.
 }
 \keyword{datasets}
