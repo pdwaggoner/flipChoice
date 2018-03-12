@@ -450,6 +450,7 @@ test_that("HZ paper Table 2, 4*3^3/3/48",
 test_that("HZ paper Table 2, 9*8*4*3^4*2^3/3/63",
 {
     ## extremely slow
+    skip_on_cran()
     skip_on_travis()
     seed <- 10101010
     d.error.ave.relab <- .068
@@ -459,10 +460,12 @@ test_that("HZ paper Table 2, 9*8*4*3^4*2^3/3/63",
     names(attr.list) <- letters[seq_along(levs)]
     apq <- 3
     n.q <- 63
+    btime <- Sys.time()
     out <- ChoiceModelDesign(design.algorithm = "Efficient",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
+    etime <- Sys.time()- btime
     df <- as.data.frame(apply(out$design, 2, as.factor))
     ca <- as.list(rep("contr.sum", length(attr.list)))
     names(ca) <- names(attr.list)
@@ -864,6 +867,7 @@ test_that("Burgess and Street 1992, p. 91: 3x3x6/5/9",
 test_that("Burgess and Street 1992, Appendix A.2: 4^5x2x8^2x9/3/99",
 {
     skip_on_travis()
+    skip_on_cran()
     seed <- 110011
     data("bs2.design", package = "flipChoice")
     ca <- as.list(rep("contr.treatment", ncol(bs2.design) - 2))
@@ -885,17 +889,18 @@ test_that("Burgess and Street 1992, Appendix A.2: 4^5x2x8^2x9/3/99",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
-   expect_true(out$d.error/d.err.pub < 1L)
+    out$d.error/d.err.pub
 })
 
-
-test_that("Sandor and Wedel 2001: 3^5/2/15",
+test_that("Burgess and Street 1992, Appendix 8 A.1: 4^4*2^2*8*36/3/288",
 {
-    seed <- 11001100
-    data("sw.design", package = "flipChoice")
-    ca <- as.list(rep("contr.treatment", ncol(sw.design) - 2))
-    names(ca) <- names(sw.design)[-(1:2)]
-    maxes <- as.numeric(apply(sw.design, 2,
+    skip_on_travis()
+    skip_on_cran()
+    seed <- 1101011
+    data("bs3.design", package = "flipChoice")
+    ca <- as.list(rep("contr.sum", ncol(bs3.design) - 2))
+    names(ca) <- names(bs3.design)[-(1:2)]
+    maxes <- as.numeric(apply(bs3.design, 2,
                               function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
     n.q <- maxes[1]
     apq <- maxes[2]
@@ -904,7 +909,36 @@ test_that("Sandor and Wedel 2001: 3^5/2/15",
     names(attr.list) <- names(ca)
 
     form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
-    mm <- model.matrix(form, sw.design, contrasts = ca)[, -1]
+    mm <- model.matrix(form, bs3.design, contrasts = ca)[, -1]
+
+    d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)  # dummy coding results in NA
+
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    d.err <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+    d.err/d.error.pub <= 1
+})
+
+test_that("Sandor and Wedel 2001: 3^5/2/15",
+{
+    seed <- 11001100
+    data("sw1.design", package = "flipChoice")
+    ca <- as.list(rep("contr.treatment", ncol(sw1.design) - 2))
+    names(ca) <- names(sw1.design)[-(1:2)]
+    maxes <- as.numeric(apply(sw1.design, 2,
+                              function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
+    n.q <- maxes[1]
+    apq <- maxes[2]
+    levs <- maxes[-(1:2)]
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(ca)
+
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, sw1.design, contrasts = ca)[, -1]
 
     d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
 
@@ -913,6 +947,87 @@ test_that("Sandor and Wedel 2001: 3^5/2/15",
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
    out$d.error/d.err.pub
+})
+
+test_that("Sandor and Wedel 2001: 3^4/2/15",
+{
+    seed <- 110011001
+    data("sw2.design", package = "flipChoice")
+    ca <- as.list(rep("contr.treatment", ncol(sw2.design) - 2))
+    names(ca) <- names(sw2.design)[-(1:2)]
+    maxes <- as.numeric(apply(sw2.design, 2,
+                              function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
+    n.q <- maxes[1]
+    apq <- maxes[2]
+    levs <- maxes[-(1:2)]
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(ca)
+
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, sw2.design, contrasts = ca)[, -1]
+
+    d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+   expect_true(out$d.error/d.err.pub <= 1)
+})
+
+test_that("Street, Burgess, Louviere 2005 Table 5: 4^5/2/16",
+{
+    seed <- 10101010
+    data("sbl1.design", package = "flipChoice")
+    ca <- as.list(rep("contr.sum", ncol(sbl1.design) - 2))
+    names(ca) <- names(sbl1.design)[-(1:2)]
+    maxes <- as.numeric(apply(sbl1.design, 2,
+                              function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
+    n.q <- maxes[1]
+    apq <- maxes[2]
+    levs <- maxes[-(1:2)]
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(ca)
+
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, sbl1.design, contrasts = ca)[, -1]
+
+    d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    d.err <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+    d.err/d.err.pub
+})
+
+test_that("Street, Burgess, Louviere 2005 Table 5: 2^2*4^2/3/16",
+{
+    seed <- 101100
+    data("sbl2.design", package = "flipChoice")
+    ca <- as.list(rep("contr.treatment", ncol(sbl2.design) - 2))
+    names(ca) <- names(sbl2.design)[-(1:2)]
+    maxes <- as.numeric(apply(sbl2.design, 2,
+                              function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
+    n.q <- maxes[1]
+    apq <- maxes[2]
+    levs <- maxes[-(1:2)]
+    attr.list <- lapply(levs, seq.int)
+    names(attr.list) <- names(ca)
+
+    form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
+    mm <- model.matrix(form, sbl2.design, contrasts = ca)[, -1]
+
+    d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+
+    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         seed = seed, alternatives.per.question = apq,
+                         labeled.alternatives = FALSE, none.alternative = FALSE)
+    expect_equal(out$d.error, d.err.pub, tolerance = .005)
 })
 
 ## test_that("SAS tech doc. mr2010f,"
