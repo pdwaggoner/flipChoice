@@ -13,7 +13,7 @@ test_that("Utility neutral integrated algorithm", {
                                 n.constant.attributes = 3,
                                 seed = 1)
     # Optimal criterion is 4
-    expect_equal(result$d.criterion, 3.48486328125)
+    expect_equal(result$d.criterion, 3.24611663818359)
 })
 
 # test_that("Utility neutral extensive algorithm", {

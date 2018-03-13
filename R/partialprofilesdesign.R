@@ -58,19 +58,22 @@ partialProfilesDesign <- function(levels.per.attribute, prior = NULL,
         stop("The number of constant attributes is invalid. It needs to be a ",
              "whole number from 0 to number of attributes - 1.")
     const.attr.list <- initializeConstantAttributesList(n.questions,
-                                                              n.attributes,
-                                                      n.constant.attributes,
-                                                              seed)
+                                                        n.attributes,
+                                                        n.constant.attributes,
+                                                        seed)
     design <- partialProfilesRandomDesign(levels.per.attribute,
                                           alternatives.per.question,
                                           const.attr.list,
                                           n.questions, seed)
+
+    pt <- proc.time()
     result <- if (extensive)
         extensiveAlgorithm(design, const.attr.list, prior, n.questions,
                            alternatives.per.question, levels.per.attribute)
     else
         integratedAlgorithm(design, const.attr.list, prior, n.questions,
                             alternatives.per.question, levels.per.attribute)
+    print(proc.time() - pt)
 
     result$design <- decorateDesign(result$design, n.questions,
                                     alternatives.per.question,
@@ -83,35 +86,45 @@ integratedAlgorithm <- function(design, const.attr.list, prior,
                                 n.questions, alternatives.per.question,
                                 levels.per.attribute)
 {
+    start.indices <- cumsum(c(0, levels.per.attribute - 1)) + 1
+    d.zero <- computeDCriterion(design, prior, n.questions,
+                                alternatives.per.question,
+                                levels.per.attribute, start.indices)
     repeat
     {
-        d.zero <- computeDCriterion(design, prior, n.questions,
-                                    alternatives.per.question,
-                                    levels.per.attribute)
+
         design.zero <- design
         for (question in 1:n.questions)
         {
+            partial.info.matrix <- constructPartialInfoMatrix(design, prior,
+                                                              n.questions,
+                                                              question,
+                                                    alternatives.per.question)
             output <- improveConstantAttributes(design, prior,
-                                            question,
-                                            const.attr.list[[question]],
-                                            levels.per.attribute,
-                                            alternatives.per.question,
-                                            n.questions)
+                                                question,
+                                                const.attr.list[[question]],
+                                                levels.per.attribute,
+                                                alternatives.per.question,
+                                                n.questions, start.indices,
+                                                partial.info.matrix)
             design <- output$design
             const.attr.list[[question]] <- output$const.attr
 
             design <- improveVaryingAttributes(design, prior, question,
-                                           const.attr.list[[question]],
-                                           levels.per.attribute,
-                                           NULL,
-                                           alternatives.per.question,
-                                           n.questions)
+                                               const.attr.list[[question]],
+                                               levels.per.attribute,
+                                               NULL,
+                                               alternatives.per.question,
+                                               n.questions, start.indices,
+                                               partial.info.matrix)
         }
-        d.new <- computeDCriterion(design, prior, n.questions,
-                                   alternatives.per.question,
-                                   levels.per.attribute)
+        d.new <- computeDCriterionShortcut(design, prior, n.questions,
+                                           alternatives.per.question,
+                                           start.indices, partial.info.matrix)
         if (d.new <= d.zero)
             break
+        else
+            d.zero <- d.new
     }
 
     list(design = design.zero,
@@ -124,7 +137,8 @@ improveVaryingAttributes <- function(design, prior, question, const.attr,
                                      levels.per.attribute,
                                      attributes.to.consider = NULL,
                                      alternatives.per.question,
-                                     n.questions)
+                                     n.questions, start.indices,
+                                     partial.info.matrix)
 {
     n.attributes <- length(levels.per.attribute)
     if (is.null(attributes.to.consider))
@@ -132,39 +146,54 @@ improveVaryingAttributes <- function(design, prior, question, const.attr,
 
     repeat
     {
-        d.zero <- computeDCriterion(design, prior, n.questions,
-                                    alternatives.per.question,
-                                    levels.per.attribute)
+        d.zero <- computeDCriterionShortcut(design, prior, question,
+                                            alternatives.per.question,
+                                            start.indices, partial.info.matrix)
+
         for (j in 1:alternatives.per.question)
         {
             for (f in attributes.to.consider)
             {
                 if (!(f %in% const.attr))
                 {
-                    d.star <- computeDCriterion(design, prior, n.questions,
-                                                alternatives.per.question,
-                                                levels.per.attribute)
+                    d.star <- computeDCriterionShortcut(design, prior,
+                                                    question,
+                                                    alternatives.per.question,
+                                                    start.indices,
+                                                    partial.info.matrix)
+
                     ind <- (question - 1) * alternatives.per.question + j
-                    l.star <- design[ind, f]
+                    l.star <- getLevel(design, ind, f, levels.per.attribute,
+                                       start.indices)
+
                     for (l in 1:levels.per.attribute[f])
                     {
-                        design[ind, f] <- l
-                        d.new <- computeDCriterion(design, prior, n.questions,
-                                                   alternatives.per.question,
-                                                   levels.per.attribute)
+                        design <- setLevel(design, ind, f, l,
+                                           levels.per.attribute, start.indices)
+
+                        d.new <- computeDCriterionShortcut(design, prior,
+                                                    question,
+                                                    alternatives.per.question,
+                                                    start.indices,
+                                                    partial.info.matrix)
+
                         if (d.new > d.star)
                         {
                             d.star <- d.new
                             l.star <- l
                         }
                     }
-                    design[ind, f] <- l.star
+
+                    design <- setLevel(design, ind, f, l.star,
+                                       levels.per.attribute, start.indices)
                 }
             }
         }
-        d.new <- computeDCriterion(design, prior, n.questions,
-                                   alternatives.per.question,
-                                   levels.per.attribute)
+        d.new <- computeDCriterionShortcut(design, prior,
+                                           question,
+                                           alternatives.per.question,
+                                           start.indices,
+                                           partial.info.matrix)
         if (d.new <= d.zero)
             break
     }
@@ -176,15 +205,18 @@ improveConstantAttributes <- function(design, prior, question,
                                       const.attr,
                                       levels.per.attribute,
                                       alternatives.per.question,
-                                      n.questions)
+                                      n.questions, start.indices,
+                                      partial.info.matrix)
 {
     n.attributes <- length(levels.per.attribute)
-    d.star <- computeDCriterion(design, prior, n.questions,
-                                alternatives.per.question,
-                                levels.per.attribute)
+    d.star <- computeDCriterionShortcut(design, prior,
+                                        question,
+                                        alternatives.per.question,
+                                        start.indices,
+                                        partial.info.matrix)
     original.const.attr <- const.attr
     ind <- (question - 1) * alternatives.per.question +
-            (1:alternatives.per.question)
+        (1:alternatives.per.question)
     for (c.i in original.const.attr)
     {
         c.star <- c.i
@@ -193,17 +225,23 @@ improveConstantAttributes <- function(design, prior, question,
                                            const.attr,
                                            levels.per.attribute, c.i,
                                            alternatives.per.question,
-                                           n.questions)
+                                           n.questions, start.indices,
+                                           partial.info.matrix)
         for (f in 1:n.attributes)
         {
             if (!(f %in% const.attr))
             {
                 candidate.design <- design
-                candidate.design[ind, f] <- 1
-                d.new <- computeDCriterion(candidate.design, prior,
-                                           n.questions,
-                                           alternatives.per.question,
-                                           levels.per.attribute)
+                candidate.design <- setLevel(candidate.design, ind, f, 1,
+                                             levels.per.attribute,
+                                             start.indices)
+
+                d.new <- computeDCriterionShortcut(candidate.design, prior,
+                                                   question,
+                                                   alternatives.per.question,
+                                                   start.indices,
+                                                   partial.info.matrix)
+
                 if (d.new > d.star)
                 {
                     d.star <- d.new
@@ -211,16 +249,18 @@ improveConstantAttributes <- function(design, prior, question,
                 }
             }
         }
+
         const.attr <- sort(union(const.attr, c.star))
-        design[ind, c.star] <- 1
+        design <- setLevel(design, ind, c.star, 1, levels.per.attribute,
+                           start.indices)
     }
     list(const.attr = const.attr, design = design)
 }
 
 # See Algorithm 4 of Cuervo et al. (2016)
 extensiveAlgorithm <- function(design, const.attr.list, prior,
-                                n.questions, alternatives.per.question,
-                                levels.per.attribute)
+                               n.questions, alternatives.per.question,
+                               levels.per.attribute)
 {
     n.attributes <- length(levels.per.attribute)
     repeat
@@ -241,12 +281,12 @@ extensiveAlgorithm <- function(design, const.attr.list, prior,
                     if (!(f %in% const.attr.list[[question]]))
                     {
                         output <- extensiveAlgorithmInner(design, design.star,
-                                                    prior, question, c.i, f,
-                                                    const.attr.list,
-                                                    const.attr.list.star,
-                                                    alternatives.per.question,
-                                                    levels.per.attribute,
-                                                    n.questions)
+                                                          prior, question, c.i, f,
+                                                          const.attr.list,
+                                                          const.attr.list.star,
+                                                          alternatives.per.question,
+                                                          levels.per.attribute,
+                                                          n.questions)
                         design.star <- output$design.star
                         const.attr.list.star <- output$const.attr.list.star
                     }
@@ -258,7 +298,6 @@ extensiveAlgorithm <- function(design, const.attr.list, prior,
         d.new <- computeDCriterion(design, prior, n.questions,
                                    alternatives.per.question,
                                    levels.per.attribute)
-        print(d.new)
         if (d.new <= d.zero)
             break
     }
@@ -292,10 +331,10 @@ extensiveAlgorithmInner <- function(design, design.star, prior, question, c.i, f
 
     d.dash <- computeDCriterion(design.dash, prior, n.questions,
                                 alternatives.per.question,
-                                levels.per.attribute)
+                                levels.per.attribute, start.indices)
     d.star <- computeDCriterion(design.star, prior, n.questions,
                                 alternatives.per.question,
-                                levels.per.attribute)
+                                levels.per.attribute, start.indices)
     if (d.dash > d.star)
     {
         design.star <- design.dash
@@ -307,15 +346,14 @@ extensiveAlgorithmInner <- function(design, design.star, prior, question, c.i, f
 
 computeDCriterion <- function(design, prior, n.questions,
                               alternatives.per.question,
-                              levels.per.attribute)
+                              levels.per.attribute,
+                              start.indices)
 {
-    is.complete <- checkDesignHasCompleteLevels(design, levels.per.attribute)
+    is.complete <- checkDesignHasCompleteLevels(design, start.indices)
     if (is.complete)
     {
-        coded.design <- encode.design(design, effects = FALSE)
         if (is.null(prior))
-            d0Criterion(coded.design, n.questions,
-                        alternatives.per.question)
+            d0Criterion(design, n.questions, alternatives.per.question)
         else
         {
             # to be done
@@ -325,19 +363,52 @@ computeDCriterion <- function(design, prior, n.questions,
         -Inf
 }
 
-checkDesignHasCompleteLevels <- function(design, levels.per.attribute)
+computeDCriterionShortcut <- function(design, prior, question,
+                                      alternatives.per.question,
+                                      start.indices, partial.info.matrix)
 {
-    is.complete <- TRUE
-    n.attributes <- ncol(design)
-    for (i in 1:n.attributes)
+    is.complete <- checkDesignHasCompleteLevels(design, start.indices)
+    if (is.complete)
     {
-        if (length(unique(design[, i])) < levels.per.attribute[i])
+        if (is.null(prior))
+            d0CriterionShortcut(design, question, alternatives.per.question,
+                                partial.info.matrix)
+        else
         {
-            is.complete <- FALSE
-            break
+            # to be done
         }
     }
-    is.complete
+    else
+        -Inf
+}
+
+constructPartialInfoMatrix <- function(design, prior, n.questions, question,
+                                       alternatives.per.question)
+{
+    if (is.null(prior))
+        d0PartialInfoMatrix(design, n.questions, question,
+                            alternatives.per.question)
+    else
+    {
+        # to be done
+    }
+}
+
+checkDesignHasCompleteLevels <- function(design, start.indices)
+{
+    if (any(colSums(design) == 0))
+        FALSE
+    else
+    {
+        n.attributes <- length(start.indices) - 1
+        n.rows <- nrow(design)
+        for (i in 1:n.attributes)
+        {
+            if (sum(design[, start.indices[i]:(start.indices[i + 1] - 1)]) == n.rows)
+                return(FALSE)
+        }
+        TRUE
+    }
 }
 
 initializeConstantAttributesList <- function(n.questions, n.attributes,
@@ -354,19 +425,21 @@ partialProfilesRandomDesign <- function(levels.per.attribute,
                                         const.attr.list,
                                         n.questions, seed = 123)
 {
+    set.seed(seed)
+    start.indices <- cumsum(c(0, levels.per.attribute - 1)) + 1
     repeat
     {
         design <- partialProfilesRandomDesignRaw(levels.per.attribute,
                                                  alternatives.per.question,
-                                                 const.attr.list,
-                                                 seed)
-        is.complete <- checkDesignHasCompleteLevels(design,
-                                            levels.per.attribute)
+                                                 const.attr.list)
+        design <- encodeDesignFast(design, levels.per.attribute)
+        is.complete <- checkDesignHasCompleteLevels(design, start.indices)
         if (is.complete)
         {
             criterion <- computeDCriterion(design, NULL, n.questions,
                                            alternatives.per.question,
-                                           levels.per.attribute)
+                                           levels.per.attribute,
+                                           start.indices)
             if (criterion > 0)
                 break
         }
@@ -377,10 +450,8 @@ partialProfilesRandomDesign <- function(levels.per.attribute,
 # Raw partial profiles random design, which may be invalid.
 partialProfilesRandomDesignRaw <- function(levels.per.attribute,
                                            alternatives.per.question,
-                                           const.attr.list,
-                                           seed = 123)
+                                           const.attr.list)
 {
-    set.seed(seed)
     n.questions <- length(const.attr.list)
     n.attributes <- length(levels.per.attribute)
     result <- matrix(NA, nrow = n.questions * alternatives.per.question,
@@ -405,6 +476,7 @@ partialProfilesRandomDesignRaw <- function(levels.per.attribute,
 decorateDesign <- function(design, n.questions, alternatives.per.question,
                            levels.per.attribute)
 {
+    design <- decodeDesign(design, levels.per.attribute)
     design <- addAttributeNames(design, levels.per.attribute)
     design <- addQuestionAndAlternativeColumns(design, n.questions,
                                                alternatives.per.question)
@@ -412,7 +484,7 @@ decorateDesign <- function(design, n.questions, alternatives.per.question,
 }
 
 addQuestionAndAlternativeColumns <- function(design, n.questions,
-                                      alternatives.per.question)
+                                             alternatives.per.question)
 {
     design <- cbind(rep(1:n.questions, each = alternatives.per.question),
                     rep(1:alternatives.per.question, n.questions), design)
@@ -427,5 +499,29 @@ addAttributeNames <- function(design, levels.per.attribute)
         colnames(design) <- list(names(levels.per.attribute))
     else
         colnames(design) <- names(levels.per.attribute)
+    design
+}
+
+getLevel <- function(design, row.index, attribute.index,
+                     levels.per.attribute, start.indices)
+{
+    lvl <- which(design[row.index, start.indices[attribute.index]:
+                                  (start.indices[attribute.index + 1] - 1)] == 1)
+    if (length(lvl) == 0)
+        1
+    else
+        lvl + 1
+}
+
+setLevel <- function(design, row.index, attribute.index,
+                     lvl, levels.per.attribute, start.indices)
+{
+    pt <- proc.time()
+    design[row.index, start.indices[attribute.index]:
+                     (start.indices[attribute.index + 1] - 1)] <- 0
+    if (lvl > 1)
+    {
+        design[row.index, start.indices[attribute.index] + lvl - 2] <- 1
+    }
     design
 }

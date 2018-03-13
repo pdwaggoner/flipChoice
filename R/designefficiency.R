@@ -40,7 +40,7 @@ calculateDError <- function(design.matrix, attribute.levels, effects = TRUE, pri
 
     # Generate a coded version of the design using dummy coding or effects coding
     des.att <- design.matrix[, 3:ncol(design.matrix)] # Part of the design matrix containing the attributes
-    coded.design <- encode.design(des.att, effects = effects)
+    coded.design <- encodeDesign(des.att, effects = effects)
 
     # Generate choice probabilities of each alternative
     if (!is.null(prior))
@@ -62,7 +62,7 @@ dPCriterion <- function(coded.design, choice.probs, n.questions,
                             (1:alternatives.per.question)
         sums <- colSums(coded.design[question.indices, ] *
                             choice.probs[question.indices])
-        xbars <- rbind(xbars, rep.row(sums, alternatives.per.question))
+        xbars <- rbind(xbars, repRow(sums, alternatives.per.question))
     }
     Z <- as.matrix(coded.design - xbars)
     omega <- crossprod(Z, choice.probs * Z)   # t(Z) %*% P %*% Z
@@ -72,16 +72,48 @@ dPCriterion <- function(coded.design, choice.probs, n.questions,
 d0Criterion <- function(coded.design, n.questions, alternatives.per.question)
 {
     n.parameters <- ncol(coded.design)
-    result <- matrix(0, nrow = n.parameters, ncol = n.parameters)
+    info.matrix <- matrix(0, nrow = n.parameters, ncol = n.parameters)
+
     for (s in 1:n.questions)
     {
         question.indices <- (s - 1) * alternatives.per.question +
                             (1:alternatives.per.question)
         xs <- coded.design[question.indices, ]
-        result <- result + crossprod(xs) - tcrossprod(colSums(xs)) /
-                  alternatives.per.question
+
+        info.matrix <- info.matrix + crossprod(xs) - tcrossprod(colSums(xs)) /
+                       alternatives.per.question
     }
-    det(result / alternatives.per.question)
+    info.matrix <- info.matrix / alternatives.per.question
+    det(info.matrix)
+}
+
+d0CriterionShortcut <- function(coded.design, question,
+                                alternatives.per.question, partial.info.matrix)
+{
+    ind <- (question - 1) * alternatives.per.question + (1:alternatives.per.question)
+    xs <- coded.design[ind, ]
+    info.matrix <- partial.info.matrix + crossprod(xs) -
+                   tcrossprod(colSums(xs)) / alternatives.per.question
+    det(info.matrix) / alternatives.per.question ^ nrow(info.matrix)
+}
+
+d0PartialInfoMatrix <- function(coded.design, n.questions, question,
+                                alternatives.per.question)
+{
+    n.parameters <- ncol(coded.design)
+    info.matrix <- matrix(0, nrow = n.parameters, ncol = n.parameters)
+    for (s in 1:n.questions)
+    {
+        if (s != question)
+        {
+            ind <- (s - 1) * alternatives.per.question +
+                (1:alternatives.per.question)
+            xs <- coded.design[ind, ]
+            info.matrix <- info.matrix + crossprod(xs) - tcrossprod(colSums(xs)) /
+                           alternatives.per.question
+        }
+    }
+    info.matrix
 }
 
 logitChoiceProbs = function(coded.matrix, prior, number.alternatives, number.tasks) {
@@ -108,16 +140,15 @@ logitChoiceProbs = function(coded.matrix, prior, number.alternatives, number.tas
     return(choice.probabilities)
 }
 
-rep.row = function(x, n) {
+repRow = function(x, n) {
     # Returns a matrix with n rows where each row is a copy of x
     matrix(rep(x, each = n), nrow = n)
 }
 
 # Produce an encoded matrix without intercept
-encode.design <- function(design, effects = TRUE) {
+encodeDesign <- function(design, effects = TRUE) {
 
     old.contrasts <- options("contrasts")
-
     if (!"data.frame" %in% class(design))
     {
         design <- data.frame(design)
@@ -128,7 +159,47 @@ encode.design <- function(design, effects = TRUE) {
         options(contrasts = c("contr.sum", "contr.poly"))
     else
         options(contrasts = c("contr.treatment", "contr.poly"))
+
     dummy.matrix <- model.matrix( ~ ., data = design)
     options(contrasts = old.contrasts[[1]])
     return(dummy.matrix[, -1])
 }
+
+# This should be merged into encodeDesign
+encodeDesignFast <- function(design, levels.per.attribute)
+{
+    n.attributes <- length(levels.per.attribute)
+    n.parameters <- sum(levels.per.attribute)
+    n.rows <- nrow(design)
+    design.vector <- as.vector(design)
+    offset <- rep(1:n.rows, n.attributes) +
+        rep(cumsum(c(0, levels.per.attribute[-n.attributes]) * n.rows),
+                  each = n.rows)
+    encoded.vector <- rep(0, n.rows * n.parameters)
+    encoded.vector[(design.vector - 1) * n.rows + offset] <- 1
+    encoded.vector <- encoded.vector[-offset]
+    matrix(encoded.vector, nrow = n.rows)
+}
+
+decodeDesign <- function(design, levels.per.attribute)
+{
+    n.rows <- nrow(design)
+    n.attributes <- length(levels.per.attribute)
+    cumulative.levels <- cumsum(c(0, levels.per.attribute - 1))
+    result <- matrix(NA, nrow = n.rows, ncol = n.attributes)
+    for (i in 1:n.attributes)
+    {
+        ind.start <- cumulative.levels[i] + 1
+        ind.end <- cumulative.levels[i + 1]
+        for (j in 1:n.rows)
+        {
+            lvl <- which(design[j, ind.start:ind.end] == 1)
+            if (length(lvl) == 0)
+                result[j, i] <- 1
+            else
+                result[j, i] <- lvl + 1
+        }
+    }
+    result
+}
+

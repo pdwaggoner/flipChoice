@@ -5,7 +5,8 @@
 \title{Construct an Optimal Partial Profile Design for Discrete Choice Experiments}
 \usage{
 partialProfilesDesign(levels.per.attribute, prior = NULL,
-  alternatives.per.question, n.questions, n.constant.attributes, seed = 123)
+  alternatives.per.question, n.questions, n.constant.attributes,
+  extensive = FALSE, seed = 123)
 }
 \arguments{
 \item{levels.per.attribute}{A \emph{named} vector containing the
@@ -40,13 +41,13 @@ algorithm.}
     design.
     \item \code{d.criterion} - Numeric value of the D_p criterion of the
     design as described in the paper.
-    \item \code{const.attributes.list} - List of numeric vectors
+    \item \code{const.attr.list} - List of numeric vectors
     of indices of the constant attributes in each question.
 }
 }
 \description{
-Uses the algorithms as described in D. P. Cuervo, R. Kessels, P. Goos and
-K. Sorensen (2016).
+Uses the integrated and extensive integrated algorithms as described in
+D. P. Cuervo, R. Kessels, P. Goos and K. Sorensen (2016).
 }
 \examples{
 \dontrun{
