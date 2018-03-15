@@ -64,14 +64,12 @@ partialProfilesDesign <- function(levels.per.attribute, prior = NULL,
     design <- output$design
     const.attr.list <- output$const.attr.list
 
-    pt <- proc.time()
     result <- if (extensive)
         extensiveAlgorithm(design, const.attr.list, prior, n.questions,
                            alternatives.per.question, levels.per.attribute)
     else
         integratedAlgorithm(design, const.attr.list, prior, n.questions,
                             alternatives.per.question, levels.per.attribute)
-    print(proc.time() - pt)
 
     result$design <- decorateDesign(result$design, n.questions,
                                     alternatives.per.question,
