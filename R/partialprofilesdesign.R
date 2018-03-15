@@ -63,14 +63,14 @@ partialProfilesDesign <- function(levels.per.attribute, prior = NULL,
                                           n.constant.attributes, seed)
     design <- output$design
     const.attr.list <- output$const.attr.list
-
+    # pt <- proc.time()
     result <- if (extensive)
         extensiveAlgorithm(design, const.attr.list, prior, n.questions,
                            alternatives.per.question, levels.per.attribute)
     else
         integratedAlgorithm(design, const.attr.list, prior, n.questions,
                             alternatives.per.question, levels.per.attribute)
-
+    # print(proc.time() - pt)
     result$design <- decorateDesign(result$design, n.questions,
                                     alternatives.per.question,
                                     levels.per.attribute)
@@ -279,10 +279,10 @@ extensiveAlgorithm <- function(design, const.attr.list, prior,
     n.attributes <- length(levels.per.attribute)
     repeat
     {
-        d.zero <- computeDCriterion(design, prior, n.questions,
+        design.zero <- design
+        d.zero <- computeDCriterion(design.zero, prior, n.questions,
                                     alternatives.per.question,
                                     levels.per.attribute, start.indices)
-        design.zero <- design
         for (question in 1:n.questions)
         {
             for (c.i in const.attr.list[[question]])
@@ -297,7 +297,6 @@ extensiveAlgorithm <- function(design, const.attr.list, prior,
                 {
                     if (!(f %in% const.attr.list[[question]]))
                     {
-
                         output <- extensiveAlgorithmInner(design, prior,
                                                   question, c.i, f,
                                                   const.attr.list,
@@ -325,7 +324,7 @@ extensiveAlgorithm <- function(design, const.attr.list, prior,
         if (d.star <= d.zero)
             break
     }
-    list(design = design,
+    list(design = design.zero,
          d.criterion = d.zero,
          const.attr.list = const.attr.list)
 }
@@ -383,6 +382,10 @@ computeDCriterion <- function(design, prior, n.questions,
     {
         if (is.null(prior))
             d0Criterion(design, n.questions, alternatives.per.question)
+        else if (is.vector(prior))
+        {
+            dPCriterion(design, prior, n.questions, alternatives.per.question)
+        }
         else
         {
             # to be done
@@ -405,6 +408,9 @@ computeDCriterionShortcut <- function(question.design, prior,
         if (is.null(prior))
             d0CriterionShortcut(question.design, partial.info.matrix,
                                 alternatives.per.question)
+        else if (is.vector(prior))
+            dPCriterionShortcut(question.design, prior, partial.info.matrix,
+                                alternatives.per.question)
         else
         {
             # to be done
@@ -420,6 +426,11 @@ constructPartialInfoMatrix <- function(design, prior, n.questions, question,
     if (is.null(prior))
         d0PartialInfoMatrix(design, n.questions, question,
                             alternatives.per.question)
+    else if (is.vector(prior))
+    {
+        dPPartialInfoMatrix(design, prior, n.questions, question,
+                            alternatives.per.question)
+    }
     else
     {
         # to be done
