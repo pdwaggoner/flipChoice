@@ -6,22 +6,37 @@
 
 using namespace Rcpp;
 
-// d0CriterionShortcutRcpp
-double d0CriterionShortcutRcpp(Eigen::MatrixXd& question_design, Eigen::MatrixXd& partial_info_matrix, int alternatives_per_question);
-RcppExport SEXP _flipChoice_d0CriterionShortcutRcpp(SEXP question_designSEXP, SEXP partial_info_matrixSEXP, SEXP alternatives_per_questionSEXP) {
+// d0CriterionShortcut
+double d0CriterionShortcut(Eigen::MatrixXd& question_design, Eigen::MatrixXd& partial_info_matrix, int alternatives_per_question);
+RcppExport SEXP _flipChoice_d0CriterionShortcut(SEXP question_designSEXP, SEXP partial_info_matrixSEXP, SEXP alternatives_per_questionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type question_design(question_designSEXP);
     Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type partial_info_matrix(partial_info_matrixSEXP);
     Rcpp::traits::input_parameter< int >::type alternatives_per_question(alternatives_per_questionSEXP);
-    rcpp_result_gen = Rcpp::wrap(d0CriterionShortcutRcpp(question_design, partial_info_matrix, alternatives_per_question));
+    rcpp_result_gen = Rcpp::wrap(d0CriterionShortcut(question_design, partial_info_matrix, alternatives_per_question));
+    return rcpp_result_gen;
+END_RCPP
+}
+// d0PartialInfoMatrix
+Eigen::MatrixXd d0PartialInfoMatrix(Eigen::MatrixXd& coded_design, int n_questions, int question, int alternatives_per_question);
+RcppExport SEXP _flipChoice_d0PartialInfoMatrix(SEXP coded_designSEXP, SEXP n_questionsSEXP, SEXP questionSEXP, SEXP alternatives_per_questionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type coded_design(coded_designSEXP);
+    Rcpp::traits::input_parameter< int >::type n_questions(n_questionsSEXP);
+    Rcpp::traits::input_parameter< int >::type question(questionSEXP);
+    Rcpp::traits::input_parameter< int >::type alternatives_per_question(alternatives_per_questionSEXP);
+    rcpp_result_gen = Rcpp::wrap(d0PartialInfoMatrix(coded_design, n_questions, question, alternatives_per_question));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_flipChoice_d0CriterionShortcutRcpp", (DL_FUNC) &_flipChoice_d0CriterionShortcutRcpp, 3},
+    {"_flipChoice_d0CriterionShortcut", (DL_FUNC) &_flipChoice_d0CriterionShortcut, 3},
+    {"_flipChoice_d0PartialInfoMatrix", (DL_FUNC) &_flipChoice_d0PartialInfoMatrix, 4},
     {NULL, NULL, 0}
 };
 

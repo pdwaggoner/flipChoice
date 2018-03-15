@@ -107,7 +107,6 @@ integratedAlgorithm <- function(design, const.attr.list, prior,
                 findMissingLevels(reduced.design, start.indices)
             else
                 NULL
-
             output <- improveConstantAttributes(question.design,
                                                 prior, const.attr.list[[question]],
                                                 levels.per.attribute,
@@ -404,12 +403,8 @@ computeDCriterionShortcut <- function(question.design, prior,
                                                    missing.levels))
     {
         if (is.null(prior))
-        {
-            result <- d0CriterionShortcutRcpp(question.design,
-                                              partial.info.matrix,
-                                              alternatives.per.question)
-            result
-        }
+            d0CriterionShortcut(question.design, partial.info.matrix,
+                                alternatives.per.question)
         else
         {
             # to be done

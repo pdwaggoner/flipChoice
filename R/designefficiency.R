@@ -87,25 +87,6 @@ d0Criterion <- function(coded.design, n.questions, alternatives.per.question)
     det(info.matrix)
 }
 
-d0PartialInfoMatrix <- function(coded.design, n.questions, question,
-                                alternatives.per.question)
-{
-    n.parameters <- ncol(coded.design)
-    info.matrix <- matrix(0, nrow = n.parameters, ncol = n.parameters)
-    for (s in 1:n.questions)
-    {
-        if (s != question)
-        {
-            ind <- (s - 1) * alternatives.per.question +
-                (1:alternatives.per.question)
-            xs <- coded.design[ind, ]
-            info.matrix <- info.matrix + crossprod(xs) - tcrossprod(colSums(xs)) /
-                           alternatives.per.question
-        }
-    }
-    info.matrix
-}
-
 logitChoiceProbs = function(coded.matrix, prior, number.alternatives, number.tasks) {
     if (ncol(coded.matrix) != length(prior)) {
         stop("Number of columns in coded.matrix does not match the number of prior parameters")
