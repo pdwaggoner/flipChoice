@@ -20,10 +20,13 @@ Imports: flipData,
          readxl,
          stats,
          utils,
-         ggplot2
+         ggplot2,
+         Rcpp (>= 0.12.10),
+         RcppEigen
 Suggests: testthat,
          withr,
          choiceDes	 
+LinkingTo: Rcpp, RcppEigen
 Remotes: Displayr/flipData,
          Displayr/flipFormat,
          Displayr/flipTime,

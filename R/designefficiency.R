@@ -87,16 +87,6 @@ d0Criterion <- function(coded.design, n.questions, alternatives.per.question)
     det(info.matrix)
 }
 
-d0CriterionShortcut <- function(coded.design, question,
-                                alternatives.per.question, partial.info.matrix)
-{
-    ind <- (question - 1) * alternatives.per.question + (1:alternatives.per.question)
-    xs <- coded.design[ind, ]
-    info.matrix <- partial.info.matrix + crossprod(xs) -
-                   tcrossprod(colSums(xs)) / alternatives.per.question
-    det(info.matrix) / alternatives.per.question ^ nrow(info.matrix)
-}
-
 d0PartialInfoMatrix <- function(coded.design, n.questions, question,
                                 alternatives.per.question)
 {
