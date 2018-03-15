@@ -276,12 +276,13 @@ extensiveAlgorithm <- function(design, const.attr.list, prior,
                                n.questions, alternatives.per.question,
                                levels.per.attribute)
 {
+    start.indices <- cumsum(c(0, levels.per.attribute - 1)) + 1
     n.attributes <- length(levels.per.attribute)
     repeat
     {
         d.zero <- computeDCriterion(design, prior, n.questions,
                                     alternatives.per.question,
-                                    levels.per.attribute)
+                                    levels.per.attribute, start.indices)
         design.zero <- design
         for (question in 1:n.questions)
         {
@@ -289,73 +290,88 @@ extensiveAlgorithm <- function(design, const.attr.list, prior,
             {
                 design.star <- design
                 const.attr.list.star <- const.attr.list
-
+                d.star <- computeDCriterion(design.star, prior, n.questions,
+                                            alternatives.per.question,
+                                            levels.per.attribute,
+                                            start.indices)
                 for (f in 1:n.attributes)
                 {
                     if (!(f %in% const.attr.list[[question]]))
                     {
-                        output <- extensiveAlgorithmInner(design, design.star,
-                                                          prior, question, c.i, f,
-                                                          const.attr.list,
-                                                          const.attr.list.star,
-                                                          alternatives.per.question,
-                                                          levels.per.attribute,
-                                                          n.questions)
-                        design.star <- output$design.star
-                        const.attr.list.star <- output$const.attr.list.star
+
+                        output <- extensiveAlgorithmInner(design, prior,
+                                                  question, c.i, f,
+                                                  const.attr.list,
+                                                  alternatives.per.question,
+                                                  levels.per.attribute,
+                                                  n.questions,
+                                                  start.indices)
+                        d.dash <- computeDCriterion(output$design, prior,
+                                                    n.questions,
+                                                    alternatives.per.question,
+                                                    levels.per.attribute,
+                                                    start.indices)
+                        if (d.dash > d.star)
+                        {
+                            design.star <- output$design
+                            const.attr.list.star <- output$const.attr.list
+                            d.star <- d.dash
+                        }
                     }
                 }
                 design <- design.star
                 const.attr.list <- const.attr.list.star
             }
         }
-        d.new <- computeDCriterion(design, prior, n.questions,
-                                   alternatives.per.question,
-                                   levels.per.attribute)
-        if (d.new <= d.zero)
+        if (d.star <= d.zero)
             break
     }
-    list(design = design.zero,
+    list(design = design,
          d.criterion = d.zero,
          const.attr.list = const.attr.list)
 }
 
-extensiveAlgorithmInner <- function(design, design.star, prior, question, c.i, f,
-                                    const.attr.list, const.attr.list.star,
+extensiveAlgorithmInner <- function(design.dash, prior, question, c.i,
+                                    f, const.attr.list,
                                     alternatives.per.question,
-                                    levels.per.attribute, n.questions)
+                                    levels.per.attribute, n.questions,
+                                    start.indices)
 {
-    design.dash <- design
     const.attr.list.dash <- const.attr.list
     const.attr <- const.attr.list.dash[[question]]
     const.attr <- setdiff(const.attr, c.i)
-    design.dash <- improveVaryingAttributes(design.dash, prior, question,
-                                            const.attr, levels.per.attribute,
-                                            c.i, alternatives.per.question,
-                                            n.questions)
+
+    partial.info.matrix <- constructPartialInfoMatrix(design.dash, prior,
+                                                      n.questions,
+                                                      question,
+                                                  alternatives.per.question)
+    question.ind <- (question - 1) * alternatives.per.question +
+                    (1:alternatives.per.question)
+    question.design <- design.dash[question.ind, ]
+    other.questions <- setdiff(1:nrow(design.dash), question.ind)
+    reduced.design <- design.dash[other.questions, ]
+    is.complete <- checkDesignHasCompleteLevels(reduced.design, start.indices)
+    missing.levels <- if (!is.complete)
+        findMissingLevels(reduced.design, start.indices)
+    else
+        NULL
+
+    question.design <- improveVaryingAttributes(question.design, prior,
+                                                const.attr,
+                                                levels.per.attribute,
+                                                c.i, alternatives.per.question,
+                                                n.questions, start.indices,
+                                                partial.info.matrix,
+                                                is.complete, missing.levels)
+    question.design <- setLevelAllRows(question.design, f, 1,
+                                       levels.per.attribute, start.indices)
+    design.dash[question.ind, ] <- question.design
+
     const.attr <- sort(union(const.attr, c.i))
     const.attr.list.dash[[question]] <- const.attr
-    ind <- (question - 1) * alternatives.per.question + (1:alternatives.per.question)
-    design.dash[ind, f] <- 1
-    output <- integratedAlgorithm(design.dash, const.attr.list.dash, prior,
-                                  n.questions, alternatives.per.question,
-                                  levels.per.attribute)
-    design.dash <- output$design
-    const.attr.list.dash <- output$const.attr.list
 
-    d.dash <- computeDCriterion(design.dash, prior, n.questions,
-                                alternatives.per.question,
-                                levels.per.attribute, start.indices)
-    d.star <- computeDCriterion(design.star, prior, n.questions,
-                                alternatives.per.question,
-                                levels.per.attribute, start.indices)
-    if (d.dash > d.star)
-    {
-        design.star <- design.dash
-        const.attr.list.star <- const.attr.list.dash
-    }
-    list(design.star = design.star,
-         const.attr.list.star = const.attr.list.star)
+    integratedAlgorithm(design.dash, const.attr.list.dash, prior, n.questions,
+                        alternatives.per.question, levels.per.attribute)
 }
 
 computeDCriterion <- function(design, prior, n.questions,
