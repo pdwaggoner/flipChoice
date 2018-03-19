@@ -33,10 +33,54 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// choiceProbabilities
+Eigen::VectorXd choiceProbabilities(Eigen::MatrixXd& question_design, Eigen::VectorXd& prior);
+RcppExport SEXP _flipChoice_choiceProbabilities(SEXP question_designSEXP, SEXP priorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type question_design(question_designSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type prior(priorSEXP);
+    rcpp_result_gen = Rcpp::wrap(choiceProbabilities(question_design, prior));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dPCriterionShortcut
+double dPCriterionShortcut(Eigen::MatrixXd& question_design, Eigen::VectorXd& prior, Eigen::MatrixXd& partial_info_matrix, int alternatives_per_question);
+RcppExport SEXP _flipChoice_dPCriterionShortcut(SEXP question_designSEXP, SEXP priorSEXP, SEXP partial_info_matrixSEXP, SEXP alternatives_per_questionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type question_design(question_designSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type partial_info_matrix(partial_info_matrixSEXP);
+    Rcpp::traits::input_parameter< int >::type alternatives_per_question(alternatives_per_questionSEXP);
+    rcpp_result_gen = Rcpp::wrap(dPCriterionShortcut(question_design, prior, partial_info_matrix, alternatives_per_question));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dPPartialInfoMatrix
+Eigen::MatrixXd dPPartialInfoMatrix(Eigen::MatrixXd& coded_design, Eigen::VectorXd& prior, int n_questions, int question, int alternatives_per_question);
+RcppExport SEXP _flipChoice_dPPartialInfoMatrix(SEXP coded_designSEXP, SEXP priorSEXP, SEXP n_questionsSEXP, SEXP questionSEXP, SEXP alternatives_per_questionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type coded_design(coded_designSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< int >::type n_questions(n_questionsSEXP);
+    Rcpp::traits::input_parameter< int >::type question(questionSEXP);
+    Rcpp::traits::input_parameter< int >::type alternatives_per_question(alternatives_per_questionSEXP);
+    rcpp_result_gen = Rcpp::wrap(dPPartialInfoMatrix(coded_design, prior, n_questions, question, alternatives_per_question));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_flipChoice_d0CriterionShortcut", (DL_FUNC) &_flipChoice_d0CriterionShortcut, 3},
     {"_flipChoice_d0PartialInfoMatrix", (DL_FUNC) &_flipChoice_d0PartialInfoMatrix, 4},
+    {"_flipChoice_choiceProbabilities", (DL_FUNC) &_flipChoice_choiceProbabilities, 2},
+    {"_flipChoice_dPCriterionShortcut", (DL_FUNC) &_flipChoice_dPCriterionShortcut, 4},
+    {"_flipChoice_dPPartialInfoMatrix", (DL_FUNC) &_flipChoice_dPPartialInfoMatrix, 5},
     {NULL, NULL, 0}
 };
 

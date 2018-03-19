@@ -9,3 +9,15 @@ d0PartialInfoMatrix <- function(coded_design, n_questions, question, alternative
     .Call(`_flipChoice_d0PartialInfoMatrix`, coded_design, n_questions, question, alternatives_per_question)
 }
 
+choiceProbabilities <- function(question_design, prior) {
+    .Call(`_flipChoice_choiceProbabilities`, question_design, prior)
+}
+
+dPCriterionShortcut <- function(question_design, prior, partial_info_matrix, alternatives_per_question) {
+    .Call(`_flipChoice_dPCriterionShortcut`, question_design, prior, partial_info_matrix, alternatives_per_question)
+}
+
+dPPartialInfoMatrix <- function(coded_design, prior, n_questions, question, alternatives_per_question) {
+    .Call(`_flipChoice_dPPartialInfoMatrix`, coded_design, prior, n_questions, question, alternatives_per_question)
+}
+

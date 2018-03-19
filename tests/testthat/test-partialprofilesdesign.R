@@ -29,3 +29,15 @@ test_that("Utility neutral extensive algorithm", {
     # Optimal criterion is 4
     expect_equal(result$d.criterion, 4)
 })
+
+test_that("D-p optimal integrated algorithm", {
+    result <- ChoiceModelDesign(design.algorithm = "Partial profiles",
+                                attribute.levels = attribute.levels,
+                                prior = c(1, -1, 1, 0, 1, 2, 0, -1, -2),
+                                n.questions = 18,
+                                n.versions = 1,
+                                alternatives.per.question = 2,
+                                n.constant.attributes = 3,
+                                seed = 1)
+    expect_equal(result$d.criterion, 0.341809125113659)
+})

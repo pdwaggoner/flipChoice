@@ -108,10 +108,10 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     design.function <- getFromNamespace(paste0(function.name, "Design"),
                                         ns = "flipChoice")
 
-    if (!is.null(prior) && design.algorithm != "Efficient")
+    if (!is.null(prior) && !(design.algorithm %in% c("Efficient",
+                                                     "Partial profiles")))
         warning(gettextf("Prior data can only be used with algorithm %s and will be ignored.",
                          sQuote("Efficient")))
-
 
     if (is.list(attribute.levels))
     {

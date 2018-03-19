@@ -42,26 +42,28 @@ calculateDError <- function(design.matrix, attribute.levels, effects = TRUE, pri
     des.att <- design.matrix[, 3:ncol(design.matrix)] # Part of the design matrix containing the attributes
     coded.design <- encodeDesign(des.att, effects = effects)
 
-    # Generate choice probabilities of each alternative
-    if (!is.null(prior))
-        diagP <- logitChoiceProbs(coded.design, prior, J, N)
-    else
-        diagP <- rep(1 / J, M)
-
     # det of inverse == inverse of det
-    dPCriterion(coded.design, diagP, N, J) ^ (-1 / K)
+    if (!is.null(prior))
+        dPCriterion(coded.design, prior, N, J) ^ (-1 / K)
+    else
+        d0Criterion(coded.design, N, J) ^ (-1 / K)
 }
 
-dPCriterion <- function(coded.design, choice.probs, n.questions,
+dPCriterion <- function(coded.design, prior, n.questions,
                         alternatives.per.question)
 {
+    # Generate choice probabilities of each alternative
+    choice.probs <- logitChoiceProbs(coded.design, prior,
+                                     alternatives.per.question,
+                                     n.questions)
+
     xbars <- vector("numeric")
     for (s in 1L:n.questions)
     {
         question.indices <- (s - 1) * alternatives.per.question +
                             (1:alternatives.per.question)
         sums <- colSums(coded.design[question.indices, ] *
-                            choice.probs[question.indices])
+                        choice.probs[question.indices])
         xbars <- rbind(xbars, repRow(sums, alternatives.per.question))
     }
     Z <- as.matrix(coded.design - xbars)
