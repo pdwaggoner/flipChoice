@@ -998,10 +998,8 @@ test_that("Street, Burgess, Louviere 2005 Table 5: 4^5/2/16",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
-    df <- as.data.frame(apply(out$design, 2, as.factor))
-    mm <- model.matrix(form, df, contrasts = ca)[, -1]
-    d.err <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
-    d.err/d.err.pub
+    expect_equal(out$d.error, d.err.pub, tolerance = .01)
+    expect_true(out$d.error/d.err.pub <= 1)
 })
 
 test_that("Street, Burgess, Louviere 2005 Table 5: 2^2*4^2/3/16",
@@ -1027,8 +1025,10 @@ test_that("Street, Burgess, Louviere 2005 Table 5: 2^2*4^2/3/16",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
-    ## expect_equal(out$d.error, d.err.pub, tolerance = .01)
-    expect_true(out$d.error/d.err.pub <= 1)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    d.err <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+    expect_equal(d.err, d.err.pub, tolerance = .005)
 })
 
 ## test_that("SAS tech doc. mr2010f,"
