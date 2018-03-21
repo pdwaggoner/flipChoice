@@ -44,13 +44,13 @@ calculateDError <- function(design.matrix, attribute.levels, effects = TRUE, pri
 
     # det of inverse == inverse of det
     if (!is.null(prior))
-        dPCriterion(coded.design, prior, N, J) ^ (-1 / K)
+        dPCriterion(coded.design, prior, N, J, FALSE) ^ (-1 / K)
     else
-        d0Criterion(coded.design, N, J) ^ (-1 / K)
+        d0Criterion(coded.design, N, J, FALSE) ^ (-1 / K)
 }
 
 dPCriterion <- function(coded.design, prior, n.questions,
-                        alternatives.per.question)
+                        alternatives.per.question, compute.log = TRUE)
 {
     # Generate choice probabilities of each alternative
     choice.probs <- logitChoiceProbs(coded.design, prior,
@@ -67,11 +67,16 @@ dPCriterion <- function(coded.design, prior, n.questions,
         xbars <- rbind(xbars, repRow(sums, alternatives.per.question))
     }
     Z <- as.matrix(coded.design - xbars)
-    omega <- crossprod(Z, choice.probs * Z)   # t(Z) %*% P %*% Z
-    det(omega)
+    info.matrix <- crossprod(Z, choice.probs * Z)   # t(Z) %*% P %*% Z
+    det.info.matrix <- max(det(info.matrix), 0)
+    if (compute.log)
+        log(det.info.matrix)
+    else
+        det.info.matrix
 }
 
-d0Criterion <- function(coded.design, n.questions, alternatives.per.question)
+d0Criterion <- function(coded.design, n.questions, alternatives.per.question,
+                        compute.log = TRUE)
 {
     n.parameters <- ncol(coded.design)
     info.matrix <- matrix(0, nrow = n.parameters, ncol = n.parameters)
@@ -86,7 +91,11 @@ d0Criterion <- function(coded.design, n.questions, alternatives.per.question)
                        alternatives.per.question
     }
     info.matrix <- info.matrix / alternatives.per.question
-    det(info.matrix)
+    det.info.matrix <- max(det(info.matrix), 0)
+    if (compute.log)
+        log(det.info.matrix)
+    else
+        det.info.matrix
 }
 
 logitChoiceProbs = function(coded.matrix, prior, number.alternatives, number.tasks) {

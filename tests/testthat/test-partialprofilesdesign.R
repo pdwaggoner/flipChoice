@@ -13,7 +13,7 @@ test_that("Utility neutral integrated algorithm", {
                                 n.constant.attributes = 3,
                                 seed = 1)
     # Optimal criterion is 4
-    expect_equal(result$d.criterion, 3.8125)
+    expect_equal(result$d.criterion, 1.22245332640841)
 })
 
 test_that("Utility neutral extensive algorithm", {
@@ -25,9 +25,9 @@ test_that("Utility neutral extensive algorithm", {
                                 alternatives.per.question = 2,
                                 n.constant.attributes = 3,
                                 extensive = TRUE,
-                                seed = 2)
+                                seed = 1)
     # Optimal criterion is 4
-    expect_equal(result$d.criterion, 4)
+    expect_equal(result$d.criterion, 1.38629436111989)
 })
 
 test_that("D-p optimal integrated algorithm", {
@@ -39,5 +39,5 @@ test_that("D-p optimal integrated algorithm", {
                                 alternatives.per.question = 2,
                                 n.constant.attributes = 3,
                                 seed = 1)
-    expect_equal(result$d.criterion, 0.341809125113659)
+    expect_equal(result$d.criterion, -1.03396669554188)
 })

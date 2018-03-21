@@ -32,6 +32,9 @@ questions/tasks to be performed by each respondent.}
 
 \item{n.constant.attributes}{The number of attributes to keep constant.}
 
+\item{extensive}{Logical; whether to used the extensive algorithm instead of
+the integrated algorithm for partial profiles.}
+
 \item{seed}{Integer value specifying the random seed to use for the
 algorithm.}
 }

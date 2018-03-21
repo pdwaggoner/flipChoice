@@ -33,6 +33,8 @@
 #'     labels the alternatives.
 #' @param n.constant.attributes Integer; the number of attributes to keep
 #'     constant.
+#' @param extensive Logical; whether to used the extensive algorithm instead of
+#' the integrated algorithm for partial profiles.
 #' @param output One of \code{"Labeled design"} or \code{"Inputs"}.
 #' @param seed Integer; random seed to be used by the algorithms.
 #' @return A list with components
@@ -140,6 +142,10 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     # If labeled.alternatives then alternatives.per.question is calculated and not supplied
     if (labeled.alternatives)
         alternatives.per.question <- length(attribute.levels[[1]])
+
+    checkDesignParametersValid(n.questions, alternatives.per.question,
+                               n.versions, levels.per.attribute,
+                               n.constant.attributes)
 
     # Check if prohibitions are valid for the algorithm
     algorithms.without.prohibitions <- c("Efficient", "Shortcut",
@@ -458,5 +464,24 @@ mlogitModel <- function(cmd, choices = NULL) {
     return(ml.model)
 }
 
+checkDesignParametersValid <- function(n.questions, alternatives.per.question,
+                                       n.versions, levels.per.attribute,
+                                       n.constant.attributes)
+{
+    n.attributes <- length(levels.per.attribute)
+    # Define a "block" to be a (version, question, attribute) triplet
+    n.blocks.available <- n.versions * n.questions * (n.attributes -
+                                                      n.constant.attributes)
+    # This is the number of blocks required so that the levels from all
+    # attributes can be displayed in the design.
+    n.blocks.required <- sum(ceiling(levels.per.attribute /
+                                         alternatives.per.question))
+    if (n.blocks.required > n.blocks.available)
+        inputNotSensibleError()
+}
 
-
+inputNotSensibleError <- function()
+{
+    stop("The inputs are not sensible. Try increasing the number of ",
+         "questions or reducing the number of constant attributes.")
+}

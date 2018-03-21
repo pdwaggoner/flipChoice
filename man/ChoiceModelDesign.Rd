@@ -53,6 +53,9 @@ labels the alternatives.}
 \item{n.constant.attributes}{Integer; the number of attributes to keep
 constant.}
 
+\item{extensive}{Logical; whether to used the extensive algorithm instead of
+the integrated algorithm for partial profiles.}
+
 \item{output}{One of \code{"Labeled design"} or \code{"Inputs"}.}
 
 \item{seed}{Integer; random seed to be used by the algorithms.}

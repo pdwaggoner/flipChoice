@@ -21,6 +21,8 @@
 #' @param n.questions Numeric value specifying the total number of
 #'     questions/tasks to be performed by each respondent.
 #' @param n.constant.attributes The number of attributes to keep constant.
+#' @param extensive Logical; whether to used the extensive algorithm instead of
+#'     the integrated algorithm for partial profiles.
 #' @param seed Integer value specifying the random seed to use for the
 #'     algorithm.
 #' @return \itemize{
@@ -507,6 +509,7 @@ partialProfilesRandomDesign <- function(levels.per.attribute,
 {
     start.indices <- cumsum(c(0, levels.per.attribute - 1)) + 1
     n.attributes <- length(levels.per.attribute)
+    n.attempts <- 0
     repeat
     {
         const.attr.list <- initializeConstantAttributesList(n.questions,
@@ -524,10 +527,14 @@ partialProfilesRandomDesign <- function(levels.per.attribute,
                                            alternatives.per.question,
                                            levels.per.attribute,
                                            start.indices)
-            if (criterion > 0)
+            if (exp(criterion) > .Machine$double.eps)
                 break
         }
+        if (n.attempts > 1000)
+            inputNotSensibleError()
+        set.seed(seed)
         seed <- sample(1000, 1)
+        n.attempts <- n.attempts + 1
     }
     list(design = design, const.attr.list = const.attr.list)
 }

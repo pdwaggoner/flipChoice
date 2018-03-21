@@ -6,10 +6,10 @@ double d0CriterionShortcut(Eigen::MatrixXd & question_design,
                                int alternatives_per_question)
 {
     Eigen::MatrixXd sums = question_design.colwise().sum();
-    return ((double)((partial_info_matrix +
+    return log(((double)((partial_info_matrix +
                    question_design.transpose() * question_design -
                    sums.transpose() * sums / alternatives_per_question)).determinant()) /
-                   pow(alternatives_per_question, partial_info_matrix.rows());
+                   pow(alternatives_per_question, partial_info_matrix.rows()));
 }
 
 // [[Rcpp::export]]
@@ -52,10 +52,10 @@ double dPCriterionShortcut(Eigen::MatrixXd & question_design,
                            int alternatives_per_question)
 {
     Eigen::VectorXd choice_probs = choiceProbabilities(question_design, prior);
-    return (double)((partial_info_matrix + question_design.transpose() *
+    return log((double)((partial_info_matrix + question_design.transpose() *
         (Eigen::MatrixXd(choice_probs.asDiagonal()) -
         choice_probs * choice_probs.transpose()) *
-        question_design).determinant());
+        question_design).determinant()));
 }
 
 // [[Rcpp::export]]
