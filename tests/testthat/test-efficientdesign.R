@@ -923,7 +923,7 @@ test_that("Burgess and Street 1992, Appendix 8 A.1: 4^4*2^2*8*36/3/288",
     d.err/d.error.pub <= 1
 })
 
-test_that("Sandor and Wedel 2001: 3^5/2/15",
+test_that("Sandor and Wedel 2001, Table 5: 3^5/2/15",
 {
     seed <- 11001100
     data("sw1.design", package = "flipChoice")
@@ -940,13 +940,22 @@ test_that("Sandor and Wedel 2001: 3^5/2/15",
     form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
     mm <- model.matrix(form, sw1.design, contrasts = ca)[, -1]
 
-    d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+    prior.beta <- c(.272, -.617, -.291, -.51, .007, -.303, .649, .19,
+                    -.331, .368)  ## Table 4 in S & W (2001)
+    est.beta <- c(.559, -.706, -.652, .111, -.087, -.213, -.277,
+                   .487, .452, -.011)  ## Table 4 in S & W (2001)
+
+    ## reported D-error in S & W matches with est.beta not prior.beta here for some reason
+    d.err.pub <- idefix:::Derr(est.beta, mm, apq)
 
     out <- ChoiceModelDesign(design.algorithm = "Efficient",
-                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         attribute.levels = attr.list, prior = prior.beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
-   out$d.error/d.err.pub
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    d.err <- idefix:::Derr(est.beta, mm, apq)
+    expect_true(d.err/d.err.pub <= 1L)
 })
 
 test_that("Sandor and Wedel 2001: 3^4/2/15",
@@ -966,10 +975,12 @@ test_that("Sandor and Wedel 2001: 3^4/2/15",
     form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
     mm <- model.matrix(form, sw2.design, contrasts = ca)[, -1]
 
-    d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+    prior.coef <- rep(c(0, 1), times = 4)
+    ## d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
+    d.err.pub <- idefix:::Derr(prior.coef, mm, apq)
 
     out <- ChoiceModelDesign(design.algorithm = "Efficient",
-                         attribute.levels = attr.list, prior = NULL, n.questions = n.q,
+                         attribute.levels = attr.list, prior = prior.coef, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
    expect_true(out$d.error/d.err.pub <= 1)
