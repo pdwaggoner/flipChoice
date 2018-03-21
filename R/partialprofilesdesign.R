@@ -59,6 +59,13 @@ partialProfilesDesign <- function(levels.per.attribute, prior = NULL,
     if (n.constant.attributes < 0 || n.constant.attributes >= n.attributes)
         stop("The number of constant attributes is invalid. It needs to be a ",
              "whole number from 0 to number of attributes - 1.")
+    if (n.constant.attributes == 0 && extensive)
+    {
+        warning("The extensive algorithm cannot be applied when there are no ",
+                "constant attributes. The integrated algorithm will be used ",
+                "instead.")
+        extensive <- FALSE
+    }
     output <- partialProfilesRandomDesign(levels.per.attribute,
                                           alternatives.per.question,
                                           const.attr.list, n.questions,
