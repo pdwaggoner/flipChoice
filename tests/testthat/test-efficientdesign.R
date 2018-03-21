@@ -449,7 +449,7 @@ test_that("HZ paper Table 2, 4*3^3/3/48",
 
 test_that("HZ paper Table 2, 9*8*4*3^4*2^3/3/63",
 {
-    ## extremely slow
+    ## extremely slow, 3.87 days on MWM PC
     skip_on_cran()
     skip_on_travis()
     seed <- 10101010
@@ -471,8 +471,8 @@ test_that("HZ paper Table 2, 9*8*4*3^4*2^3/3/63",
     names(ca) <- names(attr.list)
     form <- as.formula(paste0("~", paste(names(attr.list), collapse = "+")))
     mm <- model.matrix(form, df, contrasts = ca)[, -1]
-    d.err <- idefix:::Derr(numeric(sum(levs - 1)), mm, apq)
-    d.err/d.error.ave.relab
+    d.err <- idefix:::Derr(numeric(sum(levs - 1)), mm, apq)  # .06332
+    d.err/d.error.ave.relab  # .9312012
 })
 
 test_that("HZ paper Table 2, 3^3/3/9, non-zero beta",
@@ -1008,7 +1008,7 @@ test_that("Street, Burgess, Louviere 2005 Table 5: 2^2*4^2/3/16",
 {
     seed <- 101100
     data("sbl2.design", package = "flipChoice")
-    ca <- as.list(rep("contr.treatment", ncol(sbl2.design) - 2))
+    ca <- as.list(rep("contr.sum", ncol(sbl2.design) - 2))
     names(ca) <- names(sbl2.design)[-(1:2)]
     maxes <- as.numeric(apply(sbl2.design, 2,
                               function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
@@ -1027,7 +1027,8 @@ test_that("Street, Burgess, Louviere 2005 Table 5: 2^2*4^2/3/16",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
-    expect_equal(out$d.error, d.err.pub, tolerance = .005)
+    ## expect_equal(out$d.error, d.err.pub, tolerance = .01)
+    expect_true(out$d.error/d.err.pub <= 1)
 })
 
 ## test_that("SAS tech doc. mr2010f,"
