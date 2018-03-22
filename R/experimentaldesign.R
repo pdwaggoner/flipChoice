@@ -216,10 +216,9 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                                                    alternatives.per.question)
     result$labeled.design <- labelDesign(result$design.with.none, attribute.levels)
     result$balances.and.overlaps <- balancesAndOverlaps(result)
-
-    result$d.error <- calculateDError(result$design,
-                                      sapply(result$attribute.levels, length),
-                                      effects = FALSE, prior = prior)
+    result$d.error <- if (is.null(prior) || is.vector(prior))
+        calculateDError(result$design, sapply(result$attribute.levels, length),
+                        effects = FALSE)
     ml.model <- mlogitModel(result)
     result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
 
