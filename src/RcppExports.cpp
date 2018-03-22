@@ -74,6 +74,52 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// setLevel
+Eigen::MatrixXd setLevel(Eigen::MatrixXd& question_design, int row_index, int attribute_index, int lvl, Eigen::VectorXi levels_per_attribute, Eigen::VectorXi start_indices);
+RcppExport SEXP _flipChoice_setLevel(SEXP question_designSEXP, SEXP row_indexSEXP, SEXP attribute_indexSEXP, SEXP lvlSEXP, SEXP levels_per_attributeSEXP, SEXP start_indicesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type question_design(question_designSEXP);
+    Rcpp::traits::input_parameter< int >::type row_index(row_indexSEXP);
+    Rcpp::traits::input_parameter< int >::type attribute_index(attribute_indexSEXP);
+    Rcpp::traits::input_parameter< int >::type lvl(lvlSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXi >::type levels_per_attribute(levels_per_attributeSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXi >::type start_indices(start_indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(setLevel(question_design, row_index, attribute_index, lvl, levels_per_attribute, start_indices));
+    return rcpp_result_gen;
+END_RCPP
+}
+// setLevelAllRows
+Eigen::MatrixXd setLevelAllRows(Eigen::MatrixXd& question_design, int attribute_index, int lvl, Eigen::VectorXi levels_per_attribute, Eigen::VectorXi start_indices);
+RcppExport SEXP _flipChoice_setLevelAllRows(SEXP question_designSEXP, SEXP attribute_indexSEXP, SEXP lvlSEXP, SEXP levels_per_attributeSEXP, SEXP start_indicesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type question_design(question_designSEXP);
+    Rcpp::traits::input_parameter< int >::type attribute_index(attribute_indexSEXP);
+    Rcpp::traits::input_parameter< int >::type lvl(lvlSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXi >::type levels_per_attribute(levels_per_attributeSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXi >::type start_indices(start_indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(setLevelAllRows(question_design, attribute_index, lvl, levels_per_attribute, start_indices));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getLevel
+int getLevel(Eigen::MatrixXd& question_design, int row_index, int attribute_index, Eigen::VectorXi levels_per_attribute, Eigen::VectorXi start_indices);
+RcppExport SEXP _flipChoice_getLevel(SEXP question_designSEXP, SEXP row_indexSEXP, SEXP attribute_indexSEXP, SEXP levels_per_attributeSEXP, SEXP start_indicesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type question_design(question_designSEXP);
+    Rcpp::traits::input_parameter< int >::type row_index(row_indexSEXP);
+    Rcpp::traits::input_parameter< int >::type attribute_index(attribute_indexSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXi >::type levels_per_attribute(levels_per_attributeSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXi >::type start_indices(start_indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(getLevel(question_design, row_index, attribute_index, levels_per_attribute, start_indices));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_flipChoice_d0CriterionShortcut", (DL_FUNC) &_flipChoice_d0CriterionShortcut, 3},
@@ -81,6 +127,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_flipChoice_choiceProbabilities", (DL_FUNC) &_flipChoice_choiceProbabilities, 2},
     {"_flipChoice_dPCriterionShortcut", (DL_FUNC) &_flipChoice_dPCriterionShortcut, 4},
     {"_flipChoice_dPPartialInfoMatrix", (DL_FUNC) &_flipChoice_dPPartialInfoMatrix, 5},
+    {"_flipChoice_setLevel", (DL_FUNC) &_flipChoice_setLevel, 6},
+    {"_flipChoice_setLevelAllRows", (DL_FUNC) &_flipChoice_setLevelAllRows, 5},
+    {"_flipChoice_getLevel", (DL_FUNC) &_flipChoice_getLevel, 5},
     {NULL, NULL, 0}
 };
 

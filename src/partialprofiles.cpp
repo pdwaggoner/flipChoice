@@ -85,3 +85,61 @@ Eigen::MatrixXd dPPartialInfoMatrix(Eigen::MatrixXd & coded_design,
     }
     return info_matrix;
 }
+
+// [[Rcpp::export]]
+Eigen::MatrixXd setLevel(Eigen::MatrixXd & question_design, int row_index,
+                            int attribute_index, int lvl,
+                            Eigen::VectorXi levels_per_attribute,
+                            Eigen::VectorXi start_indices)
+{
+    int start_index = start_indices[attribute_index - 1] - 1;
+    int n_levels = levels_per_attribute[attribute_index - 1] - 1;
+    for (int i = 0; i < n_levels; i++)
+    {
+        if (lvl - 2 == i)
+            question_design(row_index - 1, start_index + i) = 1;
+        else
+            question_design(row_index - 1, start_index + i) = 0;
+    }
+    return question_design;
+}
+
+// [[Rcpp::export]]
+Eigen::MatrixXd setLevelAllRows(Eigen::MatrixXd & question_design,
+                                int attribute_index, int lvl,
+                                Eigen::VectorXi levels_per_attribute,
+                                Eigen::VectorXi start_indices)
+{
+    int n_rows = question_design.rows();
+    int start_index = start_indices[attribute_index - 1] - 1;
+    int n_levels = levels_per_attribute[attribute_index - 1] - 1;
+    for (int i = 0; i < n_levels; i++)
+    {
+        if (lvl - 2 == i)
+        {
+            for (int j = 0; j < n_rows; j++)
+                question_design(j, start_index + i) = 1;
+        }
+        else
+        {
+            for (int j = 0; j < n_rows; j++)
+                question_design(j, start_index + i) = 0;
+        }
+    }
+    return question_design;
+}
+
+// [[Rcpp::export]]
+int getLevel(Eigen::MatrixXd & question_design, int row_index,
+             int attribute_index, Eigen::VectorXi levels_per_attribute,
+             Eigen::VectorXi start_indices)
+{
+    int start_index = start_indices[attribute_index - 1] - 1;
+    int n_levels = levels_per_attribute[attribute_index - 1] - 1;
+    for (int i = 0; i < n_levels; i++)
+    {
+        if (question_design(row_index - 1, start_index + i) == 1)
+            return i + 2;
+    }
+    return 1;
+}

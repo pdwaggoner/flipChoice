@@ -601,39 +601,3 @@ addAttributeNames <- function(design, levels.per.attribute)
         colnames(design) <- names(levels.per.attribute)
     design
 }
-
-getLevel <- function(question.design, row.index, attribute.index,
-                     levels.per.attribute, start.indices)
-{
-    lvl <- which(question.design[row.index, start.indices[attribute.index]:
-                              (start.indices[attribute.index + 1] - 1)] == 1)
-    if (length(lvl) == 0)
-        1
-    else
-        lvl + 1
-}
-
-setLevel <- function(question.design, row.index, attribute.index,
-                     lvl, levels.per.attribute, start.indices)
-{
-    question.design[row.index, start.indices[attribute.index]:
-                     (start.indices[attribute.index + 1] - 1)] <- 0
-    if (lvl > 1)
-    {
-        question.design[row.index,
-                        start.indices[attribute.index] + lvl - 2] <- 1
-    }
-    question.design
-}
-
-setLevelAllRows <- function(question.design, attribute.index, lvl,
-                            levels.per.attribute, start.indices)
-{
-    question.design[, start.indices[attribute.index]:
-                        (start.indices[attribute.index + 1] - 1)] <- 0
-    if (lvl > 1)
-    {
-        question.design[, start.indices[attribute.index] + lvl - 2] <- 1
-    }
-    question.design
-}

@@ -21,3 +21,15 @@ dPPartialInfoMatrix <- function(coded_design, prior, n_questions, question, alte
     .Call(`_flipChoice_dPPartialInfoMatrix`, coded_design, prior, n_questions, question, alternatives_per_question)
 }
 
+setLevel <- function(question_design, row_index, attribute_index, lvl, levels_per_attribute, start_indices) {
+    .Call(`_flipChoice_setLevel`, question_design, row_index, attribute_index, lvl, levels_per_attribute, start_indices)
+}
+
+setLevelAllRows <- function(question_design, attribute_index, lvl, levels_per_attribute, start_indices) {
+    .Call(`_flipChoice_setLevelAllRows`, question_design, attribute_index, lvl, levels_per_attribute, start_indices)
+}
+
+getLevel <- function(question_design, row_index, attribute_index, levels_per_attribute, start_indices) {
+    .Call(`_flipChoice_getLevel`, question_design, row_index, attribute_index, levels_per_attribute, start_indices)
+}
+
