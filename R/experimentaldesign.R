@@ -219,7 +219,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
 
     result$d.error <- calculateDError(result$design,
                                       sapply(result$attribute.levels, length),
-                                      effects = FALSE)
+                                      effects = FALSE, prior = prior)
     ml.model <- mlogitModel(result)
     result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
 
