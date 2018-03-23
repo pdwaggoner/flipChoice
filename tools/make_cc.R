@@ -31,7 +31,6 @@ make_cc <- function(file) {
       sep = "\n", append = FALSE)
 
   f <- sub("\\.stan$", "", basename(file))
-  print(f)
   Rcpp::exposeClass(class = paste0("model_", f),
                     constructors = list(c("SEXP", "SEXP", "SEXP")), fields = character(),
                     methods = c("call_sampler",
