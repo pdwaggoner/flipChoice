@@ -13,16 +13,8 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 
     stan.dat <- createStanData(dat, n.classes, normal.covariance)
 
-    if (IsRServer()) # R servers
-    {
-        stan.model <- stanModel(n.classes, normal.covariance)
-        stan.file <- NULL
-    }
-    else
-    {
-        stan.model <- NULL
-        stan.file <- stanFileName(n.classes, normal.covariance)
-    }
+    stan.model <- stanModel(n.classes, normal.covariance)
+    stan.file <- NULL
 
     on.warnings <- GetStanWarningHandler(show.stan.warnings)
     on.error <- GetStanErrorHandler()
@@ -91,29 +83,11 @@ RunStanSampling <- function(stan.dat, n.iterations, n.chains,
     pars <- stanParameters(stan.dat, keep.beta)
     init <- initialParameterValues(stan.dat)
 
-    if (IsRServer()) # R servers
-    {
-        # Loads a precompiled stan model called mod from sysdata.rda to avoid recompiling.
-        # The R code used to generate mod on a linux machine is:
-        # mod <- rstan::stan_model(model_code = model.code)
-        # devtools::use_data(mod, internal = TRUE, overwrite = TRUE)
-        # where model.code is the stan code as a string.
-        # Ideally we would want to recompile when the package is built (similar to Rcpp)
-        result <- sampling(stan.model, data = stan.dat, chains = n.chains,
-                           pars = pars, iter = n.iterations, seed = seed,
-                           control = list(max_treedepth = max.tree.depth,
-                                          adapt_delta = adapt.delta),
-                           init = init, ...)
-    }
-    else # Not R servers
-    {
-        result <- stan(file = stan.file, data = stan.dat, iter = n.iterations,
-                       chains = n.chains, seed = seed, pars = pars,
+    sampling(stan.model, data = stan.dat, chains = n.chains,
+                       pars = pars, iter = n.iterations, seed = seed,
                        control = list(max_treedepth = max.tree.depth,
                                       adapt_delta = adapt.delta),
                        init = init, ...)
-    }
-    result
 }
 
 stanParameters <- function(stan.dat, keep.beta)
