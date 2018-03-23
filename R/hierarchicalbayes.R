@@ -8,9 +8,6 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
                                          show.stan.warnings = TRUE,
                                          beta.draws.to.keep = 0, ...)
 {
-    # We want to replace this call with a proper integration of rstan into this package
-    require(rstan)
-
     # allows Stan chains to run in parallel on multiprocessor machines
     options(mc.cores = parallel::detectCores())
 
@@ -85,6 +82,7 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 #' \code{rstan::sampling}.
 #' @return A stanfit object.
 #' @importFrom rstan stan sampling
+#' @import Rcpp
 #' @export
 RunStanSampling <- function(stan.dat, n.iterations, n.chains,
                             max.tree.depth, adapt.delta,
@@ -279,7 +277,7 @@ stanFileName <- function(n.classes, normal.covariance)
             result <- "diagonalmixture.stan"
     }
 
-    result <- file.path(system.file("stan", package = "flipChoice",
+    result <- file.path(system.file("src", "stan_files", package = "flipChoice",
                                     mustWork = TRUE), result)
 
     result
@@ -290,16 +288,16 @@ stanModel <- function(n.classes, normal.covariance)
     if (n.classes == 1)
     {
         if (normal.covariance == "Full")
-            mod
+            stanmodels$choicemodel
         else
-            mod.diag
+            stanmodels$diagonal
     }
     else
     {
         if (normal.covariance == "Full")
-            mod.mix
+            stanmodels$diagonalmixture
         else
-            mod.mix.diag
+            stanmodels$mixtureofnormals
     }
 }
 

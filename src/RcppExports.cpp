@@ -120,20 +120,3 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-
-static const R_CallMethodDef CallEntries[] = {
-    {"_flipChoice_d0CriterionShortcut", (DL_FUNC) &_flipChoice_d0CriterionShortcut, 3},
-    {"_flipChoice_d0PartialInfoMatrix", (DL_FUNC) &_flipChoice_d0PartialInfoMatrix, 4},
-    {"_flipChoice_choiceProbabilities", (DL_FUNC) &_flipChoice_choiceProbabilities, 2},
-    {"_flipChoice_dPCriterionShortcut", (DL_FUNC) &_flipChoice_dPCriterionShortcut, 4},
-    {"_flipChoice_dPPartialInfoMatrix", (DL_FUNC) &_flipChoice_dPPartialInfoMatrix, 5},
-    {"_flipChoice_setLevel", (DL_FUNC) &_flipChoice_setLevel, 6},
-    {"_flipChoice_setLevelAllRows", (DL_FUNC) &_flipChoice_setLevelAllRows, 5},
-    {"_flipChoice_getLevel", (DL_FUNC) &_flipChoice_getLevel, 5},
-    {NULL, NULL, 0}
-};
-
-RcppExport void R_init_flipChoice(DllInfo *dll) {
-    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
-}
