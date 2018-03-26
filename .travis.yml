@@ -6,16 +6,27 @@ sudo: required
 cache: false
 warnings_are_errors: false
 
+env:
+  matrix: 
+    - CXX_OLEVEL=2 CXX=g++
+
 # install debian libraries to match R-servers
 # update pre-installed packages to latest versions
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libgdal-dev libproj-dev python-protobuf libprotoc-dev libprotobuf-dev libv8-dev librsvg2-dev
+  - sudo apt-get install -y libgdal-dev libproj-dev python-protobuf libprotoc-dev libprotobuf-dev libv8-dev librsvg2-dev libiomp5
   - rcode="res<-devtools::test(); "
   - rcode+="df <- as.data.frame(res); "
   - rcode+='pass <- sum(df$failed)==0 && all(!df$error); '
   - rcode+="write.csv(df, file='test_results.csv'); "
   - rcode+="quit(status=1-pass, save='no');"
+  - mkdir -p ~/.R/
+  - echo "CXX = `R CMD config CXX`" >> ~/.R/Makevars
+  - echo "CXXFLAGS = `R CMD config CXXFLAGS` -pedantic -g0" >> ~/.R/Makevars 
+  - export CLANG_EXTRA_ARG=""
+  - if [[ $CXX = "clang++" ]] ;  then export CLANG_EXTRA_ARG=" -Qunused-arguments -fcolor-diagnostics " ; fi
+  - sed -i.bak "s/ g++/ ${CXX}${CLANG_EXTRA_ARG}/" ~/.R/Makevars
+  - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
 
 r_packages:
   - roxygen2

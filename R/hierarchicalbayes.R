@@ -8,24 +8,13 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
                                          show.stan.warnings = TRUE,
                                          beta.draws.to.keep = 0, ...)
 {
-    # We want to replace this call with a proper integration of rstan into this package
-    require(rstan)
-
     # allows Stan chains to run in parallel on multiprocessor machines
     options(mc.cores = parallel::detectCores())
 
     stan.dat <- createStanData(dat, n.classes, normal.covariance)
 
-    if (IsRServer()) # R servers
-    {
-        stan.model <- stanModel(n.classes, normal.covariance)
-        stan.file <- NULL
-    }
-    else
-    {
-        stan.model <- NULL
-        stan.file <- stanFileName(n.classes, normal.covariance)
-    }
+    stan.model <- stanModel(n.classes, normal.covariance)
+    stan.file <- NULL
 
     on.warnings <- GetStanWarningHandler(show.stan.warnings)
     on.error <- GetStanErrorHandler()
@@ -85,6 +74,7 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 #' \code{rstan::sampling}.
 #' @return A stanfit object.
 #' @importFrom rstan stan sampling
+#' @import Rcpp
 #' @export
 RunStanSampling <- function(stan.dat, n.iterations, n.chains,
                             max.tree.depth, adapt.delta,
@@ -93,29 +83,11 @@ RunStanSampling <- function(stan.dat, n.iterations, n.chains,
     pars <- stanParameters(stan.dat, keep.beta)
     init <- initialParameterValues(stan.dat)
 
-    if (IsRServer()) # R servers
-    {
-        # Loads a precompiled stan model called mod from sysdata.rda to avoid recompiling.
-        # The R code used to generate mod on a linux machine is:
-        # mod <- rstan::stan_model(model_code = model.code)
-        # devtools::use_data(mod, internal = TRUE, overwrite = TRUE)
-        # where model.code is the stan code as a string.
-        # Ideally we would want to recompile when the package is built (similar to Rcpp)
-        result <- sampling(stan.model, data = stan.dat, chains = n.chains,
-                           pars = pars, iter = n.iterations, seed = seed,
-                           control = list(max_treedepth = max.tree.depth,
-                                          adapt_delta = adapt.delta),
-                           init = init, ...)
-    }
-    else # Not R servers
-    {
-        result <- stan(file = stan.file, data = stan.dat, iter = n.iterations,
-                       chains = n.chains, seed = seed, pars = pars,
+    sampling(stan.model, data = stan.dat, chains = n.chains,
+                       pars = pars, iter = n.iterations, seed = seed,
                        control = list(max_treedepth = max.tree.depth,
                                       adapt_delta = adapt.delta),
                        init = init, ...)
-    }
-    result
 }
 
 stanParameters <- function(stan.dat, keep.beta)
@@ -279,7 +251,7 @@ stanFileName <- function(n.classes, normal.covariance)
             result <- "diagonalmixture.stan"
     }
 
-    result <- file.path(system.file("stan", package = "flipChoice",
+    result <- file.path(system.file("src", "stan_files", package = "flipChoice",
                                     mustWork = TRUE), result)
 
     result
@@ -290,16 +262,16 @@ stanModel <- function(n.classes, normal.covariance)
     if (n.classes == 1)
     {
         if (normal.covariance == "Full")
-            mod
+            stanmodels$choicemodel
         else
-            mod.diag
+            stanmodels$diagonal
     }
     else
     {
         if (normal.covariance == "Full")
-            mod.mix
+            stanmodels$diagonalmixture
         else
-            mod.mix.diag
+            stanmodels$mixtureofnormals
     }
 }
 
