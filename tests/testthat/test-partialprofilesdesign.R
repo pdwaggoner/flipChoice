@@ -188,7 +188,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta",
     mm <- model.matrix(form, df, contrasts = ca)[, -1]
     beta <- constrainedPrior(levs, pmeans, coding = "E")
     d.err <- idefix:::Derr(beta, mm, apq)
-    expect_equal(d.err < d.err.orig)
+    expect_true(d.err < d.err.orig)
 })
 
 test_that("HZ paper Table 2, 3^4/2/15, non-zero beta",
@@ -217,7 +217,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta",
     mm <- model.matrix(~a+b+c+d, df, contrasts = ca)[, -1]
     beta <- constrainedPrior(levs, pmeans, coding = "E")
     d.err <- idefix:::Derr(beta, mm, apq)
-    expect_equal(d.err, d.error.ave.relab, tolerance = .02)
+    expect_equal(d.err, d.error.best.relab, tolerance = .02)
 })
 
 test_that("HZ paper Table 2, 4^4/4/16, non-zero beta",
