@@ -8,13 +8,13 @@ warnings_are_errors: false
 
 env:
   matrix: 
-    - CXX_OLEVEL=2 CXX=clang++
+    - CXX_OLEVEL=2 CXX=g++
 
 # install debian libraries to match R-servers
 # update pre-installed packages to latest versions
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libgdal-dev libproj-dev python-protobuf libprotoc-dev libprotobuf-dev libv8-dev librsvg2-dev libomp-dev
+  - sudo apt-get install -y libgdal-dev libproj-dev python-protobuf libprotoc-dev libprotobuf-dev libv8-dev librsvg2-dev libiomp5
   - rcode="res<-devtools::test(); "
   - rcode+="df <- as.data.frame(res); "
   - rcode+='pass <- sum(df$failed)==0 && all(!df$error); '
