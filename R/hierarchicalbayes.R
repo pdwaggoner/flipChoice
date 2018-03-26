@@ -269,9 +269,9 @@ stanModel <- function(n.classes, normal.covariance)
     else
     {
         if (normal.covariance == "Full")
-            stanmodels$diagonalmixture
-        else
             stanmodels$mixtureofnormals
+        else
+            stanmodels$diagonalmixture
     }
 }
 
