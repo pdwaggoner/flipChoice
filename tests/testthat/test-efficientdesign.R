@@ -315,7 +315,7 @@ test_that("D-error calculation agrees with Huber-Zwerina Table 1 3^3/3/9",
 
     ## dummy coding
     ca <- as.list(rep("contr.treatment", 3))
-    names(ca) <- letters[1:3]
+    names(ca) <- LETTERS[1:3]
     mm <- model.matrix(~A+B+C, hz.design, contrasts = ca)[, -1]
     ## expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, 3),
     ##       calculateDError(cbind(1, hz.design), attribute.levels = c(3,3,3), TRUE))
