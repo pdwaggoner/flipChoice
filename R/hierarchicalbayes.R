@@ -513,3 +513,11 @@ computeThetaMeans <- function(samples, n.classes, n.variables)
     }
     means
 }
+
+pkgCxxFlags <- function()
+{
+    if (IsRServer())
+        cat("CXXFLAGS=-O3 -mtune=native -march=native -Wno-unused-variable -Wno-unused-function")
+    else
+        cat("")
+}
