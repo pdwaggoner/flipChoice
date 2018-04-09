@@ -398,6 +398,7 @@ computeDCriterion <- function(design, prior, n.questions,
         else
         {
             # to be done
+            stop("Bayesian priors not yet implemented.")
         }
     }
     else
@@ -423,6 +424,7 @@ computeDCriterionShortcut <- function(question.design, prior,
         else
         {
             # to be done
+            stop("Bayesian priors not yet implemented.")
         }
     }
     else
@@ -443,6 +445,7 @@ constructPartialInfoMatrix <- function(design, prior, n.questions, question,
     else
     {
         # to be done
+        stop("Bayesian priors not yet implemented.")
     }
 }
 
