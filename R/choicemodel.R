@@ -92,7 +92,7 @@
 #' @export
 #'
 FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
-                           design.file = NULL,
+                           design.file = NULL, cov.formula = NULL, cov.data = NULL,
                            attribute.levels.file = NULL,
                            choices = NULL, questions = NULL, n.classes = 1,
                            subset = NULL, weights = NULL, seed = 123,
@@ -125,7 +125,17 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
     else
         stop("Insufficient data was supplied.")
 
-    result <- hierarchicalBayesChoiceModel(dat, hb.iterations, hb.chains,
+    if (!is.null(cov.formula))
+    {
+        if (is.null(experiment.data))
+            stop(gettextf("Fixed covariates is currently only implemented for use with %s",
+                 sQuote(experiment.data)))
+        dat <- processCovariateData(cov.formula, cov.data, dat, subset)
+    }
+
+
+    result <- hierarchicalBayesChoiceModel(dat, cov.formula, cov.data,
+                                           hb.iterations, hb.chains,
                                            hb.max.tree.depth, hb.adapt.delta,
                                            seed, hb.keep.samples, n.classes,
                                            hb.stanfit, normal.covariance,

@@ -1,5 +1,6 @@
 #' @importFrom flipU InterceptExceptions
-hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
+hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
+                                         n.iterations = 500, n.chains = 8,
                                          max.tree.depth = 10,
                                          adapt.delta = 0.8, seed = 123,
                                          keep.samples = FALSE, n.classes = 1,
@@ -11,7 +12,7 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
     # allows Stan chains to run in parallel on multiprocessor machines
     options(mc.cores = parallel::detectCores())
 
-    stan.dat <- createStanData(dat, n.classes, normal.covariance)
+    stan.dat <- createStanData(dat, n.classes, normal.covariance, cov.formula, cov.data)
 
     stan.model <- stanModel(n.classes, normal.covariance)
     stan.file <- NULL
@@ -517,7 +518,7 @@ computeThetaMeans <- function(samples, n.classes, n.variables)
 pkgCxxFlags <- function()
 {
     if (IsRServer())
-        cat("CXXFLAGS=-O3 -mtune=native -march=native -Wno-unused-variable -Wno-unused-function")
+        cat("CXXFLAGS=-Ofast -mtune=native -march=native -Wno-unused-variable -Wno-unused-function")
     else
         cat("")
 }

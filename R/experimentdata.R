@@ -60,6 +60,7 @@ processExperimentData <- function(experiment.data, subset, weights,
                    Y.in = split.data$Y.in,
                    X.out = split.data$X.out,
                    Y.out = split.data$Y.out,
+                   left.out = split.data$left.out,
                    subset = subset,
                    weights = weights,
                    parameter.scales = parameter.scales,
@@ -310,8 +311,9 @@ crossValidationSplit <- function(X, Y, n.questions.left.out, seed)
         Y.in <- Y
         X.out <- NULL
         Y.out <- NULL
+        left.out <- NULL
     }
-    list(X.in = X.in, X.out = X.out, Y.in = Y.in, Y.out = Y.out)
+    list(X.in = X.in, X.out = X.out, Y.in = Y.in, Y.out = Y.out, left.out = left.out)
 }
 
 checkPriorParameters <- function(input.prior.mean, input.prior.sd, n.choices,
