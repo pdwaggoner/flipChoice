@@ -311,9 +311,8 @@ crossValidationSplit <- function(X, Y, n.questions.left.out, seed)
         Y.in <- Y
         X.out <- NULL
         Y.out <- NULL
-        left.out <- NULL
     }
-    list(X.in = X.in, X.out = X.out, Y.in = Y.in, Y.out = Y.out, left.out = left.out)
+    list(X.in = X.in, X.out = X.out, Y.in = Y.in, Y.out = Y.out)
 }
 
 checkPriorParameters <- function(input.prior.mean, input.prior.sd, n.choices,

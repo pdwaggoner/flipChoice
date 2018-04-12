@@ -12,9 +12,9 @@ hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
     # allows Stan chains to run in parallel on multiprocessor machines
     options(mc.cores = parallel::detectCores())
 
-    stan.dat <- createStanData(dat, n.classes, normal.covariance, cov.formula, cov.data)
+    stan.dat <- createStanData(dat, n.classes, normal.covariance)
 
-    stan.model <- stanModel(n.classes, normal.covariance)
+    stan.model <- stanModel(n.classes, normal.covariance, cov.formula)
     stan.file <- NULL
 
     on.warnings <- GetStanWarningHandler(show.stan.warnings)
@@ -34,12 +34,16 @@ hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
     class.match.fail <- matched$match.fail
 
     result <- list()
+    if (is.null(cov.formula))
+        beta.names <- dat$par.names
+    else
+        beta.names <- dat$beta.names
     result$reduced.respondent.parameters <- ComputeRespPars(stan.fit,
-                                                        dat$par.names,
+                                                        beta.names,
                                                         dat$subset,
                                                         dat$parameter.scales)
     result$respondent.parameters <- ComputeRespPars(stan.fit,
-                                                    dat$par.names,
+                                                    beta.names,
                                                     dat$subset,
                                                     dat$parameter.scales,
                                                     dat$all.names)
@@ -47,7 +51,8 @@ hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
     if (!class.match.fail)
         result$parameter.statistics <- GetParameterStatistics(stan.fit,
                                                               dat$par.names,
-                                                              n.classes)
+                                                              n.classes,
+                                                              beta.names)
     if (include.stanfit)
     {
         result$stan.fit <- if (keep.samples) stan.fit else ReduceStanFitSize(stan.fit)
@@ -146,6 +151,8 @@ createStanData <- function(dat, n.classes, normal.covariance)
                      V_attribute = dat$n.attribute.parameters,
                      Y = dat$Y.in,
                      X = dat$X.in,
+                     V_covariates = dat$P,
+                     covariates = dat$covariates,
                      prior_mean = dat$prior.mean,
                      prior_sd = dat$prior.sd)
 
@@ -258,18 +265,22 @@ stanFileName <- function(n.classes, normal.covariance)
     result
 }
 
-stanModel <- function(n.classes, normal.covariance)
+stanModel <- function(n.classes, normal.covariance, cov.formula)
 {
     if (n.classes == 1)
     {
-        if (normal.covariance == "Full")
+        if (!is.null(cov.formula))
+            stanmodels$choicemodelFC
+        else if (normal.covariance == "Full")
             stanmodels$choicemodel
         else
             stanmodels$diagonal
     }
     else
     {
-        if (normal.covariance == "Full")
+        if (!is.null(cov.formula))
+            stop("Fixed covariates is not currently implemented for multiple classes")
+        else if (normal.covariance == "Full")
             stanmodels$mixtureofnormals
         else
             stanmodels$diagonalmixture
@@ -396,10 +407,12 @@ onStanWarning <- function(warn)
 #' @param stan.fit A stanfit object.
 #' @param parameter.names Names of the parameters.
 #' @param n.classes The number of classes.
+#' @param sigma.parameter.names Names of the variance parameters.
 #' @return A matrix containing parameter summary statistics.
 #' @importFrom rstan extract monitor
 #' @export
-GetParameterStatistics <- function(stan.fit, parameter.names, n.classes)
+GetParameterStatistics <- function(stan.fit, parameter.names, n.classes,
+                                   sigma.parameter.names = parameter.names)
 {
     pars <- c('theta', 'sigma')
 
@@ -407,7 +420,7 @@ GetParameterStatistics <- function(stan.fit, parameter.names, n.classes)
                          inc_warmup = FALSE)
     result <- suppressWarnings(monitor(ex, probs = c(), print = FALSE))
     lbls <- c(rep(paste0(parameter.names, ' (Mean)'), each = n.classes),
-              rep(paste0(parameter.names, ' (St. Dev.)'),
+              rep(paste0(sigma.parameter.names, ' (St. Dev.)'),
                   each = n.classes))
     if (n.classes > 1)
         lbls <- paste0(lbls, rep(paste0(', Class ', 1:n.classes),
