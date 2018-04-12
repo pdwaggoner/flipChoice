@@ -374,7 +374,7 @@ onStanWarning <- function(warn)
     support.msg <-
     if (grepl("divergent transitions after warmup", msg) ||
         grepl("Bayesian Fraction of Missing Information was low", msg))
-        warning("Results may be inaccurate due to insufficient iteratations. ",
+        warning("Results may be inaccurate due to insufficient iterations. ",
                 "Rerun the analysis with more iterations. Please contact ",
                 "support@q-researchsoftware.com if increasing the number of ",
                 "iterations does not resolve this warning.", call. = FALSE)
