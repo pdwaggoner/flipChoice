@@ -5,12 +5,22 @@
 ## then you need to update the installed package (the error comes from multiple versions of the
 ## package being installed
 ## http://discourse.mc-stan.org/t/building-r-package-that-uses-stan-running-multiple-chains-error/2485
-devtools::load_all("~/flip/flipChoice")
+is.rserver <- flipChoice::IsRServer()
+if (!is.rserver){
+    devtools::load_all("~/flip/flipChoice")
+    save.dir <- "../../Documents/Features/ChoiceModelCovariates/"
+}else{
+    save.dir <- "./"
+    library(flipChoice)
+}
+
+library(rstan)
 
 data("eggs", package = "flipChoice")
 data("eggs.cov", package = "flipChoice")
 
-frml <- ~age2+gender
+## frml <- ~age2+gender
+frml <- ~egg.choice
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
@@ -59,6 +69,6 @@ dimnames(comp.stats)[[3]] <- c("mean.rhat.theta", "mean.neff.theta",
                                "mean.neff.per.sec.theta", "mean.rhat.sigma", "mean.neff.sigma",
                                "mean.neff.per.sec.sigma", "max.rhat", "min.neff",
                                "min.neff.per.sec", "in.acc", "out.acc", "time")
-saveRDS(comp.stats, paste0("../../Documents/ChoiceModelCovariates/eggs",
+saveRDS(comp.stats, paste0(save.dir, "eggs",
         n.iter, "sims", n.chains, "chainsCovar_", paste(all.vars(frml), collapse = "_"), ".rds"))
 colMeans(comp.stats, dim = 1)
