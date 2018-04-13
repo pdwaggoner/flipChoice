@@ -14,8 +14,8 @@ processCovariateData <- function(formula, data, stan.dat, subset)
     filter.subset <- CleanSubset(subset, nrow(data))
     subset <- filter.subset & non.missing
 
-    data <- data[subset, ]
-    cdat <- model.matrix(formula, data)[, -1]
+    data <- data[subset, , drop = FALSE]
+    cdat <- model.matrix(formula, data)[, -1, drop = FALSE]
 
     if (nrow(cdat) != nrow(stan.dat$X.in))
         stop(gettextf("The length of the data in %s and %s do not match",
