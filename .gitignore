@@ -5,3 +5,5 @@ inst/doc
 src/*.o
 src/*.so
 src/*.dll
+src/stan_files/*.hpp
+src/stan_files/*.o
