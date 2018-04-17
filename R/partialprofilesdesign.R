@@ -25,6 +25,8 @@
 #'     the integrated algorithm for partial profiles.
 #' @param seed Integer value specifying the random seed to use for the
 #'     algorithm.
+#' @param n.rotations The number of random rotations performed when computing
+#'     the Bayesian criterion when the prior mean and variance are supplied.
 #' @return \itemize{
 #'     \item \code{design} - A numeric matrix which contains an efficient
 #'     design.
@@ -51,7 +53,7 @@
 partialProfilesDesign <- function(levels.per.attribute, prior = NULL,
                                   alternatives.per.question, n.questions,
                                   n.constant.attributes, extensive = FALSE,
-                                  seed = 123)
+                                  seed = 123, n.rotations = 10)
 {
     n.attributes <- length(levels.per.attribute)
     if (is.null(names(levels.per.attribute)))
@@ -66,6 +68,13 @@ partialProfilesDesign <- function(levels.per.attribute, prior = NULL,
                 "instead.")
         extensive <- FALSE
     }
+    if (!is.null(prior) && !is.vector(prior))
+    {
+        quadrature.values <- computeQuadratureValues(nrow(prior), n.rotations,
+                                                    seed, prior[, 1], prior[, 2])
+        prior <- c(list(mean = prior[, 1]), quadrature.values)
+    }
+
     output <- partialProfilesRandomDesign(levels.per.attribute,
                                           alternatives.per.question,
                                           const.attr.list, n.questions,
@@ -160,16 +169,17 @@ improveVaryingAttributes <- function(question.design, prior,
                                      partial.info.matrix, is.complete,
                                      missing.levels)
 {
+    flag <- is.null(attributes.to.consider)
     n.attributes <- length(levels.per.attribute)
     if (is.null(attributes.to.consider))
         attributes.to.consider <-  1:n.attributes
-
     repeat
     {
         d.zero <- computeDCriterionShortcut(question.design, prior,
                                             alternatives.per.question,
                                             start.indices, partial.info.matrix,
                                             is.complete, missing.levels)
+        question.design.zero <- question.design
 
         for (j in 1:alternatives.per.question)
         {
@@ -199,14 +209,12 @@ improveVaryingAttributes <- function(question.design, prior,
                                                     partial.info.matrix,
                                                     is.complete,
                                                     missing.levels)
-
                         if (d.new > d.star)
                         {
                             d.star <- d.new
                             l.star <- l
                         }
                     }
-
                     question.design <- setLevel(question.design, j, f, l.star,
                                        levels.per.attribute, start.indices)
                 }
@@ -220,7 +228,7 @@ improveVaryingAttributes <- function(question.design, prior,
         if (d.new <= d.zero)
             break
     }
-    question.design
+    question.design.zero
 }
 
 # See Algorithm 3 of Cuervo et al. (2016)
@@ -391,15 +399,11 @@ computeDCriterion <- function(design, prior, n.questions,
     {
         if (is.null(prior))
             d0Criterion(design, n.questions, alternatives.per.question)
-        else if (is.vector(prior))
-        {
+        else if (is.numeric(prior))
             dPCriterion(design, prior, n.questions, alternatives.per.question)
-        }
         else
-        {
-            # to be done
-            stop("Bayesian priors not yet implemented.")
-        }
+            bayesianCriterion(design, prior, n.questions,
+                              alternatives.per.question)
     }
     else
         -Inf
@@ -418,14 +422,13 @@ computeDCriterionShortcut <- function(question.design, prior,
         if (is.null(prior))
             d0CriterionShortcut(question.design, partial.info.matrix,
                                 alternatives.per.question)
-        else if (is.vector(prior))
+        else if (is.numeric(prior))
             dPCriterionShortcut(question.design, prior, partial.info.matrix,
                                 alternatives.per.question)
         else
-        {
-            # to be done
-            stop("Bayesian priors not yet implemented.")
-        }
+            bayesianCriterionShortcut(question.design, prior,
+                                      partial.info.matrix,
+                                      alternatives.per.question)
     }
     else
         -Inf
@@ -437,15 +440,15 @@ constructPartialInfoMatrix <- function(design, prior, n.questions, question,
     if (is.null(prior))
         d0PartialInfoMatrix(design, n.questions, question,
                             alternatives.per.question)
-    else if (is.vector(prior))
+    else if (is.numeric(prior))
     {
         dPPartialInfoMatrix(design, prior, n.questions, question,
                             alternatives.per.question)
     }
     else
     {
-        # to be done
-        stop("Bayesian priors not yet implemented.")
+        quadraturePartialInfoMatrices(design, prior, n.questions, question,
+                                      alternatives.per.question)
     }
 }
 

@@ -32,9 +32,12 @@
 #' @param labeled.alternatives Logical; whether the first attribute
 #'     labels the alternatives.
 #' @param n.constant.attributes Integer; the number of attributes to keep
-#'     constant.
+#'     constant for partial profiles.
 #' @param extensive Logical; whether to used the extensive algorithm instead of
-#' the integrated algorithm for partial profiles.
+#'     the integrated algorithm for partial profiles.
+#' @param n.rotations The number of random rotations performed when computing
+#'     the Bayesian criterion when the prior mean and variance are supplied for
+#'     partial profiles.
 #' @param output One of \code{"Labeled design"} or \code{"Inputs"}.
 #' @param seed Integer; random seed to be used by the algorithms.
 #' @return A list with components
@@ -99,6 +102,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                               labeled.alternatives = FALSE,
                               n.constant.attributes = 0,
                               extensive = FALSE,
+                              n.rotations = 10,
                               output = "Labeled design",
                               seed = 54123) {
 
@@ -219,6 +223,18 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     result$d.error <- if (is.null(prior) || is.vector(prior))
         calculateDError(result$design, sapply(result$attribute.levels, length),
                         effects = FALSE)
+    else if (!is.null(result$d.criterion))
+        exp(-result$d.criterion / nrow(prior))
+    else
+    {
+        encoded.design <- encodeDesign(result$design[,-1:-3], FALSE)
+        criterion <- quadratureBayesianCriterion(encoded.design, prior,
+                                                 n.questions,
+                                                 alternatives.per.question,
+                                                 10, seed)
+        exp(-criterion / nrow(prior))
+    }
+
     ml.model <- mlogitModel(result)
     result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
 

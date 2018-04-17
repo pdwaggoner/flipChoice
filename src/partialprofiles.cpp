@@ -1,4 +1,7 @@
+#include <Rcpp.h>
 #include <RcppEigen.h>
+
+using namespace Rcpp;
 
 // [[Rcpp::export]]
 double d0CriterionShortcut(Eigen::MatrixXd & question_design,
@@ -6,10 +9,14 @@ double d0CriterionShortcut(Eigen::MatrixXd & question_design,
                                int alternatives_per_question)
 {
     Eigen::MatrixXd sums = question_design.colwise().sum();
-    return log(((double)((partial_info_matrix +
-                   question_design.transpose() * question_design -
-                   sums.transpose() * sums / alternatives_per_question)).determinant()) /
-                   pow(alternatives_per_question, partial_info_matrix.rows()));
+    double det = (double)((partial_info_matrix +
+                 question_design.transpose() * question_design -
+                 sums.transpose() * sums /
+                 alternatives_per_question)).determinant();
+    if (det < 0)
+        det = 0;
+    return log(det / pow(alternatives_per_question,
+                         partial_info_matrix.rows()));
 }
 
 // [[Rcpp::export]]
@@ -52,10 +59,13 @@ double dPCriterionShortcut(Eigen::MatrixXd & question_design,
                            int alternatives_per_question)
 {
     Eigen::VectorXd choice_probs = choiceProbabilities(question_design, prior);
-    return log((double)((partial_info_matrix + question_design.transpose() *
-        (Eigen::MatrixXd(choice_probs.asDiagonal()) -
-        choice_probs * choice_probs.transpose()) *
-        question_design).determinant()));
+    double det = (double)(partial_info_matrix + question_design.transpose() *
+                 (Eigen::MatrixXd(choice_probs.asDiagonal()) -
+                 choice_probs * choice_probs.transpose()) *
+                 question_design).determinant();
+    if (det < 0)
+        det = 0;
+    return log(det);
 }
 
 // [[Rcpp::export]]

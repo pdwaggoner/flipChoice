@@ -45,6 +45,23 @@ test_that("D-p optimal integrated algorithm",
     expect_equal(result$d.criterion, -1.03396669554188)
 })
 
+test_that("Bayesian optimal integrated algorithm",
+{
+    pa <- cbind(c("price", "100", "125", "150", "175", "200"),
+                c("time", "morn", "aft", "eve", "late night", ""))
+    n.coef <- sum(pa[-1, ] != "") - ncol(pa)
+    prior <- matrix(c(0, 2), nrow = n.coef, ncol = 2, byrow = TRUE)
+    result <- ChoiceModelDesign(design.algorithm = "Partial profiles",
+                              attribute.levels = pa,
+                              prior = prior,
+                              n.questions = 10,
+                              n.versions = 1,
+                              alternatives.per.question = 3,
+                              n.constant.attributes = 0,
+                              seed = 1)
+    expect_equal(result$d.criterion, -6.30145393214796)
+})
+
 test_that("HZ paper Table 2, 3^3/3/9",
 {
     seed <- 1001

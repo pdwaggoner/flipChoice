@@ -6,7 +6,7 @@
 \usage{
 partialProfilesDesign(levels.per.attribute, prior = NULL,
   alternatives.per.question, n.questions, n.constant.attributes,
-  extensive = FALSE, seed = 123)
+  extensive = FALSE, seed = 123, n.rotations = 10)
 }
 \arguments{
 \item{levels.per.attribute}{A \emph{named} vector containing the
@@ -37,6 +37,9 @@ the integrated algorithm for partial profiles.}
 
 \item{seed}{Integer value specifying the random seed to use for the
 algorithm.}
+
+\item{n.rotations}{The number of random rotations performed when computing
+the Bayesian criterion when the prior mean and variance are supplied.}
 }
 \value{
 \itemize{
