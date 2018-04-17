@@ -5,7 +5,7 @@
 \title{RunStanSampling}
 \usage{
 RunStanSampling(stan.dat, n.iterations, n.chains, max.tree.depth, adapt.delta,
-  seed, stan.model, stan.file, keep.beta, ...)
+  seed, stan.model, keep.beta, ...)
 }
 \arguments{
 \item{stan.dat}{The data to be passed to Stan.}
@@ -20,9 +20,7 @@ RunStanSampling(stan.dat, n.iterations, n.chains, max.tree.depth, adapt.delta,
 
 \item{seed}{Random seed.}
 
-\item{stan.model}{Complied Stan model (if running on the R server).}
-
-\item{stan.file}{Path to Stan file (if not running on the R server).}
+\item{stan.model}{Complied Stan model}
 
 \item{keep.beta}{Whether retain the beta draws in the output.}
 

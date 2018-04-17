@@ -14,7 +14,6 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
     stan.dat <- createStanData(dat, n.classes, normal.covariance)
 
     stan.model <- stanModel(n.classes, normal.covariance)
-    stan.file <- NULL
 
     on.warnings <- GetStanWarningHandler(show.stan.warnings)
     on.error <- GetStanErrorHandler()
@@ -24,7 +23,7 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
     InterceptExceptions({
         stan.fit <- RunStanSampling(stan.dat, n.iterations, n.chains,
                                     max.tree.depth, adapt.delta, seed,
-                                    stan.model, stan.file, keep.beta, ...)},
+                                    stan.model, keep.beta, ...)},
                                     warning.handler = on.warnings,
                                     error.handler = on.error)
 
@@ -67,8 +66,7 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 #' @param max.tree.depth Maximum tree depth setting. See Stan documentation.
 #' @param adapt.delta Adapt delta setting. See Stan documentation.
 #' @param seed Random seed.
-#' @param stan.model Complied Stan model (if running on the R server).
-#' @param stan.file Path to Stan file (if not running on the R server).
+#' @param stan.model Complied Stan model
 #' @param keep.beta Whether retain the beta draws in the output.
 #' @param ... Additional parameters to pass on to \code{rstan::stan} and
 #' \code{rstan::sampling}.
@@ -78,7 +76,7 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 #' @export
 RunStanSampling <- function(stan.dat, n.iterations, n.chains,
                             max.tree.depth, adapt.delta,
-                            seed, stan.model, stan.file, keep.beta, ...)
+                            seed, stan.model, keep.beta, ...)
 {
     pars <- stanParameters(stan.dat, keep.beta)
     init <- initialParameterValues(stan.dat)
