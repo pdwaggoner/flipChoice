@@ -1,73 +1,80 @@
 #' @title FitChoiceModel
-#' @description Fit a choice-based conjoint model using methods such as
-#' Hierarchical Bayes
+#' @description Fit a choice-based conjoint model using methods such
+#'     as Hierarchical Bayes
 #' @param experiment.data A data.frame from an Experiment question
 #' @param cho.file The file path to a cho file.
 #' @param design.file The file path to a Sawtooth design file.
-#' @param attribute.levels.file A dataframe or matrix where each column
-#' contains the level names of an attribute.
+#' @param attribute.levels.file A dataframe or matrix where each
+#'     column contains the level names of an attribute.
+#' @param cov.formula An optional \code{\link{formula}} for any fixed
+#'     (respondent-specific) covariates to be included in the model.
+#' @param cov.data An optional \code{\link{data.frame}} containing the
+#'     variables present in \code{cov.formula}.
 #' @param choices A data.frame of choices made by respondents for each
-#' question.
+#'     question.
 #' @param questions A data.frame of IDs of questions presented to the
-#' respondents.
+#'     respondents.
 #' @param n.classes The number of latent classes.
-#' @param subset An optional vector specifying a subset of observations to be
-#' used in the fitting process.
+#' @param subset An optional vector specifying a subset of
+#'     observations to be used in the fitting process.
 #' @param weights An optional vector of sampling or frequency weights.
 #' @param seed Random seed.
-#' @param tasks.left.out Number of questions to leave out for cross-validation.
-#' @param normal.covariance The form of the covariance matrix for Hierarchical
-#' Bayes. Can be 'Full, 'Spherical', 'Diagonal'.
-#' @param hb.iterations The number of iterations in Hierarchical Bayes.
+#' @param tasks.left.out Number of questions to leave out for
+#'     cross-validation.
+#' @param normal.covariance The form of the covariance matrix for
+#'     Hierarchical Bayes. Can be 'Full, 'Spherical', 'Diagonal'.
+#' @param hb.iterations The number of iterations in Hierarchical
+#'     Bayes.
 #' @param hb.chains The number of chains in Hierarchical Bayes.
-#' @param hb.max.tree.depth http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-#' @param hb.adapt.delta http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#' @param hb.keep.samples Whether to keep the samples of all the parameters in
-#' the output.
+#' @param hb.max.tree.depth
+#'     http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
+#' @param hb.adapt.delta
+#'     http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+#' @param hb.keep.samples Whether to keep the samples of all the
+#'     parameters in the output.
 #' @param hb.stanfit Whether to include the stanfit property.
 #' @param hb.prior.mean The mean for the priors of the mean parameters
-#' theta_raw. This is either passed as a scalar which applies to all
-#' parameters or a numeric vector with each element corresponding to a variable
-#' or attribute. If hb.prior.mean is nonzero for a categorical attribute, the
-#' attribute is treated as ordered categorical and hb.prior.mean controls the
-#' offsets from the base attribute.
-#' @param hb.prior.sd The standard deviations for the priors of the mean
-#' parameters theta_raw. This is passed as a numeric vector with each element
-#' corresponding to an attribute, or a scalar. If hb.prior.mean is nonzero for
-#' a categorical attribute, the attribute is treated as ordered categorical and
-#' hb.prior.sd controls the standard deviations of the offsets from the base
-#' attribute.
+#'     theta_raw. This is either passed as a scalar which applies to
+#'     all parameters or a numeric vector with each element
+#'     corresponding to a variable or attribute. If hb.prior.mean is
+#'     nonzero for a categorical attribute, the attribute is treated
+#'     as ordered categorical and hb.prior.mean controls the offsets
+#'     from the base attribute.
+#' @param hb.prior.sd The standard deviations for the priors of the
+#'     mean parameters theta_raw. This is passed as a numeric vector
+#'     with each element corresponding to an attribute, or a
+#'     scalar. If hb.prior.mean is nonzero for a categorical
+#'     attribute, the attribute is treated as ordered categorical and
+#'     hb.prior.sd controls the standard deviations of the offsets
+#'     from the base attribute.
 #' @param hb.warnings Whether to show warnings from Stan.
-#' @param hb.beta.draws.to.keep Maximum number of beta draws per respondent to
-#' return in beta.draws.
-#' @param include.choice.parameters Whether to include alternative-specific
-#' parameters.
-#' @param ... Additional parameters to pass on to \code{rstan::stan} and
-#' \code{rstan::sampling}.
-#' @return A list with the following components:
-#' \itemize{
-#' \item \code{respondent.parameters} A matrix containing the parameters of
-#' each respondent.
-#' \item \code{parameter.statistics} A matrix containing parameter statistics
-#' such as effective sample size and Rhat.
-#' \item \code{stan.fit} The stanfit object from the analysis.
-#' \item \code{beta.draws} A 3D array containing sampling draws of beta for each
-#' respondent.
-#' \item \code{in.sample.accuracy} The in-sample prediction accuracy.
-#' \item \code{out.sample.accuracy} The out-of-sample prediction accuracy.
-#' \item \code{prediction.accuracies} A vector of prediction accuracies for
-#' each respondent.
-#' \item \code{algorithm} The type of algorithm used.
-#' \item \code{n.questions.left.out} The number of questions left out for
-#' out-of-sample testing.
-#' \item \code{n.classes} The number of classes.
-#' \item \code{n.respondents} The number of respondents.
-#' \item \code{n.questions} The number of questions per respondent.
-#' \item \code{n.choices} The number of choices per question.
-#' \item \code{n.attributes} The number of attributes.
-#' \item \code{n.parameters} The number of parameters in the analysis.
-#' \item \code{time.taken} The time taken to run the analysis.
-#' }
+#' @param hb.beta.draws.to.keep Maximum number of beta draws per
+#'     respondent to return in beta.draws.
+#' @param include.choice.parameters Whether to include
+#'     alternative-specific parameters.
+#' @param ... Additional parameters to pass on to \code{rstan::stan}
+#'     and \code{rstan::sampling}.
+#' @return A list with the following components: \itemize{ \item
+#'     \code{respondent.parameters} A matrix containing the parameters
+#'     of each respondent.  \item \code{parameter.statistics} A matrix
+#'     containing parameter statistics such as effective sample size
+#'     and Rhat.  \item \code{stan.fit} The stanfit object from the
+#'     analysis.  \item \code{beta.draws} A 3D array containing
+#'     sampling draws of beta for each respondent.  \item
+#'     \code{in.sample.accuracy} The in-sample prediction accuracy.
+#'     \item \code{out.sample.accuracy} The out-of-sample prediction
+#'     accuracy.  \item \code{prediction.accuracies} A vector of
+#'     prediction accuracies for each respondent.  \item
+#'     \code{algorithm} The type of algorithm used.  \item
+#'     \code{n.questions.left.out} The number of questions left out
+#'     for out-of-sample testing.  \item \code{n.classes} The number
+#'     of classes.  \item \code{n.respondents} The number of
+#'     respondents.  \item \code{n.questions} The number of questions
+#'     per respondent.  \item \code{n.choices} The number of choices
+#'     per question.  \item \code{n.attributes} The number of
+#'     attributes.  \item \code{n.parameters} The number of parameters
+#'     in the analysis.  \item \code{time.taken} The time taken to run
+#'     the analysis.  }
 #' @examples
 #' \dontrun{
 #' data(eggs, package = "flipChoice")
@@ -92,8 +99,8 @@
 #' @export
 #'
 FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
-                           design.file = NULL, cov.formula = NULL, cov.data = NULL,
-                           attribute.levels.file = NULL,
+                           design.file = NULL, attribute.levels.file = NULL,
+                           cov.formula = NULL, cov.data = NULL,
                            choices = NULL, questions = NULL, n.classes = 1,
                            subset = NULL, weights = NULL, seed = 123,
                            tasks.left.out = 0, normal.covariance = "Full",

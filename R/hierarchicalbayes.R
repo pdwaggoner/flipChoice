@@ -405,7 +405,7 @@ onStanWarning <- function(warn)
 #' @title GetParameterStatistics
 #' @description This function returns functions that handle Stan warnings.
 #' @param stan.fit A stanfit object.
-#' @param parameter.names Names of the parameters.
+#' @param parameter.names Names of the mean parameters.
 #' @param n.classes The number of classes.
 #' @param sigma.parameter.names Names of the variance parameters.
 #' @return A matrix containing parameter summary statistics.

@@ -4,14 +4,17 @@
 \alias{GetParameterStatistics}
 \title{GetParameterStatistics}
 \usage{
-GetParameterStatistics(stan.fit, parameter.names, n.classes)
+GetParameterStatistics(stan.fit, parameter.names, n.classes,
+  sigma.parameter.names = parameter.names)
 }
 \arguments{
 \item{stan.fit}{A stanfit object.}
 
-\item{parameter.names}{Names of the parameters.}
+\item{parameter.names}{Names of the mean parameters.}
 
 \item{n.classes}{The number of classes.}
+
+\item{sigma.parameter.names}{Names of the variance parameters.}
 }
 \value{
 A matrix containing parameter summary statistics.
