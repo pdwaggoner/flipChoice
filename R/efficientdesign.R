@@ -49,9 +49,8 @@
 #' @seealso \code{\link[idefix]{Modfed}}
 #' @references Huber, J. and K. Zwerina (1996). The Importance of
 #'     Utility Balance in Efficient Choice Designs. Journal of
-#'     Marketing
-#'     Research. \url{https://faculty.fuqua.duke.edu/~jch8/bio/Papers/Huber
-#'     Zwerina 1996 Marketing Research.pdf}
+#'     Marketing Research.
+#' \url{https://faculty.fuqua.duke.edu/~jch8/bio/Papers/Huber\%20Zwerina\%201996\%20Marketing\%20Research.pdf}
 #'
 #' Zwerina, K., J. Huber and W. F. Kuhfeld. (2000). A General Method
 #' for Constructing Efficient Choice
