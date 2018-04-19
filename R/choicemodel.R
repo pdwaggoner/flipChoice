@@ -114,6 +114,9 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
     if (!is.null(weights))
         stop("Weights are not able to be applied for Hierarchical Bayes.")
 
+    if (any(hb.prior.sd <= 0))
+        stop("All prior standard deviations must be greater than 0.")
+
     start.time <- proc.time()
 
     dat <- if (!is.null(experiment.data))

@@ -72,12 +72,19 @@ test_that("HB prior attributes", {
 })
 
 test_that("HB prior parameters", {
+    prior.mean <- c(0, 0, 0, 0, 0, 0, 0, 0, -10, 0, 0, 0, 0)
     result <- FitChoiceModel(experiment.data = eggs.data, hb.iterations = 10,
                              hb.chains = 1,
-                             hb.prior.mean = c(0, 0, 0, 0, 0, 0, 0, 0, -10, 0,
-                                               0, 0, 0),
+                             hb.prior.mean = prior.mean,
                              hb.prior.sd = rep(0.1, 8), hb.warnings = FALSE)
     expect_error(print(result), NA)
     # Free range parameter prior forced to be negative
     expect_equal(result$parameter.statistics[9, 1] < 0, TRUE)
+
+    expect_error(FitChoiceModel(experiment.data = eggs.data,
+                                hb.iterations = 10,
+                                hb.chains = 1,
+                                hb.prior.mean = prior.mean,
+                                hb.prior.sd = 0:7, hb.warnings = FALSE),
+             paste0("All prior standard deviations must be greater than 0."))
 })
