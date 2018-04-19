@@ -47,12 +47,14 @@ checkValidFit <- function(f)
 makeLabels <- function(fit, add.weight.labels = FALSE)
 {
     n.classes <- fit$n.classes
-    nms <- if (!is.null(fit$reduced.respondent.parameters))
+    nms.sigma <- if (!is.null(fit$reduced.respondent.parameters))
                     colnames(fit$reduced.respondent.parameters)
                  else
                     colnames(fit$respondent.parameters)
-     lbls <- c(rep(paste0(nms, ' (Mean)'), each = n.classes),
-              rep(paste0(nms, ' (St. Dev.)'), each = n.classes))
+    nms <- fit$parameter.names
+
+    lbls <- c(rep(paste0(nms, ' (Mean)'), each = n.classes),
+              rep(paste0(nms.sigma, ' (St. Dev.)'), each = n.classes))
 
     if (n.classes > 1L)
         lbls <- paste0(lbls, rep(paste0(', Class ', 1:n.classes), 2 * length(nms)))

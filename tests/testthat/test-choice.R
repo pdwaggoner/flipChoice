@@ -102,4 +102,8 @@ test_that("HB with fixed covariates", {
                  sum(grepl("St. Dev", stat.names)))
     expect_equal(sum(grepl("gender", stat.names)),
                  sum(grepl("St. Dev", stat.names)))
+
+    ExtractParameterStats(result)
+    PlotPosteriorIntervals(result)
+    TracePlots(result)
 })

@@ -64,6 +64,8 @@
 #'     analysis.
 #'     \item \code{beta.draws} A 3D array containing
 #'     sampling draws of beta for each respondent.
+#'     \item \code{parameter.names} Character vector of parameter names
+#'     for the mean parameters in the model.
 #'     \item \code{in.sample.accuracy} The in-sample prediction accuracy.
 #'     \item \code{out.sample.accuracy} The out-of-sample prediction
 #'     accuracy.

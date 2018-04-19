@@ -21,12 +21,12 @@ hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
 
     keep.beta <- beta.draws.to.keep > 0
 
-    InterceptExceptions({
+    InterceptExceptions(
+    {
         stan.fit <- RunStanSampling(stan.dat, n.iterations, n.chains,
                                     max.tree.depth, adapt.delta, seed,
-                                    stan.model, keep.beta, ...)},
-                                    warning.handler = on.warnings,
-                                    error.handler = on.error)
+                            stan.model, keep.beta, ...)
+    }, warning.handler = on.warnings, error.handler = on.error)
 
     matched <- MatchChainClasses(stan.fit, n.chains, n.classes, stan.dat$V)
     stan.fit <- matched$stan.fit
@@ -60,6 +60,7 @@ hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
                                                   beta.draws.to.keep)
     }
 
+    result$parameter.names <- dat$par.names
     n.hb.parameters <- numberOfHBParameters(stan.dat)
     result <- c(result, LogLikelihoodAndBIC(stan.fit, n.hb.parameters,
                                             stan.dat$R))
