@@ -10,12 +10,12 @@
 #' @noRd
 processCovariateData <- function(formula, data, stan.dat, subset)
 {
-    non.missing <- apply(data, 1, function(x) !any(is.na(x)))
-    filter.subset <- CleanSubset(subset, nrow(data))
+    cdat <- model.matrix(formula, data)  # [, -1, drop = FALSE]
+    non.missing <- apply(cdat, 1, function(x) !any(is.na(x)))
+    filter.subset <- CleanSubset(subset, nrow(cdat))
     subset <- filter.subset & non.missing
 
-    data <- data[subset, , drop = FALSE]
-    cdat <- model.matrix(formula, data)  # [, -1, drop = FALSE]
+    cdat <- cdat[subset, , drop = FALSE]
 
     if (nrow(cdat) != nrow(stan.dat$X.in))
         stop(gettextf("The length of the data in %s and %s do not match",
