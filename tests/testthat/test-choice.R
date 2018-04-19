@@ -88,3 +88,13 @@ test_that("HB prior parameters", {
                                 hb.prior.sd = 0:7, hb.warnings = FALSE),
              paste0("All prior standard deviations must be greater than 0."))
 })
+
+test_that("HB", {
+    data("eggs.cov", package = "flipChoice")
+    result <- FitChoiceModel(experiment.data = eggs.data,
+                             cov.formula = ~gender, cov.data = eggs.cov,
+                             hb.iterations = 10,
+                             hb.chains = 1, hb.warnings = FALSE)
+    expect_error(print(result), NA)
+    expect_equal(dim(result$beta.draws), c(2L, 380L, 13L))
+})
