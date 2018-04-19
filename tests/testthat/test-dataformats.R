@@ -82,3 +82,35 @@ test_that("Missing data", {
     expect_equal(dim(dat$X.in), c(379L, 8L, 3L, 13L))
     expect_equal(dim(dat$Y.in), c(379L, 8L))
 })
+
+data("eggs.cov", package = "flipChoice")
+
+test_that("cho file with fixed covariates", {
+    f <- as.factor(rbinom(600, 1, .5))
+    result <- FitChoiceModel(cho.file = cho.file,
+                             cov.formula = ~f,
+                             attribute.levels.file = attribute.levels.file.cho,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE)
+    expect_error(print(result), NA)
+    stat.names <- rownames(result$parameter.statistics)
+    expect_equal(sum(grepl("Intercept", stat.names)),
+                 sum(grepl("St. Dev", stat.names)))
+    expect_equal(sum(grepl("f1__", stat.names)),
+                 sum(grepl("St. Dev", stat.names)))
+})
+
+test_that("jmp format with fixed covariates", {
+    result <- FitChoiceModel(design.file = jmp.design.file,
+                             cov.formula = ~egg.choice2, cov.data = eggs.cov,
+                             attribute.levels.file = attribute.levels.file.jmp,
+                             choices = choices.jmp, questions = tasks.jmp,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE)
+    expect_error(print(result), NA)
+    stat.names <- rownames(result$parameter.statistics)
+    expect_equal(sum(grepl("Intercept", stat.names)),
+                 sum(grepl("St. Dev", stat.names)))
+    expect_equal(sum(grepl("egg.choice2", stat.names)),
+                 sum(grepl("St. Dev", stat.names)))
+})

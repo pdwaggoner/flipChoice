@@ -143,13 +143,7 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
         stop("Insufficient data was supplied.")
 
     if (!is.null(cov.formula))
-    {
-        if (is.null(experiment.data))
-            stop(gettextf("Fixed covariates is currently only implemented for use with %s",
-                          sQuote(experiment.data)))
         dat <- processCovariateData(cov.formula, cov.data, dat, subset)
-    }
-
 
     result <- hierarchicalBayesChoiceModel(dat, cov.formula, cov.data,
                                            hb.iterations, hb.chains,
