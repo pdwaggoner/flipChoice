@@ -58,14 +58,15 @@ model {
             standard_normal[r, p] ~ normal(0, 1);
     }
 
-    //likelihood
     for (r in 1:R)
         target += log_sum_exp(posterior_prob[r]);
 }
 
 generated quantities {
     vector[V] beta[R];
+    real log_likelihood = 0;
     for (r in 1:R)
+    {
         for (v in 1:V)
         {
             vector[P] pp = exp(posterior_prob[r]);
@@ -74,4 +75,6 @@ generated quantities {
             for (p in 1:P)
                 beta[r, v] = beta[r, v] + class_beta[r, p, v] * pp[p];
         }
+        log_likelihood += log_sum_exp(posterior_prob[r]);
+    }
 }

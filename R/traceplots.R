@@ -22,8 +22,8 @@ TracePlots <- function(fit)
         stop("Traceplots are not available as classes from ",
              "different chains could not be matched.")
 
-    trace.plot <- rstan::traceplot(fit$stan.fit, pars = c('theta', 'sigma'),
-                                   inc_warmup = TRUE)
+    trace.plot <- traceplot(fit$stan.fit, pars = c('theta', 'sigma'),
+                            inc_warmup = TRUE)
     levels(trace.plot$data$parameter) <- makeLabels(fit, FALSE)
     trace.plot$plot_env <- new.env()
     trace.plot

@@ -40,8 +40,6 @@ transformed parameters {
 }
 
 model {
-    // setting priors
-
     // gamma distribution with mode = 1 and p(x < 20) = 0.999
     sigma_unique ~ gamma(1.39435729464721, 0.39435729464721);
 
@@ -51,10 +49,14 @@ model {
     for (r in 1:R)
         standard_normal[r] ~ normal(0, 1);
 
-    //likelihood
-    for (r in 1:R) {
-        for (s in 1:S) {
+    for (r in 1:R)
+        for (s in 1:S)
             Y[r, s] ~ categorical_logit(XB[r, s]);
-        }
-    }
+}
+
+generated quantities {
+    real log_likelihood = 0;
+    for (r in 1:R)
+        for (s in 1:S)
+            log_likelihood += categorical_logit_lpmf(Y[r, s] | XB[r, s]);
 }

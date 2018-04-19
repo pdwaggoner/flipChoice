@@ -20,5 +20,5 @@ GetParameterStatistics(stan.fit, parameter.names, n.classes,
 A matrix containing parameter summary statistics.
 }
 \description{
-This function returns functions that handle Stan warnings.
+This function returns a 2D array of the parameter statistics.
 }

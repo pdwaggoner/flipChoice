@@ -1,7 +1,7 @@
 ################## Shortcut method ################
 #
 # For each attribute, choose the least frequently used level in the design.
-# Break ties by the least frequently used level in the question question, or else at random.
+# Break ties by the least frequently used level in the question, or else at random.
 # Does not handle (i.e. ignores) prohibitions.
 #' @importFrom nnet which.is.max
 shortcutDesign <- function(levels.per.attribute, n.questions, alternatives.per.question, prohibitions,

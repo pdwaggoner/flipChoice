@@ -54,11 +54,19 @@ hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
                                                               beta.names)
     if (include.stanfit)
     {
-        result$stan.fit <- if (keep.samples) stan.fit else ReduceStanFitSize(stan.fit)
+        result$stan.fit <- if (keep.samples)
+            stan.fit
+        else
+            ReduceStanFitSize(stan.fit)
         if (keep.beta)
             result$beta.draws <- ExtractBetaDraws(stan.fit,
                                                   beta.draws.to.keep)
     }
+
+    n.hb.parameters <- numberOfHBParameters(stan.dat)
+    result <- c(result, LogLikelihoodAndBIC(stan.fit, n.hb.parameters,
+                                            stan.dat$R))
+
     class(result) <- "FitChoice"
     result
 }
@@ -99,7 +107,7 @@ stanParameters <- function(stan.dat, keep.beta)
     full.covariance <- is.null(stan.dat$U)
     multiple.classes <- !is.null(stan.dat$P)
 
-    pars <- c("theta", "sigma")
+    pars <- c("theta", "sigma", "log_likelihood")
     if (keep.beta)
         pars <- c(pars, "beta")
     if (full.covariance)
@@ -401,7 +409,7 @@ onStanWarning <- function(warn)
 }
 
 #' @title GetParameterStatistics
-#' @description This function returns functions that handle Stan warnings.
+#' @description This function returns a 2D array of the parameter statistics.
 #' @param stan.fit A stanfit object.
 #' @param parameter.names Names of the mean parameters.
 #' @param n.classes The number of classes.
@@ -532,4 +540,39 @@ pkgCxxFlags <- function()
         cat("CXXFLAGS=-Ofast -mtune=native -march=native -Wno-unused-variable -Wno-unused-function")
     else
         cat("")
+}
+
+#' @title LogLikelihoodAndBIC
+#' @description This function extracts the log-likelihood from a stanfit object
+#' and computes the BIC.
+#' @param stan.fit A stanfit object.
+#' @param n.parameters The number of HB model parameters
+#' @return A list containing the log likelihood and BIC.
+#' @export
+LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size)
+{
+    log.likelihood <- as.numeric(get_posterior_mean(stan.fit,
+                                                    pars = "log_likelihood"))
+    list(log.likelihood = log.likelihood,
+         bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+}
+
+numberOfHBParameters <- function(stan.dat)
+{
+    n.coef <- stan.dat$V
+    if (is.null(stan.dat$P)) # 1 class
+    {
+        if (is.null(stan.dat$U)) # full covariance
+            n.coef + n.coef * (n.coef + 1) / 2
+        else
+            n.coef + stan.dat$U
+    }
+    else # multi-class
+    {
+        n.classes <- stan.dat$P
+        if (is.null(stan.dat$U)) # full covariance
+            n.classes * (n.coef + n.coef * (n.coef + 1) / 2) + n.classes - 1
+        else
+            n.classes * (n.coef + stan.dat$U) + n.classes - 1
+    }
 }

@@ -9,7 +9,8 @@ ChoiceModelDesign(design.algorithm = c("Random", "Shortcut",
   attribute.levels = NULL, prior = NULL, n.questions, n.versions = 1,
   alternatives.per.question, prohibitions = NULL, none.alternatives = 0,
   labeled.alternatives = FALSE, n.constant.attributes = 0,
-  extensive = FALSE, output = "Labeled design", seed = 54123)
+  extensive = FALSE, n.rotations = 10, output = "Labeled design",
+  seed = 54123)
 }
 \arguments{
 \item{design.algorithm}{The algorithm used to create the
@@ -56,13 +57,13 @@ constant for partial profiles.}
 \item{extensive}{Logical; whether to used the extensive algorithm instead of
 the integrated algorithm for partial profiles.}
 
-\item{output}{One of \code{"Labeled design"} or \code{"Inputs"}.}
-
-\item{seed}{Integer; random seed to be used by the algorithms.}
-
 \item{n.rotations}{The number of random rotations performed when computing
 the Bayesian criterion when the prior mean and variance are supplied for
 partial profiles.}
+
+\item{output}{One of \code{"Labeled design"} or \code{"Inputs"}.}
+
+\item{seed}{Integer; random seed to be used by the algorithms.}
 }
 \value{
 A list with components

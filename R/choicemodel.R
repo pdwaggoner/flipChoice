@@ -324,7 +324,7 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
 #' @description Print a FitChoice object
 #' @param x FitMaxDiff object.
 #' @param ... further arguments passed to or from other methods.
-#' @importFrom flipFormat HistTable FormatAsPercent SampleDescription
+#' @importFrom flipFormat HistTable FormatAsPercent SampleDescription FormatAsReal
 #' @importFrom flipTime FormatPeriod
 #' @export
 #' @method print FitChoice
@@ -351,6 +351,8 @@ print.FitChoice <- function(x, ...)
     footer <- paste0(footer, "number of attributes: ", x$n.attributes, "; ")
     footer <- paste0(footer, "number of parameters: ", x$n.parameters, "; ")
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
+    footer <- paste0(footer, "log-likelihood: ", FormatAsReal(x$log.likelihood, decimals = 2), "; ")
+    footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 2), "; ")
     if (x$class.match.fail)
         footer <- paste0(footer, "parameter statistics not available; ")
     else

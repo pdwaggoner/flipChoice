@@ -1,3 +1,7 @@
+# Based on C.M. Gotwalt, B.A. Jones, D.M. Steinberg. Fast Computation of
+# Designs Robust to Parameter Uncertainty for Nonlinear Settings.
+# Technometrics, 51(1):88-95, 2009.
+
 simplexWeight <- function(p)
 {
     p * (7 - p) / (2 * (p + 1) ^ 2 * (p + 2))
@@ -171,7 +175,6 @@ bayesianCriterionShortcut <- function(question.design, prior,
             }
     result
 }
-
 
 monteCarloBayesianCriterion <- function(design, prior, n.questions,
                                         alternatives.per.question, n.draws)
