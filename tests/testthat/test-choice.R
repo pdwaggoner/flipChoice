@@ -89,12 +89,17 @@ test_that("HB prior parameters", {
              paste0("All prior standard deviations must be greater than 0."))
 })
 
-test_that("HB", {
+test_that("HB with fixed covariates", {
     data("eggs.cov", package = "flipChoice")
     result <- FitChoiceModel(experiment.data = eggs.data,
                              cov.formula = ~gender, cov.data = eggs.cov,
                              hb.iterations = 10,
                              hb.chains = 1, hb.warnings = FALSE)
     expect_error(print(result), NA)
-    expect_equal(dim(result$beta.draws), c(2L, 380L, 13L))
+
+    stat.names <- rownames(result$parameter.statistics)
+    expect_equal(sum(grepl("Intercept", stat.names)),
+                 sum(grepl("St. Dev", stat.names)))
+    expect_equal(sum(grepl("gender", stat.names)),
+                 sum(grepl("St. Dev", stat.names)))
 })
