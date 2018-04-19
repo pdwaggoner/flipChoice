@@ -54,3 +54,10 @@ model {
         }
     }
 }
+
+generated quantities {
+    real log_likelihood = 0;
+    for (r in 1:R)
+        for (s in 1:S)
+            log_likelihood += categorical_logit_lpmf(Y[r, s] | XB[r, s]);
+}
