@@ -146,7 +146,7 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
     {
         if (is.null(experiment.data))
             stop(gettextf("Fixed covariates is currently only implemented for use with %s",
-                 sQuote(experiment.data)))
+                          sQuote(experiment.data)))
         dat <- processCovariateData(cov.formula, cov.data, dat, subset)
     }
 

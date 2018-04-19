@@ -24,7 +24,6 @@ processCovariateData <- function(formula, data, stan.dat, subset)
     stan.dat$P <- ncol(cdat)
     stan.dat$covariates <- cdat
 
-    stan.dat$beta.names <- stan.dat$par.names
     g <- expand.grid(colnames(stan.dat$covariates), stan.dat$par.names, stringsAsFactors = FALSE)
     stan.dat$par.names <- paste(g$Var1, g$Var2, sep = "__")
     g <- expand.grid(colnames(stan.dat$covariates), stan.dat$all.names, stringsAsFactors = FALSE)

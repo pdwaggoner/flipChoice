@@ -33,25 +33,22 @@ hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
     class.match.fail <- matched$match.fail
 
     result <- list()
-    if (is.null(cov.formula))
-        beta.names <- dat$par.names
-    else
-        beta.names <- dat$beta.names
+
     result$reduced.respondent.parameters <- ComputeRespPars(stan.fit,
-                                                        beta.names,
+                                                        dat$beta.names,
                                                         dat$subset,
                                                         dat$parameter.scales)
     result$respondent.parameters <- ComputeRespPars(stan.fit,
-                                                    beta.names,
+                                                    dat$beta.names,
                                                     dat$subset,
                                                     dat$parameter.scales,
-                                                    dat$all.names)
+                                                    dat$all.beta.names)
     result$class.match.fail <- class.match.fail
     if (!class.match.fail)
         result$parameter.statistics <- GetParameterStatistics(stan.fit,
                                                               dat$par.names,
                                                               n.classes,
-                                                              beta.names)
+                                                              dat$beta.names)
     if (include.stanfit)
     {
         result$stan.fit <- if (keep.samples)
