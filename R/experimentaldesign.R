@@ -151,10 +151,6 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     if (labeled.alternatives)
         alternatives.per.question <- length(attribute.levels[[1]])
 
-    checkDesignParametersValid(n.questions, alternatives.per.question,
-                               n.versions, levels.per.attribute,
-                               n.constant.attributes)
-
     # Check if prohibitions are valid for the algorithm
     algorithms.without.prohibitions <- c("Efficient", "Shortcut",
                                           "Partial profiles")
@@ -487,22 +483,6 @@ mlogitModel <- function(cmd, choices = NULL) {
     form <- paste("Choice ~ ", paste0("`", colnames(mlogit.df)[1:ncol(mlogit.df) - 1], "`", collapse = "+"), "| -1")
     ml.model <- tryCatch(mlogit(as.formula(form), data = mlogit.df), error = function(e) {NULL})
     return(ml.model)
-}
-
-checkDesignParametersValid <- function(n.questions, alternatives.per.question,
-                                       n.versions, levels.per.attribute,
-                                       n.constant.attributes)
-{
-    n.attributes <- length(levels.per.attribute)
-    # Define a "block" to be a (version, question, attribute) triplet
-    n.blocks.available <- n.versions * n.questions * (n.attributes -
-                                                      n.constant.attributes)
-    # This is the number of blocks required so that the levels from all
-    # attributes can be displayed in the design.
-    n.blocks.required <- sum(ceiling(levels.per.attribute /
-                                         alternatives.per.question))
-    if (n.blocks.required > n.blocks.available)
-        inputNotSensibleError(n.constant.attributes > 0)
 }
 
 inputNotSensibleError <- function(has.constant.attributes)
