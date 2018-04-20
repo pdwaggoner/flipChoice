@@ -140,8 +140,12 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
              "attribute, with names corresponding to the attribute labels; or a character ",
              "matrix with first row containing attribute names and subsequent rows containing attribute levels.")
 
-    if(any(sapply(attribute.levels, length) < 2))
+    if(any(levels.per.attribute < 2))
         stop("All attributes must have at least 2 levels.")
+
+    if(n.questions * n.versions <= sum(levels.per.attribute - 1))
+        stop("There are insufficient questions or versions in your design to fit a model. Increase the",
+             " number of questions * versions to more than ", sum(levels.per.attribute - 1), ".")
 
     # If labeled.alternatives then alternatives.per.question is calculated and not supplied
     if (labeled.alternatives)
