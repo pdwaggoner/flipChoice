@@ -238,7 +238,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     ml.model <- mlogitModel(result)
     if (is.null(ml.model))
         warning("Standard errors cannot be calculated. The design is does not sufficiently explore",
-                (" the combinations of levels. To fix this, increase the number of questions or alternatives per question."))
+                (" the combinations of levels. To fix this, increase the number of questions or versions."))
     else
         result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
 
