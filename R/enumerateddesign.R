@@ -66,10 +66,28 @@ enumeratedDesign <- function(levels.per.attribute, n.questions, alternatives.per
 
         for (i.alternative in seq(alternatives.per.question)) {
 
+            # Only enumerate alternatives that use the least frequent levels of each attribute
+            min.level.counts <- sapply(singles, min)
+            min.levels <- mapply(function(x, y, z) {z[x == y]}, singles, min.level.counts, level.sequences, SIMPLIFY = FALSE)
             if (labeled.alternatives)
-                valid.enumerations <- enumeration[enumeration[, 1] == i.alternative, ]
-            else
-                valid.enumerations <- enumeration
+                min.levels[1] <- i.alternative
+            valid.enumerations <- as.matrix(expand.grid(min.levels))
+
+            # remove prohibited alternatives
+            if (!is.null(prohibitions) && length(prohibitions) != 0)
+            {
+                colnames(prohibitions) <- colnames(valid.enumerations)
+                dups <- duplicated(rbind(valid.enumerations, prohibitions), fromLast = TRUE)[1:nrow(valid.enumerations)]
+                valid.enumerations <- matrix(valid.enumerations[!dups, ], ncol = n.attributes)
+                print(paste(question, i.alternative))
+                if (nrow(valid.enumerations) == 0) # fallback to all enumerations
+                {
+                    if (labeled.alternatives)
+                        valid.enumerations <- enumeration[enumeration[, 1] == i.alternative, ]
+                    else
+                        valid.enumerations <- enumeration
+                }
+            }
 
             # precompute the cost of incrementing every level of every attribute
             # which is faster than computing the cost of each enumeration indivdually
