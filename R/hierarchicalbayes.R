@@ -546,11 +546,12 @@ pkgCxxFlags <- function()
 #' @param stan.fit A stanfit object.
 #' @param n.parameters The number of HB model parameters
 #' @return A list containing the log likelihood and BIC.
+#' @importFrom rstan get_posterior_mean
 #' @export
 LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size)
 {
-    log.likelihood <- as.numeric(get_posterior_mean(stan.fit,
-                                                    pars = "log_likelihood"))
+    log.likelihood <- get_posterior_mean(stan.fit,
+                            pars = "log_likelihood")[stan.fit@sim$chains + 1]
     list(log.likelihood = log.likelihood,
          bic = log(sample.size) * n.parameters - 2 * log.likelihood)
 }
