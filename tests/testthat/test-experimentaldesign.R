@@ -23,12 +23,13 @@ none.test.cases <- c(0, 2, 0, 1)
 labeled.test.cases <- c(FALSE, TRUE, FALSE, FALSE)
 
 d.errors <- structure(c(0.712056054283735, 2.58575924663061, 0.214032716759785,
-                        1.34470226920378, 0.507780669111721, 1.33363188535215, 0.183456951653406,
-                        1.28489875297519, 0.50752053776377, 1.36255841324094, 0.183399470166593,
-                        1.28489875297519, 0.580339263817946, 2.02831103553896, 0.188595544954104,
+                        1.34470226920378, 0.5107438, 1.324875, 0.1834377,
+                        1.271414, 0.5124096, 1.473628, 0.1833373,
+                        1.271414, 0.580339263817946, 2.02831103553896, 0.188595544954104,
                         1.28025988703947), .Dim = c(4L, 4L), .Dimnames = list(NULL, c("Random",
                                                                                       "Complete enumeration", "Balanced overlap", "Shortcut")))
 
+derr <- matrix(0, ncol = 4, nrow = 4)
 
 tfile <- tempfile()
 withr::with_output_sink(tfile, {
@@ -46,7 +47,7 @@ withr::with_output_sink(tfile, {
                                          none.alternatives = none.test.cases[i],
                                          labeled.alternatives = labeled.test.cases[i])
                 expect_error(print(cmd), NA)
-                expect_equivalent(cmd$d.error, d.errors[i, match(model, colnames(d.errors))])
+                expect_equivalent(cmd$d.error, d.errors[i, match(model, colnames(d.errors))], tolerance = 1e-6)
             })
         }
     }
