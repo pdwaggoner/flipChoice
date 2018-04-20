@@ -549,7 +549,7 @@ partialProfilesRandomDesign <- function(levels.per.attribute,
                 break
         }
         if (n.attempts > 1000)
-            inputNotSensibleError()
+            inputNotSensibleError(n.constant.attributes > 0)
         set.seed(seed)
         seed <- sample(1000, 1)
         n.attempts <- n.attempts + 1
