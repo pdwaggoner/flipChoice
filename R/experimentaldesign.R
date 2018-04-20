@@ -241,7 +241,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
 
     ml.model <- mlogitModel(result)
     if (is.null(ml.model))
-        warning("Standard errors cannot be calculated. The design is does not sufficiently explore",
+        warning("Standard errors cannot be calculated. The design does not sufficiently explore",
                 (" the combinations of levels. To fix this, increase the number of questions or versions."))
     else
         result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
@@ -500,11 +500,18 @@ checkDesignParametersValid <- function(n.questions, alternatives.per.question,
     n.blocks.required <- sum(ceiling(levels.per.attribute /
                                          alternatives.per.question))
     if (n.blocks.required > n.blocks.available)
-        inputNotSensibleError()
+        inputNotSensibleError(n.constant.attributes > 0)
 }
 
-inputNotSensibleError <- function()
+inputNotSensibleError <- function(has.constant.attributes)
 {
-    stop("The inputs are not sensible. Try increasing the number of ",
-         "questions or reducing the number of constant attributes.")
+    if (has.constant.attributes)
+        stop("The specified design does not sufficiently explore the ",
+             "combinations of levels. To fix this, increase the number of ",
+             "questions or versions or reduce the number of constant ",
+             "attributes.")
+    else
+        stop("The specified design does not sufficiently explore the ",
+             "combinations of levels. To fix this, increase the number of ",
+             "questions or versions.")
 }
