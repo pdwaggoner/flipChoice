@@ -68,11 +68,16 @@ partialProfilesDesign <- function(levels.per.attribute, prior = NULL,
                 "instead.")
         extensive <- FALSE
     }
-    if (!is.null(prior) && !is.vector(prior))
+    if (!is.null(prior))
     {
-        quadrature.values <- computeQuadratureValues(nrow(prior), n.rotations,
-                                                    seed, prior[, 1], prior[, 2])
-        prior <- c(list(mean = prior[, 1]), quadrature.values)
+        if (!is.vector(prior))
+        {
+            quadrature.values <- computeQuadratureValues(nrow(prior), n.rotations,
+                                                        seed, prior[, 1], prior[, 2])
+            prior <- c(list(mean = prior[, 1]), quadrature.values)
+        }
+        else if (all(prior == 0))
+            prior <- NULL
     }
 
     output <- partialProfilesRandomDesign(levels.per.attribute,

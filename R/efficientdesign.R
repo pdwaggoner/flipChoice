@@ -390,7 +390,7 @@ constrainedPrior <- function(
         n.lvl <- lvls[n]
         n.c <- n.lvl - 1
         default.beta <- numeric(n.c)
-        default.sd <- 1 + numeric(n.c)
+        default.sd <- numeric(n.c)
         if (!is.null(p) || !is.null(s))
         {
             Cmat <- contr.fun(as.factor(seq_len(n.lvl)))
@@ -404,7 +404,8 @@ constrainedPrior <- function(
                 tsd <- default.sd
             else  # V(beta.c) = C*diag(V(beta.uc))*C^T
                 tsd <- sqrt(diag(tcrossprod(Cleftinv%*%diag(s^2), Cleftinv)))
-        }else
+        }
+        else
         {
             tbeta <- default.beta
             tsd <- default.sd
