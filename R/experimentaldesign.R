@@ -236,7 +236,11 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     }
 
     ml.model <- mlogitModel(result)
-    result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
+    if (is.null(ml.model))
+        warning("Standard errors cannot be calculated. The design is does not sufficiently explore",
+                (" the combinations of levels. To fix this, increase the number of questions or alternatives per question."))
+    else
+        result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
 
     class(result) <- c(class(result), "ChoiceModelDesign")
     return(result)
@@ -475,7 +479,7 @@ mlogitModel <- function(cmd, choices = NULL) {
                      alt.var = "Alternative", id.var = "Question", drop.index = TRUE)
 
     form <- paste("Choice ~ ", paste0("`", colnames(mlogit.df)[1:ncol(mlogit.df) - 1], "`", collapse = "+"), "| -1")
-    ml.model <- mlogit(as.formula(form), data = mlogit.df)
+    ml.model <- tryCatch(mlogit(as.formula(form), data = mlogit.df), error = function(e) {NULL})
     return(ml.model)
 }
 
