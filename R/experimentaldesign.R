@@ -343,7 +343,9 @@ balancesAndOverlaps <- function(cmd) {
     overlaps <- countOverlaps(cmd$design, cmd$alternatives.per.question,
                              sapply(cmd$attribute.levels, length))
 
-    return(list(singles = singles, pairs = pairs, overlaps = overlaps))
+    ranges <- c(sapply(singles, numRange), sapply(pairs, numRange))
+
+    return(list(singles = singles, pairs = pairs, ranges = ranges, overlaps = overlaps))
 }
 
 
