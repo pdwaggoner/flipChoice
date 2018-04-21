@@ -66,6 +66,7 @@ enumeratedDesign <- function(levels.per.attribute, n.questions, alternatives.per
 
         for (i.alternative in seq(alternatives.per.question)) {
 
+            full.enumeration <- FALSE
             if (question == 1 && i.alternative == 1) # break the initial symmetry
                 best.alternative <- rep(1, n.attributes)
             else
@@ -86,6 +87,7 @@ enumeratedDesign <- function(levels.per.attribute, n.questions, alternatives.per
                     valid.enumerations <- matrix(valid.enumerations[!dups, ], ncol = n.attributes)
                     if (nrow(valid.enumerations) == 0) # fallback to all enumerations
                     {
+                        full.enumeration <- TRUE
                         if (labeled.alternatives)
                             valid.enumerations <- enumeration[enumeration[, 1] == i.alternative, ]
                         else
@@ -98,8 +100,15 @@ enumeratedDesign <- function(levels.per.attribute, n.questions, alternatives.per
                 singles.costs <- sapply(singles, precomputeCosts, simplify = FALSE)
                 qn.counts.costs <- sapply(qn.counts, precomputeCosts, simplify = FALSE)
                 pairs.costs <- precomputePairsCosts(pairs)
+
+                # if not a full enumeration then all single costs are the same
+                fixed.single <- if (full.enumeration)
+                    NULL
+                else
+                    singlePrecomputed(valid.enumerations[1, ], singles.costs)
+
                 costs <- apply(valid.enumerations, 1, totalCostPrecomputed, singles.costs, pairs.costs,
-                               qn.counts.costs, pairs.singles.ratio, cost.weightings)
+                                qn.counts.costs, pairs.singles.ratio, cost.weightings, fixed.single)
 
                 # break ties at random instead of taking first minimum
                 best.alternative <- valid.enumerations[which.is.max(-costs), ]
@@ -148,9 +157,13 @@ addPairs <- function(alternative, pairs) {
 
 
 # Calculate the total cost as a weighted sum
-totalCostPrecomputed <- function(alternative, singles.costs, pairs.costs, qn.counts.costs, pairs.singles.ratio, cost.weightings) {
+totalCostPrecomputed <- function(alternative, singles.costs, pairs.costs, qn.counts.costs, pairs.singles.ratio, cost.weightings,
+                                 fixed.single) {
 
-    single.cost <- singlePrecomputed(alternative, singles.costs)
+    single.cost <- if (!is.null(fixed.single))
+        fixed.single
+    else
+        singlePrecomputed(alternative, singles.costs)
     # scale the pair cost down by the ratio of the number of pairs to the number of singles
     # otherwise pair cost will dominate as number of attributes increases
     pair.cost <- pairPrecomputed(alternative, pairs.costs) / pairs.singles.ratio
