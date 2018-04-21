@@ -7,7 +7,7 @@ completeEnumerationDesign <- function(levels.per.attribute, n.questions, alterna
 }
 
 balancedOverlapDesign <- function(levels.per.attribute, n.questions, alternatives.per.question, prohibitions,
-                                      labeled.alternatives) {
+                                  labeled.alternatives) {
     return(enumeratedDesign(levels.per.attribute, n.questions, alternatives.per.question, prohibitions,
                             labeled.alternatives, cost.weightings = c(6, 6, 1)))
 }
@@ -141,7 +141,7 @@ addPairs <- function(alternative, pairs) {
         for (i in 1:(length(alternative) - 1))
             for (j in (i + 1):length(alternative))
                 pairs[[i]][[j]][alternative[i], alternative[j]] <- pairs[[i]][[j]][alternative[i], alternative[j]] + 1
-        return(pairs)
+            return(pairs)
     }
 }
 
@@ -163,19 +163,8 @@ totalCostPrecomputed <- function(alternative, singles.costs, pairs.costs, qn.cou
 
 # Precompute the single cost of incrementing any level of an attribute
 precomputeCosts <- function(single) {
-    n <- length(single)
-    range <- range(single)
-    min <- range[1]
-    max <- range[2]
-    if (min == max)
-        return (rep(1, n))
-
-    min.count <- sum(single == min)
-    costs <- rep((max - min)^2, n)
-    costs[single == max] <- (max + 1 - min)^2
-    if (min.count == 1)
-        costs[single == min] <- (max - min - 1)^2
-    return(costs)
+    min <- min(single)
+    return((single - min)^2)
 }
 
 # Precompute the pairwise costs of incrementing any pair of level of any attributes
@@ -187,24 +176,8 @@ precomputePairsCosts <- function(pairs) {
             pair <- pairs[[i]][[j]]
             if(length(dim(pairs)) == 0)
                 next
-
-            rows <- NROW(pair)
-            cols <- NCOL(pair)
-            range <- range(pair)
-            min <- range[1]
-            max <- range[2]
-            if (min == max) {
-                costs <- matrix(1, nrow = rows, ncol = cols)
-                next
-            }
-
-            min.count <- sum(pair == min)
-            costs <- matrix((max - min)^2, nrow = rows, ncol = cols)
-            costs[pair == max] <- (max + 1 - min)^2
-            if (min.count == 1)
-                costs[pair == min] <- (max - min - 1)^2
-
-            pairs[[i]][[j]] <- costs
+            min <- min(pair)
+            pairs[[i]][[j]] <- (pair - min)^2
         }
     }
     return(pairs)

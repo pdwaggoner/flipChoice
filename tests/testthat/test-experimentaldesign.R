@@ -22,11 +22,11 @@ alternatives.test.cases <- c(3, 3, 6, 4)
 none.test.cases <- c(0, 2, 0, 1)
 labeled.test.cases <- c(FALSE, TRUE, FALSE, FALSE)
 
-d.errors <- structure(c(0.712056054283735, 0.7112814, 0.214032716759785,
-                        1.34470226920378, 0.5107438, 0.5283405, 0.1834377,
-                        1.271414, 0.5124096, 0.5402751, 0.1833373,
-                        1.271414, 0.580339263817946, 0.5910509, 0.188595544954104,
-                        1.28025988703947), .Dim = c(4L, 4L), .Dimnames = list(NULL, c("Random",
+d.errors <- structure(c(0.7120561, 0.7112814, 0.2140327,
+                        1.344702, 0.5107438, 0.5283405, 0.1834341,
+                        1.271414, 0.5124096, 0.5402751, 0.1833977,
+                        1.271414, 0.5803393, 0.5910509, 0.1885955,
+                        1.28026), .Dim = c(4L, 4L), .Dimnames = list(NULL, c("Random",
                                                                                       "Complete enumeration", "Balanced overlap", "Shortcut")))
 
 derr <- matrix(0, ncol = 4, nrow = 4)
@@ -47,13 +47,12 @@ withr::with_output_sink(tfile, {
                                          none.alternatives = none.test.cases[i],
                                          labeled.alternatives = labeled.test.cases[i])
                 expect_error(print(cmd), NA)
-                print(cmd$d.error)
-                #expect_equivalent(cmd$d.error, d.errors[i, match(model, colnames(d.errors))], tolerance = 1e-6)
+                expect_equivalent(cmd$d.error, d.errors[i, match(model, colnames(d.errors))], tolerance = 1e-6)
             })
         }
     }
 })
-#unlink(tfile)
+unlink(tfile)
 
 experiment4 <- CreateExperiment(c(4, 3, 2, 1), 0)
 test_that(paste("Test case"), {
