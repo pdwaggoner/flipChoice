@@ -212,7 +212,7 @@ test_that("Parsing of pasted prior with some means and sd's missing",
     expect_equal(names(parsed$lvls), vnames)
     expect_equal(parsed$lvls, c(3, 3, 2), check.attributes = FALSE)
     expect_equal(parsed$prior[, 1], c(1, 1, 0, 2, 0), check.attributes = FALSE)
-    expect_equal(parsed$prior[, 2], c(1, 1, 3, 1, 2), check.attributes = FALSE)
+    expect_equal(parsed$prior[, 2], c(0, 0, 3, 1, 2), check.attributes = FALSE)
 })
 
 
