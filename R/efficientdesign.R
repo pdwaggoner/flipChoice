@@ -325,7 +325,7 @@ parsePastedData <- function(paste.data, n.sim = 10, coding = "D", labeled.alts =
     }else
         sd.list <- NULL
 
-    if (n.means)
+    if (n.means > 0 || n.sd > 0)
         prior <- constrainedPrior(n.lvls, means.list, sd.list, coding, n.sim)
     else
         prior <- numeric(sum(n.lvls) - length(n.lvls))
