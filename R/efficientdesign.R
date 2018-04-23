@@ -306,6 +306,9 @@ parsePastedData <- function(paste.data, n.sim = 10, coding = "D", labeled.alts =
             means.list[[i]] <- tmean
         }
     }
+    else
+        means.list <- NULL
+
     if (n.sd)
     {
         sd.list <- vector("list", n.sd)
@@ -317,12 +320,13 @@ parsePastedData <- function(paste.data, n.sim = 10, coding = "D", labeled.alts =
             idx <- sd.idx[i]
             n.lvl <- n.lvls[sd.attr.names[i]]
             tsd <- suppressWarnings(as.numeric(paste.data[2:(n.lvl + 1), idx]))
-            if (any(is.na(tsd)) || any(tsd <= 0))
+            if (any(is.na(tsd)) || any(tsd < 0))
                 stop(gettextf("Invalid or incorrect number of prior standard deviations specified for %s, %d%s",
                      sd.attr.names[i], n.lvl, " are required."))
             sd.list[[i]] <- tsd
         }
-    }else
+    }
+    else
         sd.list <- NULL
 
     if (n.means > 0 || n.sd > 0)
