@@ -324,7 +324,6 @@ labelDesign <- function(unlabeled.design, attribute.levels) {
 balancesAndOverlaps <- function(cmd) {
 
     singles <- singleLevelBalances(cmd$design)
-
     pairs <- pairLevelBalances(cmd$design)
 
     # label the levels
@@ -346,12 +345,14 @@ balancesAndOverlaps <- function(cmd) {
 
 
 singleLevelBalances <- function(design) {
-    singles <- apply(design[, 4:ncol(design), drop = FALSE], 2, table)
-    if (!is.list(singles))
-    {
-        singles <- split(singles, rep(1:ncol(singles), each = nrow(singles)))
-        names(singles) <- colnames(design)[4:ncol(design)]
-    }
+    columns <- design[, 4:ncol(design), drop = FALSE]
+    columns <- split(columns, rep(1:NCOL(columns), each = NROW(columns)))
+    singles <- lapply(columns, table)
+    #if (!is.list(singles))
+    #{
+    #    singles <- split(singles, rep(1:ncol(singles), each = nrow(singles)))
+    #    names(singles) <- colnames(design)[4:ncol(design)]
+    #}
     return(singles)
 }
 
