@@ -121,7 +121,7 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
                            hb.prior.mean = 0, hb.prior.sd = 5,
                            hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
                            include.choice.parameters = TRUE,
-                           respondent.ids, ...)
+                           respondent.ids = NULL, ...)
 {
     if (!is.null(weights))
         stop("Weights are not able to be applied for Hierarchical Bayes.")

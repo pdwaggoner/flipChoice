@@ -70,10 +70,15 @@ processChoFile <- function(cho.file, attribute.levels.file,
         }
     }
 
-    reordering <- reconcileRespondentIDs(respondent.ids, file.respondent.ids)
-    n.respondents <- length(respondent.ids)
-    X <- X[reordering, , , ]
-    Y <- Y[reordering, ]
+    if (!is.null(respondent.ids))
+    {
+        reordering <- reconcileRespondentIDs(respondent.ids, file.respondent.ids)
+        n.respondents <- length(respondent.ids)
+        X <- X[reordering, , , ]
+        Y <- Y[reordering, ]
+    }
+    else
+        n.respondents <- n.respondents.in.file
 
     if (include.choice.parameters)
     {

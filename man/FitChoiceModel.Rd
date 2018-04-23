@@ -12,7 +12,7 @@ FitChoiceModel(experiment.data = NULL, cho.file = NULL,
   hb.max.tree.depth = 10, hb.adapt.delta = 0.8, hb.keep.samples = FALSE,
   hb.stanfit = TRUE, hb.prior.mean = 0, hb.prior.sd = 5,
   hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
-  include.choice.parameters = TRUE, respondent.ids, ...)
+  include.choice.parameters = TRUE, respondent.ids = NULL, ...)
 }
 \arguments{
 \item{experiment.data}{A data.frame from an Experiment question}
