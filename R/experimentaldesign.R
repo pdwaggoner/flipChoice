@@ -340,19 +340,16 @@ balancesAndOverlaps <- function(cmd) {
 
     ranges <- c(sapply(singles, numRange), sapply(pairs, numRange))
 
-    return(list(singles = singles, pairs = pairs, ranges = ranges, overlaps = overlaps))
+    return(list(overlaps = overlaps, frequency.ranges = ranges, singles = singles, pairs = pairs))
 }
 
 
 singleLevelBalances <- function(design) {
     columns <- design[, 4:ncol(design), drop = FALSE]
+    attribute.names <- colnames(columns)
     columns <- split(columns, rep(1:NCOL(columns), each = NROW(columns)))
     singles <- lapply(columns, table)
-    #if (!is.list(singles))
-    #{
-    #    singles <- split(singles, rep(1:ncol(singles), each = nrow(singles)))
-    #    names(singles) <- colnames(design)[4:ncol(design)]
-    #}
+    names(singles) <- attribute.names
     return(singles)
 }
 
