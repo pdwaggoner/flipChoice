@@ -12,7 +12,7 @@ FitChoiceModel(experiment.data = NULL, cho.file = NULL,
   hb.max.tree.depth = 10, hb.adapt.delta = 0.8, hb.keep.samples = FALSE,
   hb.stanfit = TRUE, hb.prior.mean = 0, hb.prior.sd = 5,
   hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
-  include.choice.parameters = TRUE, ...)
+  include.choice.parameters = TRUE, respondent.ids, ...)
 }
 \arguments{
 \item{experiment.data}{A data.frame from an Experiment question}
@@ -88,6 +88,9 @@ respondent to return in beta.draws.}
 
 \item{include.choice.parameters}{Whether to include
 alternative-specific parameters.}
+
+\item{respondent.ids}{If a cho file is supplied, this is the vector of the
+respondent IDs to use.}
 
 \item{...}{Additional parameters to pass on to \code{rstan::stan}
 and \code{rstan::sampling}.}
