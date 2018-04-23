@@ -43,8 +43,6 @@ processDesignFile <- function(design.file, attribute.levels.file,
              ' alternative is present in the analysis.')
 
     n.questions.left.in <- n.questions - n.questions.left.out
-    left.out <- LeftOutQuestions(n.respondents, n.questions,
-                                 n.questions.left.out, seed)
 
     X <- array(data = 0, dim = c(n.respondents, n.questions, n.choices,
                                  n.parameters))

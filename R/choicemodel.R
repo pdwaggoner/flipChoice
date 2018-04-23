@@ -52,6 +52,8 @@
 #'     respondent to return in beta.draws.
 #' @param include.choice.parameters Whether to include
 #'     alternative-specific parameters.
+#' @param respondent.ids If a cho file is supplied, this is the vector of the
+#'     respondent IDs to use.
 #' @param ... Additional parameters to pass on to \code{rstan::stan}
 #'     and \code{rstan::sampling}.
 #' @return A list with the following components: \itemize{
@@ -118,7 +120,8 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
                            hb.keep.samples = FALSE, hb.stanfit = TRUE,
                            hb.prior.mean = 0, hb.prior.sd = 5,
                            hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
-                           include.choice.parameters = TRUE, ...)
+                           include.choice.parameters = TRUE,
+                           respondent.ids = NULL, ...)
 {
     if (!is.null(weights))
         stop("Weights are not able to be applied for Hierarchical Bayes.")
@@ -134,7 +137,8 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
     else if (!is.null(cho.file) && !is.null(attribute.levels.file))
         processChoFile(cho.file, attribute.levels.file,
                        subset, weights, tasks.left.out, seed,
-                       hb.prior.mean, hb.prior.sd, include.choice.parameters)
+                       hb.prior.mean, hb.prior.sd, include.choice.parameters,
+                       respondent.ids)
     else if (!is.null(design.file) && !is.null(choices) &&
              !is.null(questions))
         processDesignFile(design.file, attribute.levels.file, choices,
