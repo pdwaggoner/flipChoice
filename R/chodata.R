@@ -1,7 +1,7 @@
 processChoFile <- function(cho.file, attribute.levels.file,
                            subset, weights, n.questions.left.out, seed,
                            input.prior.mean, input.prior.sd,
-                           include.choice.parameters)
+                           include.choice.parameters, respondent.ids)
 {
     raw.lines <- readLines(cho.file)
     attribute.levels <- processAttributeLevelsFile(attribute.levels.file)
@@ -15,9 +15,9 @@ processChoFile <- function(cho.file, attribute.levels.file,
         n.choices <- n.choices + 1
 
     n.raw <- length(raw.num)
-    n.respondents <- n.raw / (n.questions * (raw.num[[3]][1] + 2) + 2)
+    n.respondents.in.file <- n.raw / (n.questions * (raw.num[[3]][1] + 2) + 2)
 
-    if (floor(n.respondents) != n.respondents)
+    if (floor(n.respondents.in.file) != n.respondents.in.file)
         stop("There is a problem with the .CHO file. Ensure each respondent ",
              "has the same number of questions and choices per question.")
 
@@ -34,15 +34,18 @@ processChoFile <- function(cho.file, attribute.levels.file,
                                             n.parameters)
 
     n.questions.left.in <- n.questions - n.questions.left.out
-    left.out <- LeftOutQuestions(n.respondents, n.questions, n.questions.left.out, seed)
 
-    X <- array(data = 0, dim = c(n.respondents, n.questions, n.choices, n.parameters))
-    Y <- matrix(NA, nrow = n.respondents, ncol = n.questions)
+    file.respondent.ids <- rep(NA, n.respondents.in.file)
+    X <- array(data = 0, dim = c(n.respondents.in.file, n.questions, n.choices,
+                                 n.parameters))
+    Y <- matrix(NA, nrow = n.respondents.in.file, ncol = n.questions)
 
     ind <- 0
-    for (i in 1:n.respondents)
+    for (i in 1:n.respondents.in.file)
     {
-        ind <- ind + 2 # first two rows per respondent
+        ind <- ind + 1 # first respondent row
+        file.respondent.ids[i] <- raw.num[[ind]][1]
+        ind <- ind + 1 # second respondent row
         for (j in 1:n.questions)
         {
             ind <- ind + 1 # question format row
@@ -66,6 +69,11 @@ processChoFile <- function(cho.file, attribute.levels.file,
             Y[i, j] <- raw.num[[ind]][1]
         }
     }
+
+    reordering <- reconcileRespondentIDs(respondent.ids, file.respondent.ids)
+    n.respondents <- length(respondent.ids)
+    X <- X[reordering, , , ]
+    Y <- Y[reordering, ]
 
     if (include.choice.parameters)
     {
@@ -233,4 +241,25 @@ fillXAttributes <- function(n.parameters, n.attributes, n.attribute.parameters,
         parameter.index <- parameter.index + n.attribute.parameters[l]
     }
     result
+}
+
+reconcileRespondentIDs <- function(respondent.ids, file.respondent.ids)
+{
+    n.respondents <- length(respondent.ids)
+    reordering <- rep(NA, n.respondents)
+    for (i in 1:n.respondents)
+    {
+        id <- respondent.ids[i]
+        ind <- which(file.respondent.ids == id)
+        if (length(ind) == 0)
+            stop("Respondent ", id, " not found in the .cho file.")
+        else if (length(ind) > 1)
+            stop("Respondent ", id, " has duplicate entries in the .cho file.")
+        else
+            reordering[i] <- ind
+    }
+    if (length(setdiff(file.respondent.ids, respondent.ids)) > 0)
+        warning("Respondents in the .cho file that do not appear in the ",
+                "supplied respondent IDs have been omitted.")
+    reordering
 }
