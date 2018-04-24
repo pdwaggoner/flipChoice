@@ -544,7 +544,8 @@ pkgCxxFlags <- function()
 #' @description This function extracts the log-likelihood from a stanfit object
 #' and computes the BIC.
 #' @param stan.fit A stanfit object.
-#' @param n.parameters The number of HB model parameters
+#' @param n.parameters The number of HB model parameters.
+#' @param sample.size The sample size of the analysis.
 #' @return A list containing the log likelihood and BIC.
 #' @importFrom rstan get_posterior_mean
 #' @export

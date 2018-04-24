@@ -9,7 +9,9 @@ LogLikelihoodAndBIC(stan.fit, n.parameters, sample.size)
 \arguments{
 \item{stan.fit}{A stanfit object.}
 
-\item{n.parameters}{The number of HB model parameters}
+\item{n.parameters}{The number of HB model parameters.}
+
+\item{sample.size}{The sample size of the analysis.}
 }
 \value{
 A list containing the log likelihood and BIC.
