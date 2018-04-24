@@ -550,8 +550,12 @@ pkgCxxFlags <- function()
 #' @export
 LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size)
 {
+    ind <- if (stan.fit@sim$chains == 1)
+        1
+    else
+        stan.fit@sim$chains + 1
     log.likelihood <- get_posterior_mean(stan.fit,
-                            pars = "log_likelihood")[stan.fit@sim$chains + 1]
+                                         pars = "log_likelihood")[ind]
     list(log.likelihood = log.likelihood,
          bic = log(sample.size) * n.parameters - 2 * log.likelihood)
 }
