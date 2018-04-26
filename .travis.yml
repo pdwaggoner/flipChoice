@@ -3,7 +3,7 @@ r:
   - release
 dist: trusty  # ubuntu 14.04 has additional libraries available
 sudo: required
-cache: true
+cache: packages
 warnings_are_errors: false
 
 env:
