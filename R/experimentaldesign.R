@@ -229,7 +229,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     {
         encoded.design <- encodeDesign(result$design[,-1:-3], FALSE)
         criterion <- quadratureBayesianCriterion(encoded.design, prior,
-                                                 n.questions,
+                                                 n.questions * n.versions,
                                                  alternatives.per.question,
                                                  10, seed)
         exp(-criterion / nrow(prior))
