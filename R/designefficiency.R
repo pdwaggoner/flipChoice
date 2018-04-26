@@ -98,29 +98,29 @@ d0Criterion <- function(coded.design, n.questions, alternatives.per.question,
         det.info.matrix
 }
 
-logitChoiceProbs = function(coded.matrix, prior, number.alternatives, number.tasks) {
-    if (ncol(coded.matrix) != length(prior)) {
-        stop("Number of columns in coded.matrix does not match the number of prior parameters")
-    }
-
-    if (nrow(coded.matrix) != number.alternatives * number.tasks) {
-        stop("Number of rows in design does not match the number of alternatives and tasks")
-    }
-
-    choice.probabilities = rep(0, number.alternatives * number.tasks)
-
-    for (task in 1L:number.tasks) {
-        current.probs = rep(0, number.alternatives)
-        for (alt in 1L:number.alternatives) {
-            row.index = (task - 1) * number.alternatives + alt
-            current.probs[alt] = exp(coded.matrix[row.index, ] %*% prior)
-        }
-        start.index = (task - 1) * number.alternatives + 1
-        end.index = task * number.alternatives
-        choice.probabilities[start.index:end.index] = current.probs / sum(current.probs)
-    }
-    return(choice.probabilities)
+logsumexp <- function(x)
+{
+   xmax <- which.max(x)
+   log1p(sum(exp(x[-xmax]-x[xmax])))+x[xmax]
 }
+
+softmax <- function(x)
+    exp(x - logsumexp(x))
+
+logitChoiceProbs <- function(coded.matrix, prior, number.alternatives, number.tasks)
+{
+    if (ncol(coded.matrix) != length(prior))
+        stop("Number of columns in coded.matrix does not match the number of prior parameters")
+
+    if (nrow(coded.matrix) != number.alternatives * number.tasks)
+        stop("Number of rows in design does not match the number of alternatives and tasks")
+
+    lp <- drop(coded.matrix%*%prior)
+
+    unname(unlist(tapply(lp, rep(seq_len(number.tasks), each = number.alternatives),
+                  softmax, simplify = FALSE)))
+}
+
 
 repRow = function(x, n) {
     # Returns a matrix with n rows where each row is a copy of x
