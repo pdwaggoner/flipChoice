@@ -30,6 +30,7 @@ before_install:
   - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
 
 r_packages:
+  - devtools
   - roxygen2
   - covr
 
