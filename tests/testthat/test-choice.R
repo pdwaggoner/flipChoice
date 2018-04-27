@@ -78,8 +78,19 @@ test_that("HB prior parameters", {
                              hb.prior.mean = prior.mean,
                              hb.prior.sd = rep(0.1, 8), hb.warnings = FALSE)
     expect_error(print(result), NA)
+
     # Free range parameter prior forced to be negative
     expect_equal(result$parameter.statistics[9, 1] < 0, TRUE)
+
+    expect_error(FitChoiceModel(experiment.data = eggs.data,
+                                hb.iterations = 10,
+                                hb.chains = 1,
+                                hb.prior.mean = prior.mean,
+                                hb.prior.sd = 1:7, hb.warnings = FALSE),
+                 paste0("The supplied parameter hb.prior.sd is inappropriate. ",
+                        "Based on the input data this needs to be a numeric ",
+                        "vector of length 1, 8 \\(number of attributes\\)",
+                        " or 13 \\(number of parameters\\)."))
 
     expect_error(FitChoiceModel(experiment.data = eggs.data,
                                 hb.iterations = 10,
