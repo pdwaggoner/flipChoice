@@ -3,7 +3,7 @@ PKG_CPPFLAGS = -I"../inst/include" -I"$(STANHEADERS_SRC)" -DBOOST_RESULT_OF_USE_
 
 PKG_LIBS = `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"`
 
-SOURCES = stan_files/choicemodel.stan stan_files/choicemodelFC.stan stan_files/diagonal.stan stan_files/diagonalmixture.stan stan_files/mixtureofnormals.stan
+SOURCES = $(wildcard stan_files/*.stan)
 OBJECTS = $(SOURCES:.stan=.o) flipChoice_init.o partialprofiles.o RcppExports.o
 
 all: $(SHLIB)

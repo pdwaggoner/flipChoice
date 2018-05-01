@@ -5,7 +5,7 @@ PKG_CPPFLAGS = -I"../inst/include" -I"$(STANHEADERS_SRC)" -I"$(BOOST_NOT_IN_BH_S
 PKG_LIBS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "Rcpp:::LdFlags()")
 CXX_STD = CXX11
 
-SOURCES = stan_files/choicemodel.stan stan_files/choicemodelFC.stan stan_files/diagonal.stan stan_files/diagonalmixture.stan stan_files/mixtureofnormals.stan
+SOURCES = $(wildcard stan_files/*.stan)
 OBJECTS = $(SOURCES:.stan=.o) flipChoice_init.o partialprofiles.o RcppExports.o
 
 all: $(SHLIB)
