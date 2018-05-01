@@ -530,7 +530,7 @@ test_that("Sandor and Wedel 2001, Table 5: 3^5/2/15",
 {
     seed <- 11001100
     data("sw1.design", package = "flipChoice")
-    ca <- as.list(rep("contr.treatment", ncol(sw1.design) - 2))
+    ca <- as.list(rep("contr.sum", ncol(sw1.design) - 2))
     names(ca) <- names(sw1.design)[-(1:2)]
     maxes <- as.numeric(apply(sw1.design, 2,
                             function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
@@ -565,7 +565,7 @@ test_that("Sandor and Wedel 2001: 3^4/2/15",
 {
     seed <- 110011001
     data("sw2.design", package = "flipChoice")
-    ca <- as.list(rep("contr.treatment", ncol(sw2.design) - 2))
+    ca <- as.list(rep("contr.sum", ncol(sw2.design) - 2))
     names(ca) <- names(sw2.design)[-(1:2)]
     maxes <- as.numeric(apply(sw2.design, 2,
                             function(x) max(as.integer(x))))  # c(rep.int(4,5), 2, 8, 8, 9)
@@ -585,8 +585,12 @@ test_that("Sandor and Wedel 2001: 3^4/2/15",
                            attribute.levels = attr.list, prior = prior.coef, n.questions = n.q,
                            seed = seed, alternatives.per.question = apq,
                            labeled.alternatives = FALSE, none.alternative = FALSE)
-    expect_true(out$d.error/d.err.pub <= 1)
+    df <- as.data.frame(apply(out$design, 2, as.factor))
+    mm <- model.matrix(form, df, contrasts = ca)[, -1]
+    d.err <- idefix:::Derr(prior.coef, mm, apq)
+    expect_true(d.err/d.err.pub <= 1L)
 })
+
 
 test_that("Street, Burgess, Louviere 2005 Table 5: 4^5/2/16",
 {
