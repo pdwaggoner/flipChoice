@@ -9,10 +9,12 @@ test_that("HB", {
     expect_error(print(result), NA)
     expect_equal(dim(result$beta.draws), c(2L, 380L, 13L))
 
-    # If this threshold needs to be increased due to additional outputs,
+    # If the number below needs to be increased due to additional outputs,
     # ensure that the output size does not get too big when there are multiple
     # classes and many iterations.
-    expect_true(as.numeric(object.size(result)) < 240000, info = print(as.numeric(object.size(result)))) # bytes
+    expect_equal(as.numeric(object.size(result)), 241232)
+    # Add the following option to expect_equal to print out the size in Travis
+    # info = print(as.numeric(object.size(result))))
 })
 
 test_that("HB cross validation", {
