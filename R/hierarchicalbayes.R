@@ -108,8 +108,6 @@ stanParameters <- function(stan.dat, keep.beta)
     pars <- c("theta", "sigma", "log_likelihood")
     if (keep.beta)
         pars <- c(pars, "beta")
-    if (full.covariance)
-        pars <- c(pars, "L_omega")
     if (multiple.classes)
         pars <- c(pars, "class_weights")
 
