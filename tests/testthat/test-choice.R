@@ -12,6 +12,7 @@ test_that("HB", {
     # If this threshold needs to be increased due to additional outputs,
     # ensure that the output size does not get too big when there are multiple
     # classes and many iterations.
+    print(as.numeric(object.size(result)))
     expect_true(as.numeric(object.size(result)) < 240000) # bytes
 })
 
