@@ -8,6 +8,11 @@ test_that("HB", {
                              hb.beta.draws.to.keep = 2)
     expect_error(print(result), NA)
     expect_equal(dim(result$beta.draws), c(2L, 380L, 13L))
+
+    # If this threshold needs to be increased due to additional outputs,
+    # ensure that the output size does not get too big when there are multiple
+    # classes and many iterations.
+    expect_true(as.numeric(object.size(result)) < 240000) # bytes
 })
 
 test_that("HB cross validation", {
