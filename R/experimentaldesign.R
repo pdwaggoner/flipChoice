@@ -349,8 +349,8 @@ balancesAndOverlaps <- function(cmd) {
 
     for (version in seq(cmd$n.versions))
     {
-        version.start <- 1 + ((version - 1) * cmd$n.questions)
-        version.end <- version.start + cmd$n.questions - 1
+        version.start <- 1 + ((version - 1) * cmd$n.questions * cmd$alternatives.per.question)
+        version.end <- version.start + cmd$n.questions * cmd$alternatives.per.question - 1
         version.design <- cmd$design[version.start:version.end, ]
         frequency.ranges[version, ] <- sapply(singleLevelBalances(version.design), numRange)
         if (!is.null(pairs))
@@ -360,11 +360,19 @@ balancesAndOverlaps <- function(cmd) {
         }
     }
 
+    # normalize by average occurences of each level per version
+    average.levels <- sapply(singleLevelBalances(version.design), mean)
+    frequency.ranges <- t(t(frequency.ranges) / average.levels)
+
     frequency.means <- apply(frequency.ranges, 2, mean)
     frequency.sds <- apply(frequency.ranges, 2, sd)
     names(frequency.means) <- names(frequency.sds) <- names(singles)
+
     if (!is.null(pairs))
     {
+        average.pairwise <- sapply(pair.version[!is.na(pair.version)], mean)
+        pairwise.ranges <- t(t(pairwise.ranges) / average.pairwise)
+
         pairwise.means <- apply(pairwise.ranges, 2, mean)
         pairwise.sds <- apply(pairwise.ranges, 2, sd)
         names(pairwise.means) <- names(pairwise.sds) <- names(pairs)
@@ -373,10 +381,10 @@ balancesAndOverlaps <- function(cmd) {
         pairwise.means <- pairwise.sds <- NULL
 
     return(list(overlaps = overlaps,
-                average.frequency.range = frequency.means,
-                sd.frequency.range = frequency.sds,
-                average.pairwise.range = pairwise.means,
-                sd.pairwise.range = pairwise.sds,
+                normalized.average.frequency.range = frequency.means,
+                normalized.sd.frequency.range = frequency.sds,
+                normalized.average.pairwise.range = pairwise.means,
+                normalized.sd.pairwise.range = pairwise.sds,
                 frequency.ranges = ranges,
                 singles = singles,
                 pairs = pairs))
