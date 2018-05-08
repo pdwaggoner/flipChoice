@@ -84,7 +84,7 @@ enumeratedDesign <- function(levels.per.attribute, n.questions, alternatives.per
                 if (balanced)
                 {
                     used.levels <- lapply(qn.counts, function(x) {which(x != 0)})
-                    min.levels <- mapply(union, used.levels, min.levels)
+                    min.levels <- mapply(union, used.levels, min.levels, SIMPLIFY = FALSE)
                 }
 
                 if (labeled.alternatives)
