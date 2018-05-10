@@ -330,20 +330,20 @@ checkPriorParameters <- function(input.prior.mean, input.prior.sd, n.choices,
         (length(input.prior.mean) != n.parameters &&
          length(input.prior.mean) != n.attributes &&
          length(input.prior.mean) != 1))
-        stop(paste0("The supplied parameter hb.prior.mean is inappropriate. ",
+        stop("The supplied parameter hb.prior.mean is inappropriate. ",
                     "Based on the input data this needs to be a numeric ",
                     "vector of length 1, ", n.attributes,
                     " (number of attributes) or ",
-                    n.parameters, " (number of parameters)."))
+                    n.parameters, " (number of parameters).")
     if (!is.numeric(input.prior.sd) ||
         (length(input.prior.sd) != n.parameters &&
          length(input.prior.sd) != n.attributes &&
          length(input.prior.sd) != 1))
-        stop(paste0("The supplied parameter hb.prior.sd is inappropriate. ",
+        stop("The supplied parameter hb.prior.sd is inappropriate. ",
                     "Based on the input data this needs to be a numeric ",
                     "vector of length 1, ", n.attributes,
                     " (number of attributes) or ",
-                    n.parameters, " (number of parameters)."))
+                    n.parameters, " (number of parameters).")
 }
 
 prepareWeights <- function(weights, subset)
