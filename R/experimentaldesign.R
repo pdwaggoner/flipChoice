@@ -147,22 +147,24 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     if(any(levels.per.attribute < 2))
         stop("All attributes must have at least 2 levels.")
 
+    # If labeled.alternatives then alternatives.per.question is calculated and not supplied
+    if (labeled.alternatives)
+        alternatives.per.question <- length(attribute.levels[[1]])
+
     if(none.alternatives != 0 && !is.null(none.positions) && length(none.positions) != none.alternatives)
         stop("Number of none alternatives is inconsistent with the number of positions of none alternatives.")
     if(!is.null(none.positions))
+    {
         none.alternatives <- length(none.positions)
+        if(min(none.positions) < 1 || max(none.positions) > n.questions + none.alternatives)
+            stop("Position of none of alternatives are inconsistent with the number of questions.")
+    }
     if(none.alternatives != 0 && is.null(none.positions))
         none.positions <- seq(alternatives.per.question + 1, alternatives.per.question + none.alternatives)
-    if(min(none.positions) < 1 || max(none.positions) > n.questions + none.alternatives)
-        stop("Position of none of alternatives are inconsistent with the number of questions.")
 
     if(n.questions * n.versions <= sum(levels.per.attribute - 1))
         stop("There are insufficient questions or versions in your design to fit a model. Increase the",
              " number of questions * versions to more than ", sum(levels.per.attribute - 1), ".")
-
-    # If labeled.alternatives then alternatives.per.question is calculated and not supplied
-    if (labeled.alternatives)
-        alternatives.per.question <- length(attribute.levels[[1]])
 
     # Check if prohibitions are valid for the algorithm
     algorithms.without.prohibitions <- c("Efficient", "Shortcut",
