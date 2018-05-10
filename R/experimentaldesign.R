@@ -28,7 +28,10 @@
 #'     levels of that attribute in combination with the other
 #'     specified attribute levels are prohibited.
 #' @param none.alternatives Integer; the number of 'None' in all
-#'     questions.
+#'     questions. Not required if \code{none.positions} is supplied.
+#' @param none.positions Integer \code{\link{vector}} specifying the indices
+#'     of the 'None' alternatives in each question. If not specified, 'None'
+#'     will be the last alternative(s).
 #' @param labeled.alternatives Logical; whether the first attribute
 #'     labels the alternatives.
 #' @param n.constant.attributes Integer; the number of attributes to keep
@@ -99,6 +102,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                               alternatives.per.question,
                               prohibitions = NULL,
                               none.alternatives = 0,
+                              none.positions = NULL,
                               labeled.alternatives = FALSE,
                               n.constant.attributes = 0,
                               extensive = FALSE,
@@ -142,6 +146,15 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
 
     if(any(levels.per.attribute < 2))
         stop("All attributes must have at least 2 levels.")
+
+    if(none.alternatives != 0 && !is.null(none.positions) && length(none.positions) != none.alternatives)
+        stop("Number of none alternatives is inconsistent with the number of positions of none alternatives.")
+    if(!is.null(none.positions))
+        none.alternatives <- length(none.positions)
+    if(none.alternatives != 0 && is.null(none.positions))
+        none.positions <- seq(alternatives.per.question + 1, alternatives.per.question + none.alternatives)
+    if(min(none.positions) < 1 || max(none.positions) > n.questions + none.alternatives)
+        stop("Position of none of alternatives are inconsistent with the number of questions.")
 
     if(n.questions * n.versions <= sum(levels.per.attribute - 1))
         stop("There are insufficient questions or versions in your design to fit a model. Increase the",
@@ -216,7 +229,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
 
     # Add designs and diagnostics
     result$design <- addVersions(design, n.versions)
-    result$design.with.none <- addNoneAlternatives(result$design, none.alternatives,
+    result$design.with.none <- addNoneAlternatives(result$design, none.positions,
                                                    alternatives.per.question)
     result$labeled.design <- labelDesign(result$design.with.none, attribute.levels)
     result$balances.and.overlaps <- balancesAndOverlaps(result)
@@ -457,9 +470,11 @@ flattenDesign <- function(design) {
     return(flattened)
 }
 
-addNoneAlternatives <- function(design, none.alternatives, alternatives.per.question) {
-    if (none.alternatives == 0)
+addNoneAlternatives <- function(design, none.positions, alternatives.per.question) {
+
+    if (is.null(none.positions))
         return(design)
+    none.alternatives <- length(none.positions)
 
     if (is.data.frame(design))
     {
@@ -479,8 +494,9 @@ addNoneAlternatives <- function(design, none.alternatives, alternatives.per.ques
     design.with.none <- matrix(NA, nrow = new.n, ncol = ncol(design))
 
     # copy existing alternatives
-    new.row.indices <- seq(n) + ((seq(n) - 1) %/% alternatives.per.question) * none.alternatives
-    design.with.none[new.row.indices, ] <- design
+    question.rows <- rep(!(seq(alternatives.per.question + none.alternatives) %in% none.positions),
+                         new.n / (alternatives.per.question + none.alternatives))
+    design.with.none[question.rows, ] <- design
 
     colnames(design.with.none) <- colnames(design)
     n.versions <- design[NROW(design), 1]
