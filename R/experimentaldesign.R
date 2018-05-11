@@ -31,7 +31,8 @@
 #'     questions. Not required if \code{none.positions} is supplied.
 #' @param none.positions Integer \code{\link{vector}} specifying the indices
 #'     of the 'None' alternatives in each question. If not specified, 'None'
-#'     will be the last alternative(s).
+#'     will be the last alternative(s). A comma-delimited string of integers
+#'     may be supplied instead of Integer \code{\link{vector}}.
 #' @param labeled.alternatives Logical; whether the first attribute
 #'     labels the alternatives.
 #' @param n.constant.attributes Integer; the number of attributes to keep
@@ -89,6 +90,7 @@
 #' ChoiceModelDesign("Random", x$attribute.levels, n.questions = 30,
 #'     alternatives.per.question = 4, prohibitions = x$prohibitions)
 #' @importFrom utils getFromNamespace modifyList
+#' @importFrom flipU ConvertCommaSeparatedStringToVector
 #' @export
 ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                                                    "Balanced overlap",
@@ -151,18 +153,24 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     if (labeled.alternatives)
         alternatives.per.question <- length(attribute.levels[[1]])
 
-    if(none.alternatives != 0 && !is.null(none.positions) && length(none.positions) != none.alternatives)
+    if (is.character(none.positions))
+    {
+        none.positions <- as.numeric(ConvertCommaSeparatedStringToVector(none.positions))
+        if (length(none.positions) == 0)
+            none.positions <- NULL
+    }
+    if (none.alternatives != 0 && !is.null(none.positions) && length(none.positions) != none.alternatives)
         stop("Number of none alternatives is inconsistent with the number of positions of none alternatives.")
-    if(!is.null(none.positions))
+    if (!is.null(none.positions))
     {
         none.alternatives <- length(none.positions)
         if(min(none.positions) < 1 || max(none.positions) > n.questions + none.alternatives)
             stop("Position of none of alternatives are inconsistent with the number of questions.")
     }
-    if(none.alternatives != 0 && is.null(none.positions))
+    if (none.alternatives != 0 && is.null(none.positions))
         none.positions <- seq(alternatives.per.question + 1, alternatives.per.question + none.alternatives)
 
-    if(n.questions * n.versions <= sum(levels.per.attribute - 1))
+    if (n.questions * n.versions <= sum(levels.per.attribute - 1))
         stop("There are insufficient questions or versions in your design to fit a model. Increase the",
              " number of questions * versions to more than ", sum(levels.per.attribute - 1), ".")
 

@@ -50,7 +50,8 @@ questions. Not required if \code{none.positions} is supplied.}
 
 \item{none.positions}{Integer \code{\link{vector}} specifying the indices
 of the 'None' alternatives in each question. If not specified, 'None'
-will be the last alternative(s).}
+will be the last alternative(s). A comma-delimited string of integers
+may be supplied instead of Integer \code{\link{vector}}.}
 
 \item{labeled.alternatives}{Logical; whether the first attribute
 labels the alternatives.}
