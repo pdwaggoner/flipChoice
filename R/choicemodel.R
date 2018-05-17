@@ -18,6 +18,10 @@
 #' @param subset An optional vector specifying a subset of
 #'     observations to be used in the fitting process.
 #' @param weights An optional vector of sampling or frequency weights.
+#' @param missing How missing data is to be treated in the regression. Options:
+#'   \code{"Error if missing data"},
+#'   \code{"Exclude cases with missing data"}, and
+#'   \code{"Use partial data"}.
 #' @param seed Random seed.
 #' @param tasks.left.out Number of questions to leave out for
 #'     cross-validation.
@@ -113,7 +117,8 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
                            design.file = NULL, attribute.levels.file = NULL,
                            cov.formula = NULL, cov.data = NULL,
                            choices = NULL, questions = NULL, n.classes = 1,
-                           subset = NULL, weights = NULL, seed = 123,
+                           subset = NULL, weights = NULL,
+                           missing = "Use partial data", seed = 123,
                            tasks.left.out = 0, normal.covariance = "Full",
                            hb.iterations = 500, hb.chains = 8,
                            hb.max.tree.depth = 10, hb.adapt.delta = 0.8,
@@ -132,19 +137,19 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
     start.time <- proc.time()
 
     dat <- if (!is.null(experiment.data))
-        processExperimentData(experiment.data, subset, weights,
-                              tasks.left.out, seed, hb.prior.mean, hb.prior.sd)
+        processExperimentData(experiment.data, subset, weights, tasks.left.out,
+                              seed, hb.prior.mean, hb.prior.sd, missing)
     else if (!is.null(cho.file) && !is.null(attribute.levels.file))
         processChoFile(cho.file, attribute.levels.file,
                        subset, weights, tasks.left.out, seed,
                        hb.prior.mean, hb.prior.sd, include.choice.parameters,
-                       respondent.ids)
+                       respondent.ids, missing)
     else if (!is.null(design.file) && !is.null(choices) &&
              !is.null(questions))
         processDesignFile(design.file, attribute.levels.file, choices,
-                              questions, subset, weights, tasks.left.out,
-                              seed, hb.prior.mean, hb.prior.sd,
-                              include.choice.parameters)
+                          questions, subset, weights, tasks.left.out,
+                          seed, hb.prior.mean, hb.prior.sd,
+                          include.choice.parameters, missing)
     else
         stop("Insufficient data was supplied.")
 
@@ -160,7 +165,7 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
 
     end.time <- proc.time()
 
-    result <- accuracyResults(dat, result)
+    result <- accuracyResults(dat, result, tasks.left.out)
     result$algorithm <- "HB-Stan"
     result$n.questions.left.out <- tasks.left.out
     result$n.classes <- n.classes
@@ -177,18 +182,55 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
     result
 }
 
-accuracyResults <- function(dat, result)
+accuracyResults <- function(dat, result, n.questions.left.out)
 {
-    n.respondents <- dat$n.respondents
+    n.respondents <- length(dat$n.questions.left.in)
     resp.pars <- result$reduced.respondent.parameters
-    in.sample.accuracies <- predictionAccuracies(resp.pars, dat$X.in, dat$Y.in, dat$subset)
+
+    n.rs <- dim(dat$X.in)[1]
+    n.alternatives <- dim(dat$X.in)[2]
+
+    in.sample.accuracies <- rep(NA, n.respondents)
+    rs <- 1
+    for (i in 1:n.respondents)
+    {
+        pars <- resp.pars[i, ]
+        n.questions <- dat$n.questions.left.in[i]
+        score <- rep(NA, n.questions)
+        for (j in 1:n.questions)
+        {
+            u <- rep(NA, n.alternatives)
+            for (k in 1:n.alternatives)
+                u[k] <- sum(pars * dat$X.in[rs, k, ])
+            score[j] <- if(which.max(u) == dat$Y.in[rs]) 1 else 0
+            rs <- rs + 1
+        }
+        in.sample.accuracies[i] <- mean(score)
+    }
+
     w <- dat$weights
     result$in.sample.accuracy <- sum(in.sample.accuracies * w) / sum(w)
-    if (dat$n.questions.left.out > 0)
+
+    if (n.questions.left.out > 0)
     {
-        result$prediction.accuracies <- predictionAccuracies(resp.pars, dat$X.out, dat$Y.out,
-                                                                   dat$subset)
-        result$out.sample.accuracy <- sum(result$prediction.accuracies * w) / sum(w)
+        out.sample.accuracies <- rep(NA, n.respondents)
+        rs <- 1
+        for (i in 1:n.respondents)
+        {
+            pars <- resp.pars[i, ]
+            score <- rep(NA, n.questions.left.out)
+            for (j in 1:n.questions.left.out)
+            {
+                u <- rep(NA, n.alternatives)
+                for (k in 1:n.alternatives)
+                    u[k] <- sum(pars * dat$X.out[rs, k, ])
+                score[j] <- if(which.max(u) == dat$Y.out[rs]) 1 else 0
+                rs <- rs + 1
+            }
+            out.sample.accuracies[i] <- mean(score)
+        }
+        result$prediction.accuracies <- out.sample.accuracies
+        result$out.sample.accuracy <- sum(out.sample.accuracies * w) / sum(w)
     }
     else
     {
@@ -198,27 +240,48 @@ accuracyResults <- function(dat, result)
     result
 }
 
-predictionAccuracies <- function(resp.pars, X, Y, subset)
-{
-    n.respondents <- dim(X)[1]
-    n.questions <- dim(X)[2]
-    n.alternatives <- dim(X)[3]
-    resp.pars <- resp.pars[subset, ]
-    result <- rep(NA, n.respondents)
-    for (r in 1:n.respondents)
-    {
-        score <- rep(NA, n.questions)
-        for (j in 1:n.questions)
-        {
-            u <- rep(NA, n.alternatives)
-            for (k in 1:n.alternatives)
-                u[k] <- sum(resp.pars[r, ] * X[r, j, k, ])
-            score[j] <- if(which.max(u) == Y[r, j]) 1 else 0
-        }
-        result[r] <- mean(score)
-    }
-    result
-}
+# accuracyResults <- function(dat, result)
+# {
+#     n.respondents <- dat$n.respondents
+#     resp.pars <- result$reduced.respondent.parameters
+#     in.sample.accuracies <- predictionAccuracies(resp.pars, dat$X.in, dat$Y.in, dat$subset)
+#     w <- dat$weights
+#     result$in.sample.accuracy <- sum(in.sample.accuracies * w) / sum(w)
+#     if (dat$n.questions.left.out > 0)
+#     {
+#         result$prediction.accuracies <- predictionAccuracies(resp.pars, dat$X.out, dat$Y.out,
+#                                                                    dat$subset)
+#         result$out.sample.accuracy <- sum(result$prediction.accuracies * w) / sum(w)
+#     }
+#     else
+#     {
+#         result$prediction.accuracies <- in.sample.accuracies
+#         result$out.sample.accuracy <- NA
+#     }
+#     result
+# }
+#
+# predictionAccuracies <- function(resp.pars, X, Y, subset)
+# {
+#     n.respondents <- dim(X)[1]
+#     n.questions <- dim(X)[2]
+#     n.alternatives <- dim(X)[3]
+#     resp.pars <- resp.pars[subset, ]
+#     result <- rep(NA, n.respondents)
+#     for (r in 1:n.respondents)
+#     {
+#         score <- rep(NA, n.questions)
+#         for (j in 1:n.questions)
+#         {
+#             u <- rep(NA, n.alternatives)
+#             for (k in 1:n.alternatives)
+#                 u[k] <- sum(resp.pars[r, ] * X[r, j, k, ])
+#             score[j] <- if(which.max(u) == Y[r, j]) 1 else 0
+#         }
+#         result[r] <- mean(score)
+#     }
+#     result
+# }
 
 #' @title RespondentParameters
 #' @description The parameters for each respondent.

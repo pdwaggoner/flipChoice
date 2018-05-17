@@ -7,12 +7,13 @@
 FitChoiceModel(experiment.data = NULL, cho.file = NULL,
   design.file = NULL, attribute.levels.file = NULL, cov.formula = NULL,
   cov.data = NULL, choices = NULL, questions = NULL, n.classes = 1,
-  subset = NULL, weights = NULL, seed = 123, tasks.left.out = 0,
-  normal.covariance = "Full", hb.iterations = 500, hb.chains = 8,
-  hb.max.tree.depth = 10, hb.adapt.delta = 0.8, hb.keep.samples = FALSE,
-  hb.stanfit = TRUE, hb.prior.mean = 0, hb.prior.sd = 5,
-  hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
-  include.choice.parameters = TRUE, respondent.ids = NULL, ...)
+  subset = NULL, weights = NULL, missing = "Use partial data",
+  seed = 123, tasks.left.out = 0, normal.covariance = "Full",
+  hb.iterations = 500, hb.chains = 8, hb.max.tree.depth = 10,
+  hb.adapt.delta = 0.8, hb.keep.samples = FALSE, hb.stanfit = TRUE,
+  hb.prior.mean = 0, hb.prior.sd = 5, hb.warnings = TRUE,
+  hb.beta.draws.to.keep = 0, include.choice.parameters = TRUE,
+  respondent.ids = NULL, ...)
 }
 \arguments{
 \item{experiment.data}{A data.frame from an Experiment question}
@@ -42,6 +43,11 @@ respondents.}
 observations to be used in the fitting process.}
 
 \item{weights}{An optional vector of sampling or frequency weights.}
+
+\item{missing}{How missing data is to be treated in the regression. Options:
+\code{"Error if missing data"},
+\code{"Exclude cases with missing data"}, and
+\code{"Use partial data"}.}
 
 \item{seed}{Random seed.}
 

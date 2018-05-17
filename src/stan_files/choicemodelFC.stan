@@ -2,12 +2,13 @@ data {
     int<lower=2> C; // Number of alternatives (choices) in each scenario
     int<lower=1> R; // Number of respondents
     int<lower=1> V_covariates; // Number of respondent-specific covariates
-    int<lower=1> S; // Number of scenarios per respondent
+    int<lower=1> S[R]; // Number of questions per respondent
+    int<lower=1> RS; // sum(S)
     int<lower=1> A; // Number of attributes
     int<lower=1> V; // Number of parameters
     int<lower=1> V_attribute[A]; // Number of parameters in each attribute
-    int<lower=1,upper=C> Y[R, S]; // choices
-    matrix[C, V] X[R, S]; // matrix of attributes for each obs
+    int<lower=1,upper=C> Y[RS]; // choices
+    matrix[C, V] X[RS]; // matrix of attributes for each obs
     matrix[R,V_covariates] covariates;  // matrix of respondent characteristics
     vector[V] prior_mean; // Prior mean for theta
     vector[V] prior_sd; // Prior sd for theta
@@ -15,28 +16,21 @@ data {
 
 parameters {
     vector<lower=0>[V] sigma;
-    matrix[V_covariates,V] theta;
+    matrix[V_covariates, V] theta;
     cholesky_factor_corr[V] L_omega;
-    matrix[V,R] standard_normal;
+    matrix[V, R] standard_normal;
 }
 
 transformed parameters {
     matrix[V, V] L_sigma;
-    vector[C] XB[R, S];
-    matrix[R,V] beta;
+    matrix[R, V] beta;
 
     L_sigma = diag_pre_multiply(sigma, L_omega);
-    beta = covariates*theta + (L_sigma * standard_normal)';
-    for (r in 1:R)
-    {
-       /* beta[r] += theta; */
-        for (s in 1:S)
-            XB[r, s] = X[r, s] * to_vector(beta[r]);
-    }
+    beta = covariates * theta + (L_sigma * standard_normal)';
 }
 
 model {
-    // setting priors
+    int rs = 1;
 
     // gamma distribution with mode = 1 and p(x < 20) = 0.999
     sigma ~ gamma(1.39435729464721, 0.39435729464721);
@@ -47,17 +41,26 @@ model {
 
     to_vector(standard_normal) ~ normal(0, 1);
 
-    //likelihood
-    for (r in 1:R) {
-        for (s in 1:S) {
-            Y[r, s] ~ categorical_logit(XB[r, s]);
+    for (r in 1:R)
+    {
+        for (s in 1:S[r])
+        {
+            Y[rs] ~ categorical_logit(X[rs] * to_vector(beta[r]));
+            rs += 1;
         }
     }
 }
 
 generated quantities {
     real log_likelihood = 0;
+    int rs = 1;
+
     for (r in 1:R)
-        for (s in 1:S)
-            log_likelihood += categorical_logit_lpmf(Y[r, s] | XB[r, s]);
+    {
+        for (s in 1:S[r])
+        {
+            log_likelihood += categorical_logit_lpmf(Y[rs] | X[rs] * to_vector(beta[r]));
+            rs += 1;
+        }
+    }
 }

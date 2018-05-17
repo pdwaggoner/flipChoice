@@ -1,25 +1,26 @@
+#' @importFrom flipData CleanSubset NoData MissingDataFail
 processChoFile <- function(cho.file, attribute.levels.file,
                            subset, weights, n.questions.left.out, seed,
                            input.prior.mean, input.prior.sd,
-                           include.choice.parameters, respondent.ids)
+                           include.choice.parameters, respondent.ids, missing)
 {
+    if (missing == "Error if missing data" &&
+        ((!is.null(subset) && any(is.na(subset))) ||
+        (!is.null(weights) && any(is.na(weights)))))
+        MissingDataFail();
+
     raw.lines <- readLines(cho.file)
     attribute.levels <- processAttributeLevelsFile(attribute.levels.file)
 
     raw.num <- lapply(strsplit(raw.lines, " "), as.numeric)
     n.attributes <- raw.num[[1]][3]
-    n.questions <- raw.num[[1]][4]
+    n.questions.common <- raw.num[[1]][4]
     has.none.of.these <- raw.num[[1]][5] == 1
-    n.choices <- raw.num[[3]][1]
+    n.alternatives <- raw.num[[3]][1]
     if (has.none.of.these)
-        n.choices <- n.choices + 1
+        n.alternatives <- n.alternatives + 1
 
     n.raw <- length(raw.num)
-    n.respondents.in.file <- n.raw / (n.questions * (raw.num[[3]][1] + 2) + 2)
-
-    if (floor(n.respondents.in.file) != n.respondents.in.file)
-        stop("There is a problem with the .CHO file. Ensure each respondent ",
-             "has the same number of questions and choices per question.")
 
     n.attributes <- length(attribute.levels)
     n.attribute.parameters <- unlist(lapply(attribute.levels, length)) - 1
@@ -27,63 +28,109 @@ processChoFile <- function(cho.file, attribute.levels.file,
     par.names <- parameterNamesFromAttributes(attribute.levels)
     all.names <- allNamesFromAttributes(attribute.levels)
 
-    checkPriorParameters(input.prior.mean, input.prior.sd, n.choices,
+    checkPriorParameters(input.prior.mean, input.prior.sd, n.alternatives,
                          n.attributes, n.parameters, include.choice.parameters)
 
     ordered.attributes <- orderedAttributes(input.prior.mean, n.attributes,
                                             n.parameters)
 
-    n.questions.left.in <- n.questions - n.questions.left.out
+    file.respondent.ids <- rep(NA, n.raw)
+    X <- array(data = 0, dim = c(n.raw, n.alternatives, n.parameters))
+    Y <- rep(NA, n.raw)
+    file.respondent.indices <- vector("list", n.raw)
+    respondent.has.missing <- rep(FALSE, n.raw)
 
-    file.respondent.ids <- rep(NA, n.respondents.in.file)
-    X <- array(data = 0, dim = c(n.respondents.in.file, n.questions, n.choices,
-                                 n.parameters))
-    Y <- matrix(NA, nrow = n.respondents.in.file, ncol = n.questions)
-
-    ind <- 0
-    for (i in 1:n.respondents.in.file)
+    row.i <- 0
+    rs <- 0
+    respondent.i <- 0
+    while (row.i < n.raw)
     {
-        ind <- ind + 1 # first respondent row
-        file.respondent.ids[i] <- raw.num[[ind]][1]
-        ind <- ind + 1 # second respondent row
+        row.i <- row.i + 1 # first respondent row
+        respondent.i <- respondent.i + 1
+        file.respondent.ids[respondent.i] <- raw.num[[row.i]][1]
+        n.questions <- raw.num[[row.i]][4]
+        if (!is.na(n.questions.common) && n.questions != n.questions.common)
+            n.questions.common <- NA
+        row.i <- row.i + 1 # second respondent row
+        rs.initial <- rs
         for (j in 1:n.questions)
         {
-            ind <- ind + 1 # question format row
-            for (k in 1:n.choices)
+            row.i <- row.i + 1 # question format row
+            question.X <- matrix(NA, nrow = n.alternatives,
+                                 ncol = n.parameters)
+            for (k in 1:n.alternatives)
             {
-                if (has.none.of.these && k == n.choices)
-                    X[i, j, k, ] <- fillXNoneOfThese(n.parameters,
+                if (has.none.of.these && k == n.alternatives)
+                    question.X[k, ] <- fillXNoneOfThese(n.parameters,
                                                      n.attributes,
                                                      n.attribute.parameters)
                 else
                 {
-                    ind <- ind + 1 # attributes row
-                    X[i, j, k, ] <- fillXAttributes(n.parameters,
+                    row.i <- row.i + 1 # attributes row
+                    question.X[k, ] <- fillXAttributes(n.parameters,
                                                     n.attributes,
                                                     n.attribute.parameters,
                                                     ordered.attributes,
-                                                    raw.num[[ind]])
+                                                    raw.num[[row.i]])
                 }
             }
-            ind <- ind + 1 # choice row
-            Y[i, j] <- raw.num[[ind]][1]
+            row.i <- row.i + 1 # choice row
+            question.Y <- raw.num[[row.i]][1]
+            if (question.Y > 0)
+            {
+                rs <- rs + 1
+                Y[rs] <- question.Y
+                X[rs, , ] <- question.X
+            }
+            else if (missing == "Error if missing data")
+                MissingDataFail()
+            else
+                respondent.has.missing[respondent.i] <- TRUE
         }
+        if (rs.initial < rs)
+            file.respondent.indices[[respondent.i]] <- (rs.initial + 1):rs
+        else
+            file.respondent.indices[[respondent.i]] <- numeric(0)
     }
 
+    n.rs <- rs
+    n.file.respondents <- respondent.i
+    X <- X[1:n.rs, , ]
+    Y <- Y[1:n.rs]
+    file.respondent.ids <- file.respondent.ids[1:n.file.respondents]
+    file.respondent.indices <- file.respondent.indices[1:n.file.respondents]
+    respondent.has.missing <- respondent.has.missing[1:n.file.respondents]
+
+    # Reconcile cho file with supplied respondent IDs
     if (!is.null(respondent.ids))
     {
         reordering <- reconcileRespondentIDs(respondent.ids, file.respondent.ids)
+        respondent.has.missing <- respondent.has.missing[reordering]
         n.respondents <- length(respondent.ids)
-        X <- X[reordering, , , ]
-        Y <- Y[reordering, ]
+        ind.list <- vector("list", n.respondents)
+        for (i in 1:n.respondents)
+            ind.list[[i]] <- file.respondent.indices[[reordering[i]]]
+        ind <- unlist(ind.list)
+        X <- X[ind, , ]
+        Y <- Y[ind]
+        cs <- c(0, cumsum(sapply(ind.list, length)))
+        respondent.indices <- vector("list", n.respondents)
+        for (i in 1:n.respondents)
+            if (cs[i + 1] - cs[i] > 0)
+                respondent.indices[[i]] <- (cs[i] + 1):cs[i + 1]
+            else
+                respondent.indices[[i]] <- numeric(0)
     }
     else
-        n.respondents <- n.respondents.in.file
+    {
+        n.respondents <- n.file.respondents
+        respondent.indices <- file.respondent.indices
+    }
 
     if (include.choice.parameters)
     {
         output <- addChoiceParameters(X, n.attributes, n.parameters,
-                                      n.attribute.parameters, n.choices,
+                                      n.attribute.parameters, n.alternatives,
                                       par.names, all.names, has.none.of.these)
         X <- output$X
         n.attributes <- output$n.attributes
@@ -93,42 +140,55 @@ processChoFile <- function(cho.file, attribute.levels.file,
         all.names <- output$all.names
     }
 
-    subset <- CleanSubset(subset, n.respondents)
+    non.missing <- nonMissingRespondentsCho(respondent.indices,
+                                            respondent.has.missing, subset,
+                                            weights, n.questions.left.out,
+                                            missing)
+
+    filter.subset <- CleanSubset(subset, n.respondents)
+    subset <- filter.subset & non.missing
+
+    if (sum(filter.subset) == 0)
+        stop("All respondents have been filtered out.")
+    else if (sum(subset) == 0)
+        NoData()
+
     weights <- prepareWeights(weights, subset)
-    X <- X[subset, , , ]
-    Y <- Y[subset, ]
+    rs.subset <- unlist(respondent.indices[subset])
+    X <- X[rs.subset, , ]
+    Y <- Y[rs.subset]
+    respondent.indices <- respondent.indices[subset]
     n.respondents <- sum(subset)
 
-    split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed)
+    split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
+                                       respondent.indices = respondent.indices)
 
     prior.mean <- processInputPrior(input.prior.mean, n.parameters,
                                     n.attributes, n.attribute.parameters)
     prior.sd <- processInputPrior(input.prior.sd, n.parameters, n.attributes,
                                   n.attribute.parameters)
 
-    result <- list(n.questions = n.questions,
-                   n.questions.left.in = n.questions.left.in,
-                   n.questions.left.out = n.questions.left.out,
-                   n.choices = n.choices,
-                   n.attributes = n.attributes,
-                   n.respondents = n.respondents,
-                   n.parameters = n.parameters,
-                   n.attribute.parameters = n.attribute.parameters,
-                   par.names = par.names,
-                   all.names = all.names,
-                   beta.names = par.names,
-                   all.beta.names = all.names,
-                   X.in = split.data$X.in,
-                   Y.in = split.data$Y.in,
-                   X.out = split.data$X.out,
-                   Y.out = split.data$Y.out,
-                   subset = subset,
-                   weights = weights,
-                   parameter.scales = rep(1, n.parameters),
-                   prior.mean = prior.mean,
-                   prior.sd = prior.sd)
-
-    result
+    list(n.questions = n.questions.common,
+         n.questions.left.out = n.questions.left.out,
+         n.alternatives = n.alternatives,
+         n.attributes = n.attributes,
+         n.respondents = n.respondents,
+         n.parameters = n.parameters,
+         n.attribute.parameters = n.attribute.parameters,
+         par.names = par.names,
+         all.names = all.names,
+         beta.names = par.names,
+         all.beta.names = all.names,
+         X.in = split.data$X.in,
+         Y.in = split.data$Y.in,
+         X.out = split.data$X.out,
+         Y.out = split.data$Y.out,
+         n.questions.left.in = split.data$n.questions.left.in,
+         subset = subset,
+         weights = weights,
+         parameter.scales = rep(1, n.parameters),
+         prior.mean = prior.mean,
+         prior.sd = prior.sd)
 }
 
 processAttributeLevelsFile <- function(attribute.levels.file)
@@ -185,14 +245,14 @@ allNamesFromAttributes <- function(attribute.levels)
 }
 
 addChoiceParameters <- function(X, n.attributes, n.parameters,
-                                n.attribute.parameters, n.choices, par.names,
-                                all.names, has.none.of.these)
+                                n.attribute.parameters, n.alternatives,
+                                par.names, all.names, has.none.of.these)
 {
     X <- addChoiceParametersX(X)
     n.attributes <- n.attributes + 1
-    n.parameters <- n.parameters + n.choices - 1
-    n.attribute.parameters <- c(n.choices, n.attribute.parameters)
-    alt.labels <- createAlternativeLabels(n.choices, has.none.of.these)
+    n.parameters <- n.parameters + n.alternatives - 1
+    n.attribute.parameters <- c(n.alternatives, n.attribute.parameters)
+    alt.labels <- createAlternativeLabels(n.alternatives, has.none.of.these)
     par.names <- c(alt.labels[-1], par.names)
     all.names <- c(alt.labels, all.names)
     list(X = X, n.attributes = n.attributes, n.parameters = n.parameters,
@@ -203,21 +263,21 @@ addChoiceParameters <- function(X, n.attributes, n.parameters,
 addChoiceParametersX <- function(X)
 {
     dim.X <- dim(X)
-    n.choices <- dim.X[3]
+    n.alternatives <- dim.X[2]
     dim.new.X <- dim.X
-    dim.new.X[4] <- dim.X[4] + n.choices - 1
+    dim.new.X[3] <- dim.X[3] + n.alternatives - 1
     new.X <- array(data = 0, dim = dim.new.X)
-    new.X[, , , n.choices:dim.new.X[4]] <- X
-    for (i in 1:(n.choices - 1))
-        new.X[, , i + 1, i] <- 1
+    new.X[, , n.alternatives:dim.new.X[3]] <- X
+    for (i in 1:(n.alternatives - 1))
+        new.X[, i + 1, i] <- 1
     new.X
 }
 
-createAlternativeLabels <- function(n.choices, has.none.of.these)
+createAlternativeLabels <- function(n.alternatives, has.none.of.these)
 {
-    result <- paste0("Alternative: ", 1:n.choices)
+    result <- paste0("Alternative: ", 1:n.alternatives)
     if (has.none.of.these)
-        result[n.choices] <- "Alternative: none of these"
+        result[n.alternatives] <- "Alternative: none of these"
     result
 }
 
@@ -267,4 +327,18 @@ reconcileRespondentIDs <- function(respondent.ids, file.respondent.ids)
         warning("Respondents in the .cho file that do not appear in the ",
                 "supplied respondent IDs have been omitted.")
     reordering
+}
+
+nonMissingRespondentsCho <- function(respondent.indices,
+                                     respondent.has.missing, subset, weights,
+                                     n.questions.left.out, missing)
+{
+    result <- sapply(respondent.indices, length) > n.questions.left.out
+    if (missing == "Exclude cases with missing data")
+        result <- result & !respondent.has.missing
+    if (!is.null(subset))
+        result <- result & !is.na(subset)
+    if (!is.null(weights))
+        result <- result & !is.na(weights)
+    result
 }

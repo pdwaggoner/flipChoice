@@ -1,13 +1,14 @@
 data {
     int<lower=2> C; // Number of alternatives (choices) in each question
     int<lower=1> R; // Number of respondents
-    int<lower=1> S; // Number of questions per respondent
+    int<lower=1> S[R]; // Number of questions per respondent
+    int<lower=1> RS; // sum(S)
     int<lower=1> P; // Number of classes
     int<lower=1> A; // Number of attributes
     int<lower=1> V; // Number of parameters
     int<lower=1> V_attribute[A]; // Number of parameters in each attribute
-    int<lower=1,upper=C> Y[R, S]; // choices
-    matrix[C, V] X[R, S]; // matrix of attributes for each obs
+    int<lower=1,upper=C> Y[RS]; // choices
+    matrix[C, V] X[RS]; // matrix of attributes for each obs
     vector[V] prior_mean; // Prior mean for theta
     vector[V] prior_sd; // Prior sd for theta
 }
@@ -23,7 +24,6 @@ parameters {
 transformed parameters {
     matrix[V, V] L_sigma[P];
     vector[V] class_beta[R, P];
-    vector[P] posterior_prob[R];
 
     for (p in 1:P)
     {
@@ -32,20 +32,12 @@ transformed parameters {
         for (r in 1:R)
             class_beta[r, p] = theta[p] + L_sigma[p] * standard_normal[r, p];
     }
-
-    for (r in 1:R)
-    {
-        for (p in 1:P)
-        {
-            real prob = log(class_weights[p]);
-            for (s in 1:S)
-                prob = prob + categorical_logit_lpmf(Y[r, s] | X[r, s] * class_beta[r, p]);
-            posterior_prob[r, p] = prob;
-        }
-    }
 }
 
 model {
+    vector[P] posterior_prob;
+    int rs = 1;
+
     for (p in 1:P)
     {
         // gamma distribution with mode = 1 and p(x < 20) = 0.999
@@ -59,22 +51,51 @@ model {
     }
 
     for (r in 1:R)
-        target += log_sum_exp(posterior_prob[r]);
+    {
+        for (s in 1:S[r])
+        {
+            for (p in 1:P)
+            {
+                if (s == 1)
+                    posterior_prob[p] = log(class_weights[p]);
+                posterior_prob[p] = posterior_prob[p] + categorical_logit_lpmf(Y[rs] | X[rs] * class_beta[r, p]);
+            }
+            rs += 1;
+        }
+        target += log_sum_exp(posterior_prob);
+    }
 }
 
 generated quantities {
     vector[V] beta[R];
     real log_likelihood = 0;
+    vector[P] posterior_prob;
+    vector[P] respondent_class_weights;
+    real log_sum_exp_pp;
+    int rs = 1;
+
     for (r in 1:R)
     {
+        for (s in 1:S[r])
+        {
+            for (p in 1:P)
+            {
+                if (s == 1)
+                    posterior_prob[p] = log(class_weights[p]);
+                posterior_prob[p] = posterior_prob[p] + categorical_logit_lpmf(Y[rs] | X[rs] * class_beta[r, p]);
+            }
+            rs += 1;
+        }
+
+        log_sum_exp_pp = log_sum_exp(posterior_prob);
+        log_likelihood += log_sum_exp_pp;
+
+        respondent_class_weights = exp(posterior_prob - log_sum_exp_pp);
         for (v in 1:V)
         {
-            vector[P] pp = exp(posterior_prob[r]);
-            pp = pp / sum(pp);
             beta[r, v] = 0;
             for (p in 1:P)
-                beta[r, v] = beta[r, v] + class_beta[r, p, v] * pp[p];
+                beta[r, v] = beta[r, v] + class_beta[r, p, v] * respondent_class_weights[p];
         }
-        log_likelihood += log_sum_exp(posterior_prob[r]);
     }
 }

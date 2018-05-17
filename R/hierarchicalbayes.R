@@ -145,9 +145,10 @@ initialParameterValues <- function(stan.dat)
 
 createStanData <- function(dat, n.classes, normal.covariance)
 {
-    stan.dat <- list(C = dat$n.choices,
+    stan.dat <- list(C = dat$n.alternatives,
                      R = dat$n.respondents,
                      S = dat$n.questions.left.in,
+                     RS = nrow(dat$X.in),
                      A = dat$n.attributes,
                      V = dat$n.parameters,
                      V_attribute = dat$n.attribute.parameters,

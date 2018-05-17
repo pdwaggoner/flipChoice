@@ -17,7 +17,7 @@ processCovariateData <- function(formula, data, stan.dat, subset)
 
     cdat <- cdat[subset, , drop = FALSE]
 
-    if (nrow(cdat) != nrow(stan.dat$X.in))
+    if (nrow(cdat) != stan.dat$n.respondents)
         stop(gettextf("The length of the data in %s and %s do not match",
                       sQuote("experiment.data"), sQuote("cov.data")))
 
