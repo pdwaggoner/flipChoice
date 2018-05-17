@@ -332,6 +332,8 @@ crossValidationSplit <- function(X, Y, n.questions.left.out, seed,
             Y.in[ind.left.in.new] <- Y[rs + ind.left.in]
             X.out[ind.left.out.new, , ] <- X[rs + ind.left.out, , ]
             Y.out[ind.left.out.new] <- Y[rs + ind.left.out]
+            rs <- rs + n.questions
+            rs.in <- rs.in + n.questions.left.in[r]
         }
     }
     else
