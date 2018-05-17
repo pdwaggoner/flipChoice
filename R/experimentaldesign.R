@@ -28,7 +28,11 @@
 #'     levels of that attribute in combination with the other
 #'     specified attribute levels are prohibited.
 #' @param none.alternatives Integer; the number of 'None' in all
-#'     questions.
+#'     questions. Not required if \code{none.positions} is supplied.
+#' @param none.positions Integer \code{\link{vector}} specifying the indices
+#'     of the 'None' alternatives in each question. If not specified, 'None'
+#'     will be the last alternative(s). A comma-delimited string of integers
+#'     may be supplied instead of Integer \code{\link{vector}}.
 #' @param labeled.alternatives Logical; whether the first attribute
 #'     labels the alternatives.
 #' @param n.constant.attributes Integer; the number of attributes to keep
@@ -86,6 +90,7 @@
 #' ChoiceModelDesign("Random", x$attribute.levels, n.questions = 30,
 #'     alternatives.per.question = 4, prohibitions = x$prohibitions)
 #' @importFrom utils getFromNamespace modifyList
+#' @importFrom flipU ConvertCommaSeparatedStringToVector
 #' @export
 ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                                                    "Balanced overlap",
@@ -99,6 +104,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                               alternatives.per.question,
                               prohibitions = NULL,
                               none.alternatives = 0,
+                              none.positions = NULL,
                               labeled.alternatives = FALSE,
                               n.constant.attributes = 0,
                               extensive = FALSE,
@@ -143,13 +149,30 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     if(any(levels.per.attribute < 2))
         stop("All attributes must have at least 2 levels.")
 
-    if(n.questions * n.versions <= sum(levels.per.attribute - 1))
-        stop("There are insufficient questions or versions in your design to fit a model. Increase the",
-             " number of questions * versions to more than ", sum(levels.per.attribute - 1), ".")
-
     # If labeled.alternatives then alternatives.per.question is calculated and not supplied
     if (labeled.alternatives)
         alternatives.per.question <- length(attribute.levels[[1]])
+
+    if (is.character(none.positions))
+    {
+        none.positions <- as.numeric(ConvertCommaSeparatedStringToVector(none.positions))
+        if (length(none.positions) == 0)
+            none.positions <- NULL
+    }
+    if (none.alternatives != 0 && !is.null(none.positions) && length(none.positions) != none.alternatives)
+        stop("Number of none alternatives is inconsistent with the number of positions of none alternatives.")
+    if (!is.null(none.positions))
+    {
+        none.alternatives <- length(none.positions)
+        if(min(none.positions) < 1 || max(none.positions) > n.questions + none.alternatives)
+            stop("Position of none of alternatives are inconsistent with the number of questions.")
+    }
+    if (none.alternatives != 0 && is.null(none.positions))
+        none.positions <- seq(alternatives.per.question + 1, alternatives.per.question + none.alternatives)
+
+    if (n.questions * n.versions <= sum(levels.per.attribute - 1))
+        stop("There are insufficient questions or versions in your design to fit a model. Increase the",
+             " number of questions * versions to more than ", sum(levels.per.attribute - 1), ".")
 
     # Check if prohibitions are valid for the algorithm
     algorithms.without.prohibitions <- c("Efficient", "Shortcut",
@@ -216,7 +239,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
 
     # Add designs and diagnostics
     result$design <- addVersions(design, n.versions)
-    result$design.with.none <- addNoneAlternatives(result$design, none.alternatives,
+    result$design.with.none <- addNoneAlternatives(result$design, none.positions,
                                                    alternatives.per.question)
     result$labeled.design <- labelDesign(result$design.with.none, attribute.levels)
     result$balances.and.overlaps <- balancesAndOverlaps(result)
@@ -349,8 +372,8 @@ balancesAndOverlaps <- function(cmd) {
 
     for (version in seq(cmd$n.versions))
     {
-        version.start <- 1 + ((version - 1) * cmd$n.questions)
-        version.end <- version.start + cmd$n.questions - 1
+        version.start <- 1 + ((version - 1) * cmd$n.questions * cmd$alternatives.per.question)
+        version.end <- version.start + cmd$n.questions * cmd$alternatives.per.question - 1
         version.design <- cmd$design[version.start:version.end, ]
         frequency.ranges[version, ] <- sapply(singleLevelBalances(version.design), numRange)
         if (!is.null(pairs))
@@ -360,11 +383,19 @@ balancesAndOverlaps <- function(cmd) {
         }
     }
 
+    # normalize by average occurences of each level per version
+    average.levels <- sapply(singleLevelBalances(version.design), mean)
+    frequency.ranges <- t(t(frequency.ranges) / average.levels)
+
     frequency.means <- apply(frequency.ranges, 2, mean)
     frequency.sds <- apply(frequency.ranges, 2, sd)
     names(frequency.means) <- names(frequency.sds) <- names(singles)
+
     if (!is.null(pairs))
     {
+        average.pairwise <- sapply(pair.version[!is.na(pair.version)], mean)
+        pairwise.ranges <- t(t(pairwise.ranges) / average.pairwise)
+
         pairwise.means <- apply(pairwise.ranges, 2, mean)
         pairwise.sds <- apply(pairwise.ranges, 2, sd)
         names(pairwise.means) <- names(pairwise.sds) <- names(pairs)
@@ -373,10 +404,10 @@ balancesAndOverlaps <- function(cmd) {
         pairwise.means <- pairwise.sds <- NULL
 
     return(list(overlaps = overlaps,
-                average.frequency.range = frequency.means,
-                sd.frequency.range = frequency.sds,
-                average.pairwise.range = pairwise.means,
-                sd.pairwise.range = pairwise.sds,
+                normalized.average.frequency.range = frequency.means,
+                normalized.sd.frequency.range = frequency.sds,
+                normalized.average.pairwise.range = pairwise.means,
+                normalized.sd.pairwise.range = pairwise.sds,
                 frequency.ranges = ranges,
                 singles = singles,
                 pairs = pairs))
@@ -449,9 +480,11 @@ flattenDesign <- function(design) {
     return(flattened)
 }
 
-addNoneAlternatives <- function(design, none.alternatives, alternatives.per.question) {
-    if (none.alternatives == 0)
+addNoneAlternatives <- function(design, none.positions, alternatives.per.question) {
+
+    if (is.null(none.positions))
         return(design)
+    none.alternatives <- length(none.positions)
 
     if (is.data.frame(design))
     {
@@ -471,8 +504,9 @@ addNoneAlternatives <- function(design, none.alternatives, alternatives.per.ques
     design.with.none <- matrix(NA, nrow = new.n, ncol = ncol(design))
 
     # copy existing alternatives
-    new.row.indices <- seq(n) + ((seq(n) - 1) %/% alternatives.per.question) * none.alternatives
-    design.with.none[new.row.indices, ] <- design
+    question.rows <- rep(!(seq(alternatives.per.question + none.alternatives) %in% none.positions),
+                         new.n / (alternatives.per.question + none.alternatives))
+    design.with.none[question.rows, ] <- design
 
     colnames(design.with.none) <- colnames(design)
     n.versions <- design[NROW(design), 1]

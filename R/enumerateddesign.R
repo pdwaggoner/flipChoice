@@ -3,13 +3,13 @@
 completeEnumerationDesign <- function(levels.per.attribute, n.questions, alternatives.per.question, prohibitions,
                                       labeled.alternatives) {
     return(enumeratedDesign(levels.per.attribute, n.questions, alternatives.per.question, prohibitions,
-                            labeled.alternatives, cost.weightings = c(1, 1, 1)))
+                            labeled.alternatives, FALSE))
 }
 
 balancedOverlapDesign <- function(levels.per.attribute, n.questions, alternatives.per.question, prohibitions,
                                   labeled.alternatives) {
     return(enumeratedDesign(levels.per.attribute, n.questions, alternatives.per.question, prohibitions,
-                            labeled.alternatives, cost.weightings = c(6, 6, 1)))
+                            labeled.alternatives, TRUE))
 }
 
 
@@ -19,9 +19,14 @@ balancedOverlapDesign <- function(levels.per.attribute, n.questions, alternative
 #
 #' @importFrom nnet which.is.max
 enumeratedDesign <- function(levels.per.attribute, n.questions, alternatives.per.question, prohibitions,
-                             labeled.alternatives, cost.weightings) {
+                             labeled.alternatives, balanced) {
 
     set.seed(12345)
+
+    if (balanced)
+        cost.weightings = c(6, 6, 1)
+    else
+        cost.weightings = c(1, 1, 1)
 
     # initialize empty design
     n.attributes <- length(levels.per.attribute)
@@ -74,6 +79,14 @@ enumeratedDesign <- function(levels.per.attribute, n.questions, alternatives.per
                 # only enumerate alternatives that use the least frequent levels of each attribute
                 min.level.counts <- sapply(singles, min)
                 min.levels <- mapply(function(x, y, z) {z[x == y]}, singles, min.level.counts, level.sequences, SIMPLIFY = FALSE)
+
+                # if balanced, augment the least frequent levels with already used levels in this question
+                if (balanced)
+                {
+                    used.levels <- lapply(qn.counts, function(x) {which(x != 0)})
+                    min.levels <- mapply(union, used.levels, min.levels, SIMPLIFY = FALSE)
+                }
+
                 if (labeled.alternatives)
                     min.levels[1] <- i.alternative
                 valid.enumerations <- as.matrix(expand.grid(min.levels))

@@ -8,9 +8,9 @@ ChoiceModelDesign(design.algorithm = c("Random", "Shortcut",
   "Balanced overlap", "Complete enumeration", "Efficient", "Partial profiles"),
   attribute.levels = NULL, prior = NULL, n.questions, n.versions = 1,
   alternatives.per.question, prohibitions = NULL, none.alternatives = 0,
-  labeled.alternatives = FALSE, n.constant.attributes = 0,
-  extensive = FALSE, n.rotations = 10, output = "Labeled design",
-  seed = 54123)
+  none.positions = NULL, labeled.alternatives = FALSE,
+  n.constant.attributes = 0, extensive = FALSE, n.rotations = 10,
+  output = "Labeled design", seed = 54123)
 }
 \arguments{
 \item{design.algorithm}{The algorithm used to create the
@@ -46,7 +46,12 @@ levels of that attribute in combination with the other
 specified attribute levels are prohibited.}
 
 \item{none.alternatives}{Integer; the number of 'None' in all
-questions.}
+questions. Not required if \code{none.positions} is supplied.}
+
+\item{none.positions}{Integer \code{\link{vector}} specifying the indices
+of the 'None' alternatives in each question. If not specified, 'None'
+will be the last alternative(s). A comma-delimited string of integers
+may be supplied instead of Integer \code{\link{vector}}.}
 
 \item{labeled.alternatives}{Logical; whether the first attribute
 labels the alternatives.}

@@ -24,7 +24,7 @@ labeled.test.cases <- c(FALSE, TRUE, FALSE, FALSE)
 
 d.errors <- structure(c(0.7120561, 0.7112814, 0.2140327,
                         1.344702, 0.5107438, 0.5283405, 0.1834341,
-                        1.271414, 0.5124096, 0.5402751, 0.1833977,
+                        1.271414, 0.5231956, 0.5631054, 0.1850687,
                         1.271414, 0.5803393, 0.5910509, 0.1885955,
                         1.28026), .Dim = c(4L, 4L), .Dimnames = list(NULL, c("Random",
                                                                                       "Complete enumeration", "Balanced overlap", "Shortcut")))
