@@ -126,7 +126,7 @@ A list with the following components: \itemize{
     \item \code{n.respondents} The number of respondents.
     \item \code{n.questions} The number of questions
     per respondent.
-    \item \code{n.choices} The number of choices per question.
+    \item \code{n.alternatives} The number of alternatives per question.
     \item \code{n.attributes} The number of attributes.
     \item \code{n.parameters} The number of parameters in the analysis.
     \item \code{time.taken} The time taken to run the analysis.

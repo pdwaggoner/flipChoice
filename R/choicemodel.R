@@ -84,7 +84,7 @@
 #'     \item \code{n.respondents} The number of respondents.
 #'     \item \code{n.questions} The number of questions
 #'     per respondent.
-#'     \item \code{n.choices} The number of choices per question.
+#'     \item \code{n.alternatives} The number of alternatives per question.
 #'     \item \code{n.attributes} The number of attributes.
 #'     \item \code{n.parameters} The number of parameters in the analysis.
 #'     \item \code{time.taken} The time taken to run the analysis.
@@ -175,7 +175,7 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
     result$weights.description <- if (is.null(weights)) NULL else Labels(weights)
     result$n.respondents <- dat$n.respondents
     result$n.questions <- dat$n.questions
-    result$n.choices <- dat$n.choices
+    result$n.alternatives <- dat$n.alternatives
     result$n.attributes <- dat$n.attributes
     result$n.parameters <- dat$n.parameters
     result$time.taken <- (end.time - start.time)[3]
@@ -420,7 +420,7 @@ print.FitChoice <- function(x, ...)
         footer <- paste0(footer, "questions used in estimation: ", x$n.questions - x$n.questions.left.out, "; ")
         footer <- paste0(footer, "questions left out: ", x$n.questions.left.out, "; ")
     }
-    footer <- paste0(footer, "choices per question: ", x$n.choices, "; ")
+    footer <- paste0(footer, "choices per question: ", x$n.alternatives, "; ")
     footer <- paste0(footer, "number of attributes: ", x$n.attributes, "; ")
     footer <- paste0(footer, "number of parameters: ", x$n.parameters, "; ")
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
