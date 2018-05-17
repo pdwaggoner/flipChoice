@@ -185,7 +185,7 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
 accuracyResults <- function(dat, result, n.questions.left.out)
 {
     n.respondents <- length(dat$n.questions.left.in)
-    resp.pars <- result$reduced.respondent.parameters
+    resp.pars <- result$reduced.respondent.parameters[dat$subset, ]
 
     n.rs <- dim(dat$X.in)[1]
     n.alternatives <- dim(dat$X.in)[2]
