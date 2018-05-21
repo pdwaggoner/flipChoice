@@ -589,8 +589,23 @@ test_that("Sandor and Wedel 2001: 3^4/2/15",
     mm <- model.matrix(form, df, contrasts = ca)[, -1]
     d.err <- idefix:::Derr(prior.coef, mm, apq)
     expect_true(d.err/d.err.pub <= 1L)
-})
 
+    # Bayesian criterion
+    prior.coef.with.sd <- cbind(prior.coef, rep(1,8))
+    out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
+                             attribute.levels = attr.list,
+                             prior = prior.coef.with.sd,
+                             n.questions = n.q,
+                             seed = seed, alternatives.per.question = apq,
+                             labeled.alternatives = FALSE,
+                             none.alternative = FALSE)
+
+    encoded.design <- encodeDesign(sw2.design[,-1:-2], FALSE)
+    pub.criterion <- quadratureBayesianCriterion(encoded.design,
+                                             prior.coef.with.sd,
+                                             n.q, apq, 10, seed)
+    expect_true(out$d.criterion > pub.criterion)
+})
 
 test_that("Street, Burgess, Louviere 2005 Table 5: 4^5/2/16",
 {
@@ -649,3 +664,33 @@ test_that("Street, Burgess, Louviere 2005 Table 9: 2^2*4^2/3/16",
     d.err <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
     expect_equal(d.err, d.err.pub, tolerance = .01)
 })
+
+test_that("Kessels et al 2011, 2^(6-1) factorial design and Design 1 (Table II)",
+{
+    seed = 123
+
+    data("kessels0.design", package = "flipChoice")
+    data("kessels1.design", package = "flipChoice")
+
+    prior <- matrix(c(-0.8, -0.8, -0.8, -0.8, -0.8, -0.8, rep(0.4, 6)), ncol = 2)
+
+    encoded.design <- encodeDesign(kessels0.design[, -1:-2], FALSE)
+    criterion0 <- quadratureBayesianCriterion(encoded.design, prior,
+                                                8, 2, 10, seed)
+    encoded.design <- encodeDesign(kessels1.design[, -1:-2], FALSE)
+    criterion1 <- quadratureBayesianCriterion(encoded.design, prior,
+                                8, 2, 10, seed)
+
+    expect_true(criterion1 > criterion0)
+
+    attr.list <- list(A1 = 1:2, A2 = 1:2, A3 = 1:2, A4 = 1:2,
+                      A5 = 1:2, A6 = 1:2)
+    out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
+                             attribute.levels = attr.list, prior = prior,
+                             n.questions = 8,
+                             seed = seed, alternatives.per.question = 2,
+                             labeled.alternatives = FALSE, none.alternative = FALSE)
+
+    expect_true(out$d.criterion > criterion1)
+})
+
