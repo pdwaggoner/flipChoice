@@ -87,6 +87,7 @@ replaced by their labels.
 \item \code{n.versions} - as per input.
 \item \code{alternatives.per.question} - as per input.
 \item \code{none.alternatives} - as per input.
+\item \code{labeled.alternatives} - as per input.
 \item \code{output} - as per input.
 \item \code{db.error} - the Db-error of \code{design}.
 \item \code{d.error} - the D-error of \code{design}.

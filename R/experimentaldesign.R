@@ -60,6 +60,7 @@
 #' \item \code{n.versions} - as per input.
 #' \item \code{alternatives.per.question} - as per input.
 #' \item \code{none.alternatives} - as per input.
+#' \item \code{labeled.alternatives} - as per input.
 #' \item \code{output} - as per input.
 #' \item \code{db.error} - the Db-error of \code{design}.
 #' \item \code{d.error} - the D-error of \code{design}.
@@ -84,7 +85,6 @@
 #'     mean for the coefficients and the second is taken to be the
 #'     prior variances.  If only one column is present, the prior for
 #'     the coefficients is assumed to be centered at those values.
-#'
 #' @examples
 #' x <- CreateExperiment(c(3, 5, 7, 10), 20)
 #' ChoiceModelDesign("Random", x$attribute.levels, n.questions = 30,
@@ -250,6 +250,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     result$design.with.none <- addNoneAlternatives(result$design, none.positions,
                                                    alternatives.per.question)
     result$labeled.design <- labelDesign(result$design.with.none, attribute.levels)
+    result$labeled.alternatives <- labeled.alternatives
     result$balances.and.overlaps <- balancesAndOverlaps(result)
     result$d.error <- if (is.null(prior) || is.vector(prior))
         calculateDError(result$design, sapply(result$attribute.levels, length),
