@@ -10,7 +10,7 @@
 #' @noRd
 processCovariateData <- function(formula, data, stan.dat, subset)
 {
-    cdat <- model.matrix(formula, data)  # [, -1, drop = FALSE]
+    cdat <- model.matrix.default(formula, data)  # [, -1, drop = FALSE]
     non.missing <- apply(cdat, 1, function(x) !any(is.na(x)))
     filter.subset <- CleanSubset(subset, nrow(cdat))
     subset <- filter.subset & non.missing
