@@ -5,18 +5,21 @@
 \title{Choice modeling experimental design}
 \usage{
 ChoiceModelDesign(design.algorithm = c("Random", "Shortcut",
-  "Balanced overlap", "Complete enumeration", "Efficient", "Partial profiles"),
+  "Balanced overlap", "Complete enumeration", "Efficient", "Partial profiles",
+  "Alternative specific - Random", "Alternative specific - Fedorov"),
   attribute.levels = NULL, prior = NULL, n.questions, n.versions = 1,
   alternatives.per.question, prohibitions = NULL, none.alternatives = 0,
   none.positions = NULL, labeled.alternatives = FALSE,
   n.constant.attributes = 0, extensive = FALSE, n.rotations = 10,
-  output = "Labeled design", seed = 54123)
+  max.subsample = 1e+08, output = "Labeled design", seed = 54123)
 }
 \arguments{
 \item{design.algorithm}{The algorithm used to create the
 design. One of \code{"Random"}, \code{"Shortcut"},
 \code{"Balanced overlap"}, \code{"Complete enumeration"},
-\code{"Efficient"} and \code{Partial profiles}.}
+\code{"Efficient"}, \code{Partial profiles},
+\code{"Alternative specific - Random"} and
+\code{"Alternative specific - Fedorov"}.}
 
 \item{attribute.levels}{\code{\link{list}} of \code{\link{vector}}s
 containing the labels of levels for each attribute, with names
@@ -65,6 +68,9 @@ the integrated algorithm for partial profiles.}
 \item{n.rotations}{The number of random rotations performed when computing
 the Bayesian criterion when the prior mean and variance are supplied for
 partial profiles.}
+
+\item{max.subsample}{The maximum number of questions from a fully enumerated design
+to consider when \code{design.algorithm == "Alternative specific - Fedorov"}.}
 
 \item{output}{One of \code{"Labeled design"} or \code{"Inputs"}.}
 

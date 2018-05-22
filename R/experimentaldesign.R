@@ -5,7 +5,9 @@
 #' @param design.algorithm The algorithm used to create the
 #'     design. One of \code{"Random"}, \code{"Shortcut"},
 #'     \code{"Balanced overlap"}, \code{"Complete enumeration"},
-#'     \code{"Efficient"} and \code{Partial profiles}.
+#'     \code{"Efficient"}, \code{Partial profiles},
+#'     \code{"Alternative specific - Random"} and
+#'     \code{"Alternative specific - Fedorov"}.
 #' @param attribute.levels \code{\link{list}} of \code{\link{vector}}s
 #'     containing the labels of levels for each attribute, with names
 #'     corresponding to the attribute labels; \emph{or} a character
@@ -42,6 +44,8 @@
 #' @param n.rotations The number of random rotations performed when computing
 #'     the Bayesian criterion when the prior mean and variance are supplied for
 #'     partial profiles.
+#' @param max.subsample The maximum number of questions from a fully enumerated design
+#'     to consider when \code{design.algorithm == "Alternative specific - Fedorov"}.
 #' @param output One of \code{"Labeled design"} or \code{"Inputs"}.
 #' @param seed Integer; random seed to be used by the algorithms.
 #' @return A list with components
@@ -96,7 +100,9 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                                                    "Balanced overlap",
                                                    "Complete enumeration",
                                                    "Efficient",
-                                                   "Partial profiles"),
+                                                   "Partial profiles",
+                                                   "Alternative specific - Random",
+                                                   "Alternative specific - Fedorov"),
                               attribute.levels = NULL,
                               prior = NULL,
                               n.questions,
@@ -109,9 +115,18 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                               n.constant.attributes = 0,
                               extensive = FALSE,
                               n.rotations = 10,
+                              max.subsample = 1e8,
                               output = "Labeled design",
                               seed = 54123) {
 
+
+    if(grepl("Alternative specific", design.algorithm))
+        return(alternativeSpecificDesign(design.algorithm = design.algorithm,
+                                         attribute.levels = attribute.levels,
+                                         n.questions = n.questions,
+                                         n.versions = n.versions,
+                                         max.subsample = max.subsample,
+                                         seed = seed))
 
     ## Map the design.algorithm to the function
     design.algorithm <- match.arg(design.algorithm)
@@ -536,20 +551,20 @@ randomChoices <- function(cmd, respondents = 300) {
     return(chosen)
 }
 
-# fit a design and choices with mlogit package
+# Fit a design and choices with mlogit package.
+# Assumes 300 repsondents.
 #' @importFrom mlogit mlogit.data mlogit
 #' @importFrom stats as.formula
 mlogitModel <- function(cmd, choices = NULL) {
     if (is.null(choices))
         choices <- randomChoices(cmd)
 
-    labeled <- as.data.frame(labelDesign(cmd$design, cmd$attribute.levels))
+    labeled <- as.data.frame(labelDesign(cmd$design, cmd$attribute.levels))[, -1]
+    labeled <- labeled[rep_len(seq_len(nrow(labeled)), length.out = length(choices)), ]
 
-    copies <- length(choices) / nrow(labeled)
-    labeled <- labeled[rep(seq_len(nrow(labeled)), copies), -1]
     labeled$Choice <- choices
     mlogit.df <- mlogit.data(labeled, choice = "Choice", shape = "long", varying = 3:ncol(labeled),
-                     alt.var = "Alternative", id.var = "Question", drop.index = TRUE)
+                             alt.var = "Alternative", id.var = "Question", drop.index = TRUE)
 
     form <- paste("Choice ~ ", paste0("`", colnames(mlogit.df)[1:ncol(mlogit.df) - 1], "`", collapse = "+"), "| -1")
     ml.model <- tryCatch(mlogit(as.formula(form), data = mlogit.df), error = function(e) {NULL})
