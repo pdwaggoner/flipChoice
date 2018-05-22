@@ -536,7 +536,8 @@ addNoneAlternatives <- function(design, none.positions, alternatives.per.questio
     colnames(design.with.none) <- colnames(design)
     n.versions <- design[NROW(design), 1]
     design.with.none[, 1] <- rep(seq(n.versions), each = NROW(design.with.none) / n.versions)
-    design.with.none[, 2] <- rep(seq(n / alternatives.per.question), each = alternatives.per.question + none.alternatives)
+    n.questions <- n / alternatives.per.question / n.versions
+    design.with.none[, 2] <- rep(rep(seq(n.questions), each = alternatives.per.question + none.alternatives), n.versions)
     design.with.none[, 3] <- rep(seq(alternatives.per.question + none.alternatives), n / alternatives.per.question)
     return(design.with.none)
 }
