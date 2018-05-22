@@ -5,18 +5,21 @@
 \title{Choice modeling experimental design}
 \usage{
 ChoiceModelDesign(design.algorithm = c("Random", "Shortcut",
-  "Balanced overlap", "Complete enumeration", "Efficient", "Partial profiles"),
+  "Balanced overlap", "Complete enumeration", "Efficient", "Partial profiles",
+  "Alternative specific - Random", "Alternative specific - Fedorov"),
   attribute.levels = NULL, prior = NULL, n.questions, n.versions = 1,
   alternatives.per.question, prohibitions = NULL, none.alternatives = 0,
   none.positions = NULL, labeled.alternatives = FALSE,
   n.constant.attributes = 0, extensive = FALSE, n.rotations = 10,
-  output = "Labeled design", seed = 54123)
+  max.subsample = 1e+08, output = "Labeled design", seed = 54123)
 }
 \arguments{
 \item{design.algorithm}{The algorithm used to create the
 design. One of \code{"Random"}, \code{"Shortcut"},
 \code{"Balanced overlap"}, \code{"Complete enumeration"},
-\code{"Efficient"} and \code{Partial profiles}.}
+\code{"Efficient"}, \code{Partial profiles},
+\code{"Alternative specific - Random"} and
+\code{"Alternative specific - Fedorov"}.}
 
 \item{attribute.levels}{\code{\link{list}} of \code{\link{vector}}s
 containing the labels of levels for each attribute, with names
@@ -66,6 +69,9 @@ the integrated algorithm for partial profiles.}
 the Bayesian criterion when the prior mean and variance are supplied for
 partial profiles.}
 
+\item{max.subsample}{The maximum number of questions from a fully enumerated design
+to consider when \code{design.algorithm == "Alternative specific - Fedorov"}.}
+
 \item{output}{One of \code{"Labeled design"} or \code{"Inputs"}.}
 
 \item{seed}{Integer; random seed to be used by the algorithms.}
@@ -87,6 +93,7 @@ replaced by their labels.
 \item \code{n.versions} - as per input.
 \item \code{alternatives.per.question} - as per input.
 \item \code{none.alternatives} - as per input.
+\item \code{labeled.alternatives} - as per input.
 \item \code{output} - as per input.
 \item \code{db.error} - the Db-error of \code{design}.
 \item \code{d.error} - the D-error of \code{design}.

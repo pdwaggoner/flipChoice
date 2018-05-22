@@ -5,7 +5,9 @@
 #' @param design.algorithm The algorithm used to create the
 #'     design. One of \code{"Random"}, \code{"Shortcut"},
 #'     \code{"Balanced overlap"}, \code{"Complete enumeration"},
-#'     \code{"Efficient"} and \code{Partial profiles}.
+#'     \code{"Efficient"}, \code{Partial profiles},
+#'     \code{"Alternative specific - Random"} and
+#'     \code{"Alternative specific - Fedorov"}.
 #' @param attribute.levels \code{\link{list}} of \code{\link{vector}}s
 #'     containing the labels of levels for each attribute, with names
 #'     corresponding to the attribute labels; \emph{or} a character
@@ -42,6 +44,8 @@
 #' @param n.rotations The number of random rotations performed when computing
 #'     the Bayesian criterion when the prior mean and variance are supplied for
 #'     partial profiles.
+#' @param max.subsample The maximum number of questions from a fully enumerated design
+#'     to consider when \code{design.algorithm == "Alternative specific - Fedorov"}.
 #' @param output One of \code{"Labeled design"} or \code{"Inputs"}.
 #' @param seed Integer; random seed to be used by the algorithms.
 #' @return A list with components
@@ -60,6 +64,7 @@
 #' \item \code{n.versions} - as per input.
 #' \item \code{alternatives.per.question} - as per input.
 #' \item \code{none.alternatives} - as per input.
+#' \item \code{labeled.alternatives} - as per input.
 #' \item \code{output} - as per input.
 #' \item \code{db.error} - the Db-error of \code{design}.
 #' \item \code{d.error} - the D-error of \code{design}.
@@ -84,7 +89,6 @@
 #'     mean for the coefficients and the second is taken to be the
 #'     prior variances.  If only one column is present, the prior for
 #'     the coefficients is assumed to be centered at those values.
-#'
 #' @examples
 #' x <- CreateExperiment(c(3, 5, 7, 10), 20)
 #' ChoiceModelDesign("Random", x$attribute.levels, n.questions = 30,
@@ -96,7 +100,9 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                                                    "Balanced overlap",
                                                    "Complete enumeration",
                                                    "Efficient",
-                                                   "Partial profiles"),
+                                                   "Partial profiles",
+                                                   "Alternative specific - Random",
+                                                   "Alternative specific - Fedorov"),
                               attribute.levels = NULL,
                               prior = NULL,
                               n.questions,
@@ -109,9 +115,18 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                               n.constant.attributes = 0,
                               extensive = FALSE,
                               n.rotations = 10,
+                              max.subsample = 1e8,
                               output = "Labeled design",
                               seed = 54123) {
 
+
+    if(grepl("Alternative specific", design.algorithm))
+        return(alternativeSpecificDesign(design.algorithm = design.algorithm,
+                                         attribute.levels = attribute.levels,
+                                         n.questions = n.questions,
+                                         n.versions = n.versions,
+                                         max.subsample = max.subsample,
+                                         seed = seed))
 
     ## Map the design.algorithm to the function
     design.algorithm <- match.arg(design.algorithm)
@@ -151,7 +166,16 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
 
     # If labeled.alternatives then alternatives.per.question is calculated and not supplied
     if (labeled.alternatives)
+    {
+        if (!missing(alternatives.per.question) && length(alternatives.per.question) &&
+            alternatives.per.question != length(attribute.levels[[1]]))
+            warning("Since ", sQuote("labeled.alternatives"), " is TRUE, the number ",
+                    "of alternatives per question will be taken from the number of levels ",
+                    "of the first attribute in ", sQuote("attribute.levels"), "; ignoring ",
+                    sQuote("alternatives.per.question"))
         alternatives.per.question <- length(attribute.levels[[1]])
+
+    }
 
     if (is.character(none.positions))
     {
@@ -242,6 +266,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     result$design.with.none <- addNoneAlternatives(result$design, none.positions,
                                                    alternatives.per.question)
     result$labeled.design <- labelDesign(result$design.with.none, attribute.levels)
+    result$labeled.alternatives <- labeled.alternatives
     result$balances.and.overlaps <- balancesAndOverlaps(result)
     result$d.error <- if (is.null(prior) || is.vector(prior))
         calculateDError(result$design, sapply(result$attribute.levels, length),
@@ -502,7 +527,8 @@ addNoneAlternatives <- function(design, none.positions, alternatives.per.questio
     colnames(design.with.none) <- colnames(design)
     n.versions <- design[NROW(design), 1]
     design.with.none[, 1] <- rep(seq(n.versions), each = NROW(design.with.none) / n.versions)
-    design.with.none[, 2] <- rep(seq(n / alternatives.per.question), each = alternatives.per.question + none.alternatives)
+    n.questions <- n / alternatives.per.question / n.versions
+    design.with.none[, 2] <- rep(rep(seq(n.questions), each = alternatives.per.question + none.alternatives), n.versions)
     design.with.none[, 3] <- rep(seq(alternatives.per.question + none.alternatives), n / alternatives.per.question)
     return(design.with.none)
 }
@@ -527,20 +553,20 @@ randomChoices <- function(cmd, respondents = 300) {
     return(chosen)
 }
 
-# fit a design and choices with mlogit package
+# Fit a design and choices with mlogit package.
+# Assumes 300 repsondents.
 #' @importFrom mlogit mlogit.data mlogit
 #' @importFrom stats as.formula
 mlogitModel <- function(cmd, choices = NULL) {
     if (is.null(choices))
         choices <- randomChoices(cmd)
 
-    labeled <- as.data.frame(labelDesign(cmd$design, cmd$attribute.levels))
+    labeled <- as.data.frame(labelDesign(cmd$design, cmd$attribute.levels))[, -1]
+    labeled <- labeled[rep_len(seq_len(nrow(labeled)), length.out = length(choices)), ]
 
-    copies <- length(choices) / nrow(labeled)
-    labeled <- labeled[rep(seq_len(nrow(labeled)), copies), -1]
     labeled$Choice <- choices
     mlogit.df <- mlogit.data(labeled, choice = "Choice", shape = "long", varying = 3:ncol(labeled),
-                     alt.var = "Alternative", id.var = "Question", drop.index = TRUE)
+                             alt.var = "Alternative", id.var = "Question", drop.index = TRUE)
 
     form <- paste("Choice ~ ", paste0("`", colnames(mlogit.df)[1:ncol(mlogit.df) - 1], "`", collapse = "+"), "| -1")
     ml.model <- tryCatch(mlogit(as.formula(form), data = mlogit.df), error = function(e) {NULL})
