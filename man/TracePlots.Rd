@@ -21,7 +21,7 @@ from which individual coefficients are sampled.
 }
 \seealso{
 \url{https://www.displayr.com/convergence-hb-maxdiff/},
-    \code{\link{FitChoiceModel}} for an example, \code{\link[rstan]{traceplot}},
+    \code{\link{FitChoiceModel}} for an example, \code{\link[rstan]{stanfit-method-traceplot}},
 \code{\link{ExtractParameterStats}}, \code{\link{PlotPosteriorIntervals}}
 
 Other HB diagnostics: \code{\link{ExtractParameterStats}},
