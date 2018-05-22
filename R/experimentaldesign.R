@@ -167,7 +167,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     # If labeled.alternatives then alternatives.per.question is calculated and not supplied
     if (labeled.alternatives)
     {
-        if (!missing(alternatives.per.question) &&
+        if (!missing(alternatives.per.question) && length(alternatives.per.question) &&
             alternatives.per.question != length(attribute.levels[[1]]))
             warning("Since ", sQuote("labeled.alternatives"), " is TRUE, the number ",
                     "of alternatives per question will be taken from the number of levels ",
