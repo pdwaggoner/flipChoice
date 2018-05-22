@@ -246,17 +246,8 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     result$d.error <- if (is.null(prior) || is.vector(prior))
         calculateDError(result$design, sapply(result$attribute.levels, length),
                         effects = FALSE)
-    else if (!is.null(result$d.criterion))
-        exp(-result$d.criterion / nrow(prior))
     else
-    {
-        encoded.design <- encodeDesign(result$design[,-1:-3], FALSE)
-        criterion <- quadratureBayesianCriterion(encoded.design, prior,
-                                                 n.questions * n.versions,
-                                                 alternatives.per.question,
-                                                 10, seed)
-        exp(-criterion / nrow(prior))
-    }
+        NA
 
     ml.model <- mlogitModel(result)
     if (is.null(ml.model))
