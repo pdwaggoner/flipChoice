@@ -177,11 +177,12 @@ bayesianCriterionShortcut <- function(question.design, prior,
 }
 
 monteCarloBayesianCriterion <- function(design, prior, n.questions,
-                                        alternatives.per.question, n.draws)
+                                        alternatives.per.question, n.draws, seed)
 {
     n.parameters <- nrow(prior)
     means <- prior[, 1]
     sds <- prior[, 2]
+    set.seed(seed)
     draws <- matrix(rnorm(n.draws * n.parameters) * sds + means,
                     ncol = n.draws)
 

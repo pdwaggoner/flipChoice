@@ -268,7 +268,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     result$labeled.design <- labelDesign(result$design.with.none, attribute.levels)
     result$labeled.alternatives <- labeled.alternatives
     result$balances.and.overlaps <- balancesAndOverlaps(result)
-    result$d.error <- if (is.null(prior) || is.vector(prior))
+    result$d.error <- if (is.null(prior) || (is.vector(prior) && is.numeric(prior)))
         calculateDError(result$design, sapply(result$attribute.levels, length),
                         effects = FALSE)
     else

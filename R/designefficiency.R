@@ -1,3 +1,31 @@
+#' The D-optimality (D_0, D_P or D_B) of a design.
+#'
+#' @param design The non-encoded design with the first three columns as
+#'     Version, Question, Alternative, and the remaining columns as attribute
+#'     levels.
+#' @param prior If NULL, the D_0 optimality is computed. If a numeric vector,
+#'     the D_P optimality is computed. If a matrix with two columns, the
+#'     D_B optimality is computed.
+#' @param n.rotations The number of random rotations when computing
+#'     D_B optimality.
+#' @param seed The random seed when computing D_B optimality.
+#' @return The D-optimality.
+#' @export
+DOptimality <- function(design, prior = NULL, n.rotations = 10, seed = 123)
+{
+    alternatives.per.question <- max(design[, 3])
+    n.qv <- nrow(design) / alternatives.per.question
+    encoded.design <- encodeDesign(design[, -1:-3], effects = FALSE)
+    if (is.null(prior))
+        d0Criterion(encoded.design, n.qv, alternatives.per.question)
+    else if (is.vector(prior) && is.numeric(prior))
+        dPCriterion(encoded.design, prior, n.qv, alternatives.per.question)
+    else
+        quadratureBayesianCriterion(encoded.design, prior, n.qv,
+                                    alternatives.per.question, n.rotations,
+                                    seed)
+}
+
 # Simple method as produced by AlgDesign package
 #' @importFrom stats model.matrix
 dScore <- function(design)
