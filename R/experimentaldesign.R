@@ -42,7 +42,7 @@
 #' @param extensive Logical; whether to used the extensive algorithm instead of
 #'     the integrated algorithm for partial profiles.
 #' @param n.rotations The number of random rotations performed when computing
-#'     the Bayesian criterion when the prior mean and variance are supplied for
+#'     the Bayesian criterion/error when the prior mean and variance are supplied for
 #'     partial profiles.
 #' @param max.subsample The maximum number of questions from a fully enumerated design
 #'     to consider when \code{design.algorithm == "Alternative specific - Fedorov"}.
@@ -68,6 +68,8 @@
 #' \item \code{output} - as per input.
 #' \item \code{db.error} - the Db-error of \code{design}.
 #' \item \code{d.error} - the D-error of \code{design}.
+#' \item \code{d.criterion} - the D-optimality criterion when the partial
+#' profiles algorithm is used.
 #' \item \code{model.matrix} - the model matrix of dummy coded variables for each alternative
 #' in every choice set.
 #' \item \code{balances.and.overlaps} a list with components
@@ -268,12 +270,10 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     result$labeled.design <- labelDesign(result$design.with.none, attribute.levels)
     result$labeled.alternatives <- labeled.alternatives
     result$balances.and.overlaps <- balancesAndOverlaps(result)
-    result$d.error <- if (is.null(prior) || (is.vector(prior) && is.numeric(prior)))
-        calculateDError(result$design, sapply(result$attribute.levels, length),
-                        effects = FALSE)
-    else
-        NA
-
+    result$d.error <- DError(result$design,
+                             sapply(result$attribute.levels, length),
+                             effects = FALSE, prior = prior,
+                             n.rotations = n.rotations, seed = seed)
     ml.model <- mlogitModel(result)
     if (is.null(ml.model))
         warning("Standard errors cannot be calculated. The design does not sufficiently explore",

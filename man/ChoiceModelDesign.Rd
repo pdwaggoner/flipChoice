@@ -66,7 +66,7 @@ constant for partial profiles.}
 the integrated algorithm for partial profiles.}
 
 \item{n.rotations}{The number of random rotations performed when computing
-the Bayesian criterion when the prior mean and variance are supplied for
+the Bayesian criterion/error when the prior mean and variance are supplied for
 partial profiles.}
 
 \item{max.subsample}{The maximum number of questions from a fully enumerated design

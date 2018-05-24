@@ -205,3 +205,37 @@ quadratureBayesianCriterion <- function(design, prior, n.questions,
     bayesianCriterion(design, prior, n.questions,
                       alternatives.per.question)
 }
+
+bayesianError <- function(design, prior, n.questions,
+                          alternatives.per.question)
+{
+    dims <- dim(prior$abscissas.vectors)
+    n.rotations <- dims[2]
+    n.extended.simplex <- dims[3]
+    result <- prior$radial.weight.zero *
+        dPCriterion(design, prior$mean, n.questions,
+                    alternatives.per.question)
+    K <- length(prior$mean)
+    for (i in 1:2)
+        for (j in 1:n.rotations)
+            for (k in 1:n.extended.simplex)
+            {
+                if (is.infinite(result))
+                    return(-Inf)
+                result <- result + prior$radial.weights[i] *
+                    prior$extended.simplex.weights[k] *
+                    exp(dPCriterion(design, prior$abscissas.vectors[i, j, k, ],
+                            n.questions,
+                            alternatives.per.question)) ^ (-1 / K) / n.rotations
+            }
+    result
+}
+
+dBError <- function(design, prior, n.questions, alternatives.per.question,
+                    n.rotations, seed)
+{
+    quadrature.values <- computeQuadratureValues(nrow(prior), n.rotations,
+                                                 seed, prior[, 1], prior[, 2])
+    prior <- c(list(mean = prior[, 1]), quadrature.values)
+    bayesianError(design, prior, n.questions, alternatives.per.question)
+}

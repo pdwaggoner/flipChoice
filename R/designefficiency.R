@@ -1,31 +1,3 @@
-#' The D-optimality (D_0, D_P or D_B) of a design.
-#'
-#' @param design The non-encoded design with the first three columns as
-#'     Version, Question, Alternative, and the remaining columns as attribute
-#'     levels.
-#' @param prior If NULL, the D_0 optimality is computed. If a numeric vector,
-#'     the D_P optimality is computed. If a matrix with two columns, the
-#'     D_B optimality is computed.
-#' @param n.rotations The number of random rotations when computing
-#'     D_B optimality.
-#' @param seed The random seed when computing D_B optimality.
-#' @return The D-optimality.
-#' @export
-DOptimality <- function(design, prior = NULL, n.rotations = 10, seed = 123)
-{
-    alternatives.per.question <- max(design[, 3])
-    n.qv <- nrow(design) / alternatives.per.question
-    encoded.design <- encodeDesign(design[, -1:-3], effects = FALSE)
-    if (is.null(prior))
-        d0Criterion(encoded.design, n.qv, alternatives.per.question)
-    else if (is.vector(prior) && is.numeric(prior))
-        dPCriterion(encoded.design, prior, n.qv, alternatives.per.question)
-    else
-        quadratureBayesianCriterion(encoded.design, prior, n.qv,
-                                    alternatives.per.question, n.rotations,
-                                    seed)
-}
-
 # Simple method as produced by AlgDesign package
 #' @importFrom stats model.matrix
 dScore <- function(design)
@@ -37,22 +9,28 @@ dScore <- function(design)
     return(d.score)
 }
 
-# Compute the D-error of an unlabeled design (according to Huber and Zwerina 1996)
-# design.matrix is a matrix for an unlabeled choice design in the long format, meaning that
-#   each row describes one of the alternatives in one of the choice tasks. Complete data for
-#   each task is spread across several rows. The columns are:
-#   - Column 1 indicates the version number for each profile
+#' Compute the D-error of an unlabeled design (according to Huber and Zwerina 1996)
+#' @param design.matrix is a matrix for an unlabeled choice design in the long format, meaning that
+#'   each row describes one of the alternatives in one of the choice tasks. Complete data for
+#'   each task is spread across several rows. The columns are:
+#'   - Column 1 indicates the version number for each profile
 #   - Column 2 indicates the task number for each profile
 #   - Column 3 indicates the alternative number
 #   - Columns 4 and up each correspond to an attribute, with the entries in the columns indicating
 #     the level of the attribute (beginning at level 1).
-# attribute.levels is a vector of numbers indicating how many levels are in each attribute. The order should
+#' @param attribute.levels is a vector of numbers indicating how many levels are in each attribute. The order should
 #   correspond to the order of columns in the design.
-# effects is a boolean parameter indicating whether or not the error should be computed based on
+#' @param effects is a boolean parameter indicating whether or not the error should be computed based on
 #   effects coding (TRUE) or dummy coding (FALSE).
-# prior is a vector of prior parameters for the attribute levels. Keeping prior = NULL uses a flat prior
-# See https://faculty.fuqua.duke.edu/~jch8/bio/Papers/Huber%20Zwerina%201996%20Marketing%20Research.pdf
-calculateDError <- function(design.matrix, attribute.levels, effects = TRUE, prior = NULL)
+#' @param prior is a vector of prior parameters for the attribute levels. Keeping prior = NULL uses a flat prior
+#' @param n.rotations The number of random rotations performed when computing
+#'     the Bayesian criterion/error when the prior mean and variance are supplied for
+#'     partial profiles.
+#' @param seed Integer; random seed to be used by the algorithms.
+#' @references See https://faculty.fuqua.duke.edu/~jch8/bio/Papers/Huber%20Zwerina%201996%20Marketing%20Research.pdf
+#' @export
+DError <- function(design.matrix, attribute.levels, effects = TRUE,
+                            prior = NULL, n.rotations = 10, seed = 123)
 {
     K <- sum(attribute.levels - 1) # Total number of parameters
     J <- max(design.matrix[, 3]) # Number of alts per task
@@ -70,11 +48,12 @@ calculateDError <- function(design.matrix, attribute.levels, effects = TRUE, pri
     des.att <- design.matrix[, 3:ncol(design.matrix)] # Part of the design matrix containing the attributes
     coded.design <- encodeDesign(des.att, effects = effects)
 
-    # det of inverse == inverse of det
-    if (!is.null(prior))
+    if (is.null(prior))
+        d0Criterion(coded.design, N, J, FALSE) ^ (-1 / K)
+    else if (is.vector(prior) && is.numeric(prior))
         dPCriterion(coded.design, prior, N, J, FALSE) ^ (-1 / K)
     else
-        d0Criterion(coded.design, N, J, FALSE) ^ (-1 / K)
+        dBError(coded.design, prior, N, J, n.rotations, seed)
 }
 
 dPCriterion <- function(coded.design, prior, n.questions,
