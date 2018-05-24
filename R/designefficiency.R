@@ -32,6 +32,8 @@ dScore <- function(design)
 DError <- function(design.matrix, attribute.levels, effects = TRUE,
                             prior = NULL, n.rotations = 10, seed = 123)
 {
+    if (!is.matrix(design.matrix))
+        stop("The input design.matrix needs to be a matrix.")
     K <- sum(attribute.levels - 1) # Total number of parameters
     J <- max(design.matrix[, 3]) # Number of alts per task
 
