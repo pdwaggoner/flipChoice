@@ -13,8 +13,8 @@ test_that("Utility neutral integrated algorithm",
                                 alternatives.per.question = 2,
                                 n.constant.attributes = 3,
                                 seed = 1)
-    # Optimal criterion is 4
     expect_equal(result$d.criterion, 1.22245332640841)
+    expect_equal(result$d.error, 0.872992645672795)
 })
 
 test_that("Utility neutral extensive algorithm",
@@ -28,8 +28,9 @@ test_that("Utility neutral extensive algorithm",
                                 n.constant.attributes = 3,
                                 extensive = TRUE,
                                 seed = 1)
-    # Optimal criterion is 4
+
     expect_equal(result$d.criterion, 1.38629436111989)
+    expect_equal(result$d.error, 0.857243982853073)
 })
 
 test_that("D-p optimal integrated algorithm",
@@ -43,6 +44,7 @@ test_that("D-p optimal integrated algorithm",
                                 n.constant.attributes = 3,
                                 seed = 1)
     expect_equal(result$d.criterion, -1.03396669554188)
+    expect_equal(result$d.error, 1.12174464087415)
 })
 
 test_that("Bayesian optimal integrated algorithm",
@@ -60,6 +62,30 @@ test_that("Bayesian optimal integrated algorithm",
                               n.constant.attributes = 0,
                               seed = 1)
     expect_equal(result$d.criterion, -6.30145393214796)
+    expect_equal(result$d.error, 2.73147951766982)
+})
+
+test_that("Partial profiles vs modified Federov with a prior distribution",
+{
+    prior <- matrix(c(-1, 0, 1, 0, -1, 0, 2, 2, 2, 2, 2, 2), ncol = 2)
+    attribute.levels <- list(Att1 = 1:2, Att2 = 1:2, Att3 = 1:3, Att4 = 1:3)
+    result.pp <- ChoiceModelDesign(design.algorithm = "Partial profiles",
+                                attribute.levels = attribute.levels,
+                                prior = prior,
+                                n.questions = 10,
+                                n.versions = 1,
+                                alternatives.per.question = 3,
+                                n.constant.attributes = 0,
+                                seed = 1)
+    result.fed <- ChoiceModelDesign(design.algorithm = "Efficient",
+                                attribute.levels = attribute.levels,
+                                prior = prior,
+                                n.questions = 10,
+                                n.versions = 1,
+                                alternatives.per.question = 3,
+                                n.constant.attributes = 0,
+                                seed = 1)
+    expect_true(result.pp$d.error < result.fed$d.error)
 })
 
 test_that("HZ paper Table 2, 3^3/3/9",
@@ -600,11 +626,10 @@ test_that("Sandor and Wedel 2001: 3^4/2/15",
                              labeled.alternatives = FALSE,
                              none.alternative = FALSE)
 
-    encoded.design <- encodeDesign(sw2.design[,-1:-2], FALSE)
-    pub.criterion <- quadratureBayesianCriterion(encoded.design,
-                                             prior.coef.with.sd,
-                                             n.q, apq, 10, seed)
-    expect_true(out$d.criterion > pub.criterion)
+    encoded.design <- encodeDesign(sw2.design[,-1:-2], TRUE)
+    pub.bayesian.error <- dBError(encoded.design, prior.coef.with.sd,
+                                  15, 2, 10, 1)
+    expect_true(out$d.error < pub.bayesian.error)
 })
 
 test_that("Street, Burgess, Louviere 2005 Table 5: 4^5/2/16",
@@ -675,13 +700,11 @@ test_that("Kessels et al 2011, 2^(6-1) factorial design and Design 1 (Table II)"
     prior <- matrix(c(-0.8, -0.8, -0.8, -0.8, -0.8, -0.8, rep(0.4, 6)), ncol = 2)
 
     encoded.design <- encodeDesign(kessels0.design[, -1:-2], FALSE)
-    criterion0 <- quadratureBayesianCriterion(encoded.design, prior,
-                                                8, 2, 10, seed)
+    error0 <- dBError(encoded.design, prior, 8, 2, 10, seed)
     encoded.design <- encodeDesign(kessels1.design[, -1:-2], FALSE)
-    criterion1 <- quadratureBayesianCriterion(encoded.design, prior,
-                                8, 2, 10, seed)
+    error1 <- dBError(encoded.design, prior, 8, 2, 10, seed)
 
-    expect_true(criterion1 > criterion0)
+    expect_true(error1 < error0)
 
     attr.list <- list(A1 = 1:2, A2 = 1:2, A3 = 1:2, A4 = 1:2,
                       A5 = 1:2, A6 = 1:2)
@@ -691,6 +714,6 @@ test_that("Kessels et al 2011, 2^(6-1) factorial design and Design 1 (Table II)"
                              seed = seed, alternatives.per.question = 2,
                              labeled.alternatives = FALSE, none.alternative = FALSE)
 
-    expect_true(out$d.criterion > criterion1)
+    expect_true(out$d.error < error1)
 })
 
