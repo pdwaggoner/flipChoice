@@ -273,7 +273,8 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     result$d.error <- DError(result$design,
                              sapply(result$attribute.levels, length),
                              effects = FALSE, prior = prior,
-                             n.rotations = n.rotations, seed = seed)
+                             n.rotations = n.rotations, seed = seed,
+                             has.question.and.task = FALSE) # remove has.question.and.task = FALSE once designs include the task column
     ml.model <- mlogitModel(result)
     if (is.null(ml.model))
         warning("Standard errors cannot be calculated. The design does not sufficiently explore",

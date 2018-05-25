@@ -9,31 +9,46 @@ dScore <- function(design)
     return(d.score)
 }
 
-#' Compute the D-error of an unlabeled design (according to Huber and Zwerina 1996)
-#' @param design.matrix is a matrix for an unlabeled choice design in the long format, meaning that
-#'   each row describes one of the alternatives in one of the choice tasks. Complete data for
-#'   each task is spread across several rows. The columns are:
-#'   - Column 1 indicates the version number for each profile
-#   - Column 2 indicates the task number for each profile
-#   - Column 3 indicates the alternative number
-#   - Columns 4 and up each correspond to an attribute, with the entries in the columns indicating
-#     the level of the attribute (beginning at level 1).
-#' @param attribute.levels is a vector of numbers indicating how many levels are in each attribute. The order should
-#   correspond to the order of columns in the design.
-#' @param effects is a boolean parameter indicating whether or not the error should be computed based on
-#   effects coding (TRUE) or dummy coding (FALSE).
-#' @param prior is a vector of prior parameters for the attribute levels. Keeping prior = NULL uses a flat prior
+#' Compute the D-error of an unlabeled design (according to Huber and Zwerina
+#' 1996)
+#' @param design.matrix is a matrix for an unlabeled choice design in the long
+#'     format, meaning that each row describes one of the alternatives in one
+#'     of the choice tasks. Complete data for each task is spread across
+#'     several rows. The columns are:
+#'     - Column 1 indicates the version number for each profile
+#'     - Column 2 indicates the question number for each profile
+#'     - Column 3 indicates the task number for each profile
+#'     - Column 4 indicates the alternative number
+#'     - Columns 5 and up each correspond to an attribute, with the entries in
+#'       the columns indicating the level of the attribute (beginning at level
+#'       1).
+#'     Either column 2 or 3 can be omitted if the parameter
+#'     has.question.and.task is set to FALSE.
+#' @param attribute.levels is a vector of numbers indicating how many levels
+#'     are in each attribute. The order should correspond to the order of
+#'     columns in the design.
+#' @param effects is a boolean parameter indicating whether or not the error
+#'     should be computed based on effects coding (TRUE) or dummy coding
+#'     (FALSE).
+#' @param prior is a vector of prior parameters for the attribute levels.
+#'     Keeping prior = NULL uses a flat prior.
 #' @param n.rotations The number of random rotations performed when computing
-#'     the Bayesian criterion/error when the prior mean and variance are supplied for
-#'     partial profiles.
+#'     the Bayesian criterion/error when the prior mean and variance are
+#'     supplied for partial profiles.
 #' @param seed Integer; random seed to be used by the algorithms.
+#' @param has.question.and.task Whether both the question and task columns are
+#'     supplied in the design. If FALSE, only either the question or task
+#'     should be present.
 #' @references See https://faculty.fuqua.duke.edu/~jch8/bio/Papers/Huber%20Zwerina%201996%20Marketing%20Research.pdf
 #' @export
 DError <- function(design.matrix, attribute.levels, effects = TRUE,
-                            prior = NULL, n.rotations = 10, seed = 123)
+                   prior = NULL, n.rotations = 10, seed = 123,
+                   has.question.and.task = TRUE)
 {
     if (!is.matrix(design.matrix))
         stop("The input design.matrix needs to be a matrix.")
+    if (has.question.and.task)
+        design.matrix <- design.matrix[, -3]
     K <- sum(attribute.levels - 1) # Total number of parameters
     J <- max(design.matrix[, 3]) # Number of alts per task
     N <- nrow(design.matrix) / J # Number of tasks

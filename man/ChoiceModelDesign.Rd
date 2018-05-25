@@ -97,6 +97,8 @@ replaced by their labels.
 \item \code{output} - as per input.
 \item \code{db.error} - the Db-error of \code{design}.
 \item \code{d.error} - the D-error of \code{design}.
+\item \code{d.criterion} - the D-optimality criterion when the partial
+profiles algorithm is used.
 \item \code{model.matrix} - the model matrix of dummy coded variables for each alternative
 in every choice set.
 \item \code{balances.and.overlaps} a list with components

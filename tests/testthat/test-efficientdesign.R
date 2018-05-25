@@ -290,7 +290,8 @@ test_that("D-error calculation agrees with Huber-Zwerina Table 1 3^3/3/9",
     dmat <- do.call(cbind, dmat)
     dmat <- cbind(1, dmat)
     expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, apq),
-                 DError(dmat, attribute.levels = c(3,3,3), TRUE))
+                 DError(dmat, attribute.levels = c(3,3,3), TRUE,
+                        has.question.and.task = FALSE))
     expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, apq),
                  .192, tolerance = .0005)
 
@@ -317,12 +318,8 @@ test_that("D-error calculation agrees with Huber-Zwerina Table 1 3^3/3/9",
     ca <- as.list(rep("contr.treatment", 3))
     names(ca) <- LETTERS[1:3]
     mm <- model.matrix(~A+B+C, hz.design, contrasts = ca)[, -1]
-    ## expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, 3),
-    ##       DError(cbind(1, hz.design), attribute.levels = c(3,3,3), TRUE))
     expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, apq),
                  .577, tolerance = .0005)
-
-
 })
 
 test_that("Efficient outperforms choiceDes",
