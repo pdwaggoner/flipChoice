@@ -39,7 +39,7 @@ DError <- function(design.matrix, attribute.levels, effects = TRUE,
     N <- nrow(design.matrix) / J # Number of tasks
 
     # Generate a coded version of the design using dummy coding or effects coding
-    des.att <- design.matrix[, 3:ncol(design.matrix)] # Part of the design matrix containing the attributes
+    des.att <- design.matrix[, 4:ncol(design.matrix)] # Part of the design matrix containing the attributes
     coded.design <- encodeDesign(des.att, effects = effects)
 
     if (is.null(prior))
