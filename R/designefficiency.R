@@ -36,15 +36,7 @@ DError <- function(design.matrix, attribute.levels, effects = TRUE,
         stop("The input design.matrix needs to be a matrix.")
     K <- sum(attribute.levels - 1) # Total number of parameters
     J <- max(design.matrix[, 3]) # Number of alts per task
-
-    # Treat multiple versions as additional questions
-    n.versions <- design.matrix[NROW(design.matrix), 1]
-    n.questions <- max(design.matrix[, 2])
-    N <- n.versions * n.questions  # Number of tasks
-    design.matrix[, 2] <- rep(seq(N), each = J)
-    design.matrix <- design.matrix[, -1]
-
-    M <- N * J
+    N <- nrow(design.matrix) / J # Number of tasks
 
     # Generate a coded version of the design using dummy coding or effects coding
     des.att <- design.matrix[, 3:ncol(design.matrix)] # Part of the design matrix containing the attributes
