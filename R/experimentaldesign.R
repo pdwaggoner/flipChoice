@@ -376,60 +376,65 @@ balancesAndOverlaps <- function(cmd) {
         pairs <- pairs[!is.na(pairs)]
 
     overlaps <- countOverlaps(cmd$design, cmd$alternatives.per.question,
-                             sapply(cmd$attribute.levels, length))
+                              sapply(cmd$attribute.levels, length))
 
-    # range of level frequencies for each attribute and pair of attributes across all versions
-    ranges <- c(sapply(singles, numRange), sapply(pairs, numRange))
-
-    # range of level frequencies for each attribute by version
-    frequency.ranges <- matrix(0, nrow = cmd$n.versions, ncol = length(cmd$attribute.levels))
-    # range of level frequencies for each pair of attributes by version
-    if (!is.null(pairs))
-        pairwise.ranges <- matrix(0, nrow = cmd$n.versions, ncol = length(pairs))
+    # calculate the balance for each version and across all versions
+    version.balances.singles <- matrix(0, nrow = cmd$n.versions, ncol = length(singles))
+    version.balances.pairs <- matrix(0, nrow = cmd$n.versions, ncol = length(pairs))
 
     for (version in seq(cmd$n.versions))
     {
         version.start <- 1 + ((version - 1) * cmd$n.questions * cmd$alternatives.per.question)
         version.end <- version.start + cmd$n.questions * cmd$alternatives.per.question - 1
         version.design <- cmd$design[version.start:version.end, ]
-        frequency.ranges[version, ] <- sapply(singleLevelBalances(version.design), numRange)
+
+        singles.version <- singleLevelBalances(version.design)
+        pairs.version <- pairLevelBalances(version.design)
         if (!is.null(pairs))
         {
-            pair.version <- unlist(pairLevelBalances(version.design), recursive = FALSE)
-            pairwise.ranges[version, ] <-  sapply(pair.version[!is.na(pair.version)], numRange)
+            pairs.version <- unlist(pairs.version, recursive = FALSE)
+            if (!is.null(pairs.version))
+                pairs.version <- pairs.version[!is.na(pairs.version)]
         }
+
+        if (version == 1)
+        {
+            worst.balance.singles.version <- sapply(singles.version, worst.balance)
+            if (!is.null(pairs))
+                worst.balance.pairs.version <- sapply(pairs.version, worst.balance)
+        }
+
+        version.balances.singles[version, ] <- sapply(singles.version, balance.stat)
+        if (!is.null(pairs))
+            version.balances.pairs[version, ] <- sapply(pairs.version, balance.stat)
     }
 
-    # normalize by average occurences of each level per version
-    average.levels <- sapply(singleLevelBalances(version.design), mean)
-    frequency.ranges <- t(t(frequency.ranges) / average.levels)
-
-    frequency.means <- apply(frequency.ranges, 2, mean)
-    frequency.sds <- apply(frequency.ranges, 2, sd)
-    names(frequency.means) <- names(frequency.sds) <- names(singles)
-
+    mean.version.balance <- mean(1 - (colMeans(version.balances.singles) / worst.balance.singles.version))
+    across.version.balance <- mean(1 - (sapply(singles, balance.stat) / (cmd$n.versions * worst.balance.singles.version)))
+    mean.version.pairwise.balance <- across.version.pairwise.balance <- NULL
     if (!is.null(pairs))
     {
-        average.pairwise <- sapply(pair.version[!is.na(pair.version)], mean)
-        pairwise.ranges <- t(t(pairwise.ranges) / average.pairwise)
-
-        pairwise.means <- apply(pairwise.ranges, 2, mean)
-        pairwise.sds <- apply(pairwise.ranges, 2, sd)
-        names(pairwise.means) <- names(pairwise.sds) <- names(pairs)
+        mean.version.pairwise.balance <- mean(1 - (colMeans(version.balances.pairs) / worst.balance.pairs.version))
+        across.version.pairwise.balance <- mean(1 - (sapply(pairs, balance.stat) / (cmd$n.versions * worst.balance.pairs.version)))
     }
-    else
-        pairwise.means <- pairwise.sds <- NULL
 
     return(list(overlaps = overlaps,
-                normalized.average.frequency.range = frequency.means,
-                normalized.sd.frequency.range = frequency.sds,
-                normalized.average.pairwise.range = pairwise.means,
-                normalized.sd.pairwise.range = pairwise.sds,
-                frequency.ranges = ranges,
+                mean.version.balance = mean.version.balance,
+                mean.version.pairwise.balance = mean.version.pairwise.balance,
+                across.version.balance = across.version.balance,
+                across.version.pairwise.balance = across.version.pairwise.balance,
                 singles = singles,
                 pairs = pairs))
 }
 
+balance.stat <- function(x) {
+    return(sum(abs(x - mean(x))))
+}
+
+# Balance if only one value is non-zero
+worst.balance <- function(x) {
+    return(2 * (sum(x) - mean(x)))
+}
 
 singleLevelBalances <- function(design) {
     columns <- design[, 4:ncol(design), drop = FALSE]
