@@ -258,6 +258,17 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     }
     else if (design.algorithm == "Partial profiles")
     {
+        if (n.constant.attributes > 0)
+        {
+            constants.array <- do.call(rbind, design$const.attr.list)
+            constants.by.version <- split.data.frame(constants.array, rep(seq(n.versions), each = n.questions))
+            max.constant.att.by.version <- lapply(constants.by.version, function(x) max(table(x)))
+            min.appearances <- n.questions - max(unlist(max.constant.att.by.version))
+            if (min.appearances < 3)
+                warning(paste0("One or more of the attributes is shown only ", min.appearances, " time(s) within a version.",
+                               " It is preferable that each alternative should appear 3 times."))
+        }
+
         result$d.criterion <- design$d.criterion
         result$const.attr.list <- design$const.attr.list
         design <- design$design
