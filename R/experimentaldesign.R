@@ -277,6 +277,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                 design.constant.na[row.start:row.end, design$const.attr.list[[i]] + 2] <- NA
 
             }
+            design.constant.na <- addTaskNumber(design.constant.na, n.versions, n.questions, alternatives.per.question)
             result$design.constant.na <- addVersions(design.constant.na, n.versions)
         }
 
