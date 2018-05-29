@@ -2,7 +2,7 @@
 #' @importFrom stats model.matrix
 dScore <- function(design)
 {
-    attribute.columns <- data.frame(design[, c(-1, -2, -3)])
+    attribute.columns <- data.frame(design[, !colnames(design) %in% .non.attr.col.names])
     attribute.columns <- data.frame(lapply(attribute.columns, as.factor))
     X <- model.matrix( ~ ., data = data.frame(attribute.columns))
     d.score <- det(crossprod(X)) ^ (1 / ncol(X)) / nrow(X)
@@ -22,8 +22,6 @@ dScore <- function(design)
 #'     - Columns 5 and up each correspond to an attribute, with the entries in
 #'       the columns indicating the level of the attribute (beginning at level
 #'       1).
-#'     Either column 2 or 3 can be omitted if the parameter
-#'     has.question.and.task is set to FALSE.
 #' @param attribute.levels is a vector of numbers indicating how many levels
 #'     are in each attribute. The order should correspond to the order of
 #'     columns in the design.
@@ -36,25 +34,20 @@ dScore <- function(design)
 #'     the Bayesian criterion/error when the prior mean and variance are
 #'     supplied for partial profiles.
 #' @param seed Integer; random seed to be used by the algorithms.
-#' @param has.question.and.task Whether both the question and task columns are
-#'     supplied in the design. If FALSE, only either the question or task
-#'     should be present.
 #' @references See https://faculty.fuqua.duke.edu/~jch8/bio/Papers/Huber%20Zwerina%201996%20Marketing%20Research.pdf
 #' @export
 DError <- function(design.matrix, attribute.levels, effects = TRUE,
-                   prior = NULL, n.rotations = 10, seed = 123,
-                   has.question.and.task = TRUE)
+                   prior = NULL, n.rotations = 10, seed = 123)
 {
     if (!is.matrix(design.matrix))
         stop("The input design.matrix needs to be a matrix.")
-    if (has.question.and.task)
-        design.matrix <- design.matrix[, -3]
-    K <- sum(attribute.levels - 1) # Total number of parameters
-    J <- max(design.matrix[, 3]) # Number of alts per task
-    N <- nrow(design.matrix) / J # Number of tasks
 
-    # Generate a coded version of the design using dummy coding or effects coding
-    des.att <- design.matrix[, 4:ncol(design.matrix)] # Part of the design matrix containing the attributes
+    K <- sum(attribute.levels - 1) # Total number of parameters
+    J <- max(design.matrix[, "Alternative"]) # Number of alts per task
+    N <- max(design.matrix[, "Task"])  # Number of tasks
+
+    ## Generate a coded version of the design using dummy coding or effects coding
+    des.att <- design.matrix[, !colnames(design.matrix) %in% .non.attr.col.names]
     coded.design <- encodeDesign(des.att, effects = effects)
 
     if (is.null(prior))
