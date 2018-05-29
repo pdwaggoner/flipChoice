@@ -1,5 +1,8 @@
 context("Efficient")
 
+non.attr.col <- flipChoice:::.non.attr.col.names
+n.non.attr.col <- length(non.attr.col)
+
 test_that("3*3*2/4/10 dummy coding; old interface",
 {
     seed <- 3000
@@ -20,9 +23,9 @@ test_that("3*3*2/4/10 dummy coding; old interface",
     expect_identical(out, out2)
     expect_equal(out$db.error, .52, tolerance = .0015)
     expect_true(all(out$model.matrix %in% c(0, 1)))
-    expect_equal(colnames(out$design)[-3:-1], pa[1, ])
-    expect_equal(unique(out$design[, 2]), 1:n.q)
-    expect_equal(unique(out$design[, 3]), 1:apq)
+    expect_equal(colnames(out$design), c(non.attr.col, pa[1, ]))
+    expect_equal(unique(out$design[, "Question"]), 1:n.q)
+    expect_equal(unique(out$design[, "Alternative"]), 1:apq)
 
     ## expect_true(all(grepl("^set[0-9]{1,2}[.]alt[1-4]", rownames(out$design))))
 })
@@ -47,9 +50,9 @@ test_that("Some prior inputs missing",
 
     expect_equal(out$db.error, .945, tolerance = .015)
     expect_true(all(out$model.matrix %in% c(0, 1)))
-    expect_equal(colnames(out$design)[-3:-1], vnames)
-    expect_equal(unique(out$design[, 2]), 1:n.q)
-    expect_equal(unique(out$design[, 3]), 1:apq)
+    expect_equal(colnames(out$design), c(non.attr.col, vnames))
+    expect_equal(unique(out$design[, "Question"]), 1:n.q)
+    expect_equal(unique(out$design[, "Alternative"]), 1:apq)
 
      ## expect_true(all(grepl("^set[0-9]{1,2}[.]alt[1-4]", rownames(out$design))))
 })
@@ -60,10 +63,10 @@ test_that("ChoiceModelDesign: print labels working",
     tfile <- tempfile()
     withr::with_output_sink(tfile, {
         expect_is(print(out), "data.frame")
-        expect_equal(levels(print(out)[[4]]), pd[-1, 1])
-        expect_equal(levels(print(out)[[5]]),
-                     pd[-1, pd[1,] == colnames(print(out))[5]])
-        expect_named(print(out), c("Version", "Question", "Alternative", "price", "time", "type"))
+        expect_equal(levels(print(out)[[n.non.attr.col + 1]]), pd[-1, 1])
+        expect_equal(levels(print(out)[[n.non.attr.col + 2]]),
+                     pd[-1, pd[1,] == colnames(print(out))[n.non.attr.col + 2]])
+        expect_named(print(out), c(non.attr.col, "price", "time", "type"))
     })
     unlink(tfile)
 })
@@ -144,8 +147,8 @@ test_that("Efficient: none alternatives",
                              attribute.levels = pa, prior = NULL, n.questions = n.q,
                              alternatives.per.question = apq, seed = seed,
                              none.alternatives = 2)
-    expect_equal(sum(is.na(out$design.with.none[, 4L])), n.q*n.a)
-    expect_equal(max(out$design.with.none[, 3L]), n.a + apq)
+    expect_equal(sum(is.na(out$design.with.none[, n.non.attr.col + 1])), n.q*n.a)
+    expect_equal(max(out$design.with.none[, "Alternative"]), n.a + apq)
 })
 
 test_that("Efficient: labeled alternatives",
@@ -185,9 +188,9 @@ test_that("Efficient: labeled alternatives",
                              labeled.alternatives = TRUE)
     n.coef <- sum(pa[-1, ] != "") - ncol(pa)
     apq <- sum(pa[-1, 1] != "")
-    expect_equal(dim(out2$design), c(apq*n.q, 3 + ncol(pa)),
+    expect_equal(dim(out2$design), c(apq*n.q, n.non.attr.col + ncol(pa)),
                  check.attributes = FALSE)
-    expect_equal(colnames(out2$design), c("Version", "Question", "Alternative", pa[1, ]))
+    expect_equal(colnames(out2$design), c(non.attr.col, pa[1, ]))
     expect_equal(dim(out2$model.matrix), c(apq*n.q,
                                           n.coef),
                  check.attributes = FALSE)
@@ -288,10 +291,9 @@ test_that("D-error calculation agrees with Huber-Zwerina Table 1 3^3/3/9",
     mm <- model.matrix(~A+B+C, hz.design, contrasts = ca)[, -1]
     dmat <- lapply(hz.design, as.numeric)
     dmat <- do.call(cbind, dmat)
-    dmat <- cbind(1, dmat)
+    dmat <- cbind(Version = 1, Task = dmat[, "Question"], dmat)
     expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, apq),
-                 DError(dmat, attribute.levels = c(3,3,3), TRUE,
-                        has.question.and.task = FALSE))
+                 DError(dmat, attribute.levels = c(3,3,3), TRUE))
     expect_equal(idefix:::Derr(numeric(ncol(mm)), mm, apq),
                  .192, tolerance = .0005)
 
