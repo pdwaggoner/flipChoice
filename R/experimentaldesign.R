@@ -267,6 +267,15 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
             if (min.appearances < 3)
                 warning(paste0("One or more of the attributes is shown only ", min.appearances, " time(s) within a version.",
                                " It is preferable that each alternative should appear 3 times."))
+            design.constant.na <- design$design
+            for (i in seq(n.questions * n.versions))
+            {
+                row.start <- (i - 1) * alternatives.per.question + 1
+                row.end <- row.start +  alternatives.per.question - 1
+                design.constant.na[row.start:row.end, design$const.attr.list[[i]] + 2] <- NA
+
+            }
+            result$design.constant.na <- addVersions(design.constant.na, n.versions)
         }
 
         result$d.criterion <- design$d.criterion
@@ -374,8 +383,9 @@ labelDesign <- function(unlabeled.design, attribute.levels) {
 # Compute one and two-way level balances and overlaps
 balancesAndOverlaps <- function(cmd) {
 
-    singles <- singleLevelBalances(cmd$design)
-    pairs <- pairLevelBalances(cmd$design)
+    design <- if (is.null(cmd$design.constant.na)) cmd$design else cmd$design.constant.na
+    singles <- singleLevelBalances(design)
+    pairs <- pairLevelBalances(design)
 
     # label the levels
     singles <- labelSingleBalanceLevels(singles, cmd$attribute.levels)
@@ -386,8 +396,12 @@ balancesAndOverlaps <- function(cmd) {
     if (!is.null(pairs))
         pairs <- pairs[!is.na(pairs)]
 
-    overlaps <- countOverlaps(cmd$design, cmd$alternatives.per.question,
+    overlaps <- countOverlaps(design, cmd$alternatives.per.question,
                               sapply(cmd$attribute.levels, length))
+
+    # do not calculate diagnostic stats if any constant attributes
+    if (!is.null(cmd$design.constant.na))
+        return(list(overlaps = overlaps, singles = singles, pairs = pairs))
 
     # calculate the balance for each version and across all versions
     version.balances.singles <- matrix(0, nrow = cmd$n.versions, ncol = length(singles))
@@ -397,7 +411,7 @@ balancesAndOverlaps <- function(cmd) {
     {
         version.start <- 1 + ((version - 1) * cmd$n.questions * cmd$alternatives.per.question)
         version.end <- version.start + cmd$n.questions * cmd$alternatives.per.question - 1
-        version.design <- cmd$design[version.start:version.end, ]
+        version.design <- design[version.start:version.end, ]
 
         singles.version <- singleLevelBalances(version.design)
         pairs.version <- pairLevelBalances(version.design)
@@ -456,7 +470,7 @@ singleLevelBalances <- function(design) {
     return(singles)
 }
 
-pairLevelBalances <- function(design) {
+pairLevelBalances <- function(design, const.counts = NULL) {
     n.attributes <- ncol(design) - 3
     if (n.attributes == 1)
         return(NULL)
