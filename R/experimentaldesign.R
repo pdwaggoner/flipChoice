@@ -7,7 +7,7 @@
 #'     \code{"Balanced overlap"}, \code{"Complete enumeration"},
 #'     \code{"Efficient"}, \code{Partial profiles},
 #'     \code{"Alternative specific - Random"} and
-#'     \code{"Alternative specific - Fedorov"}.
+#'     \code{"Alternative specific - Federov"}.
 #' @param attribute.levels \code{\link{list}} of \code{\link{vector}}s
 #'     containing the labels of levels for each attribute, with names
 #'     corresponding to the attribute labels; \emph{or} a character
@@ -45,7 +45,7 @@
 #'     the Bayesian criterion/error when the prior mean and variance are supplied for
 #'     partial profiles.
 #' @param max.subsample The maximum number of questions from a fully enumerated design
-#'     to consider when \code{design.algorithm == "Alternative specific - Fedorov"}.
+#'     to consider when \code{design.algorithm == "Alternative specific - Federov"}.
 #' @param output One of \code{"Labeled design"} or \code{"Inputs"}.
 #' @param seed Integer; random seed to be used by the algorithms.
 #' @return A list with components
@@ -105,12 +105,12 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                                                    "Efficient",
                                                    "Partial profiles",
                                                    "Alternative specific - Random",
-                                                   "Alternative specific - Fedorov"),
+                                                   "Alternative specific - Federov"),
                               attribute.levels = NULL,
                               prior = NULL,
                               n.questions,
                               n.versions = 1,
-                              alternatives.per.question,
+                              alternatives.per.question = 0,
                               prohibitions = NULL,
                               none.alternatives = 0,
                               none.positions = NULL,
@@ -123,46 +123,51 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                               seed = 54123) {
 
 
-    if(grepl("Alternative specific", design.algorithm))
-        return(alternativeSpecificDesign(design.algorithm = design.algorithm,
-                                         attribute.levels = attribute.levels,
-                                         n.questions = n.questions,
-                                         n.versions = n.versions,
-                                         max.subsample = max.subsample,
-                                         seed = seed))
+    alt.specific <- grepl("Alternative specific", design.algorithm)
 
-    ## Map the design.algorithm to the function
-    design.algorithm <- match.arg(design.algorithm)
-    function.name <- sub("^([A-Z])", "\\L\\1", design.algorithm, perl = TRUE)
-    function.name <- gsub(" ([[:alpha:]])", "\\U\\1", function.name, perl = TRUE)
-    design.function <- getFromNamespace(paste0(function.name, "Design"),
-                                        ns = "flipChoice")
+    if (!alt.specific)
+    {
+        ## Map the design.algorithm to the function
+        design.algorithm <- match.arg(design.algorithm)
+        function.name <- sub("^([A-Z])", "\\L\\1", design.algorithm, perl = TRUE)
+        function.name <- gsub(" ([[:alpha:]])", "\\U\\1", function.name, perl = TRUE)
+        design.function <- getFromNamespace(paste0(function.name, "Design"),
+                                            ns = "flipChoice")
+
+        if (is.list(attribute.levels))
+        {
+            if (is.null(names(attribute.levels)))
+                names(attribute.levels) <- paste("Attribute", seq(length(attribute.levels)))
+            levels.per.attribute <- sapply(attribute.levels, length)
+            names(levels.per.attribute) <- names(attribute.levels)
+        }
+        else if (is.character(attribute.levels))
+        {
+            parsed.data <- parsePastedData(attribute.levels, n.sim = 10, coding = "D",
+                                           labeled.alternatives)
+            levels.per.attribute <- parsed.data[["lvls"]]
+            attribute.levels <- parsed.data[["attribute.list"]]
+            if (is.null(prior))
+                prior <- parsed.data[["prior"]]
+        }
+        else
+            stop("Input must be either a list of vectors containing the labels of levels for each ",
+                 "attribute, with names corresponding to the attribute labels; or a character ",
+                 "matrix with first row containing attribute names and subsequent rows containing attribute levels.")
+    }
+    else     # alternative specific designs
+    {
+        levels.per.attribute <- unlist(sapply(attribute.levels, function(x) sapply(x, length)))
+        specific.attribute.levels <- attribute.levels
+        attribute.levels <- unlist(attribute.levels, recursive = FALSE)
+        labeled.alternatives <- TRUE
+    }
+
 
     if (!is.null(prior) && !(design.algorithm %in% c("Efficient",
                                                      "Partial profiles")))
         warning(gettextf("Prior data can only be used with algorithm %s and will be ignored.",
                          sQuote("Efficient")))
-
-    if (is.list(attribute.levels))
-    {
-        if (is.null(names(attribute.levels)))
-            names(attribute.levels) <- paste("Attribute", seq(length(attribute.levels)))
-        levels.per.attribute <- sapply(attribute.levels, length)
-        names(levels.per.attribute) <- names(attribute.levels)
-    }
-    else if (is.character(attribute.levels))
-    {
-        parsed.data <- parsePastedData(attribute.levels, n.sim = 10, coding = "D",
-                                       labeled.alternatives)
-        levels.per.attribute <- parsed.data[["lvls"]]
-        attribute.levels <- parsed.data[["attribute.list"]]
-        if (is.null(prior))
-            prior <- parsed.data[["prior"]]
-    }
-    else
-        stop("Input must be either a list of vectors containing the labels of levels for each ",
-             "attribute, with names corresponding to the attribute labels; or a character ",
-             "matrix with first row containing attribute names and subsequent rows containing attribute levels.")
 
     if(any(levels.per.attribute < 2))
         stop("All attributes must have at least 2 levels.")
@@ -170,14 +175,16 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     # If labeled.alternatives then alternatives.per.question is calculated and not supplied
     if (labeled.alternatives)
     {
-        if (!missing(alternatives.per.question) && length(alternatives.per.question) &&
+        if (!missing(alternatives.per.question) && alternatives.per.question != 0 &&
             alternatives.per.question != length(attribute.levels[[1]]))
             warning("Since ", sQuote("labeled.alternatives"), " is TRUE, the number ",
                     "of alternatives per question will be taken from the number of levels ",
                     "of the first attribute in ", sQuote("attribute.levels"), "; ignoring ",
                     sQuote("alternatives.per.question"))
-        alternatives.per.question <- length(attribute.levels[[1]])
-
+        alternatives.per.question <- if (alt.specific)
+            length(specific.attribute.levels)
+        else
+            length(attribute.levels[[1]])
     }
 
     if (is.character(none.positions))
@@ -202,10 +209,9 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
              " number of questions * versions to more than ", sum(levels.per.attribute - 1), ".")
 
     # Check if prohibitions are valid for the algorithm
-    algorithms.without.prohibitions <- c("Efficient", "Shortcut",
-                                          "Partial profiles")
-    if (!is.null(prohibitions) && length(prohibitions) > 0 &&
-        design.algorithm %in% algorithms.without.prohibitions)
+    algorithms.without.prohibitions <- c("Efficient", "Shortcut", "Partial profiles", "Alternative specific - Random",
+                                         "Alternative specific - Federov")
+    if (!is.null(prohibitions) && length(prohibitions) > 0 && design.algorithm %in% algorithms.without.prohibitions)
         warning(gettextf("Prohibitions are not yet implemented for algorithm %s and will be ignored.",
                     sQuote(design.algorithm)))
 
@@ -213,24 +219,37 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     prohibitions <- encodeProhibitions(prohibitions, attribute.levels)
     integer.prohibitions <- data.frame(lapply(prohibitions, as.integer))
 
-    # Call the algorithm to create the design
-    # Design algorithms     - use only unlabeled levels (i.e. integer level indices)
-    #                       - simply multiply questions per respondent by n.versions
-    #                       - ignore None alternatives, these are added later
-    args <- list(levels.per.attribute = levels.per.attribute,
-                       prior = prior,
-                       n.questions = n.questions * n.versions,
-                       alternatives.per.question = alternatives.per.question,
-                       prohibitions = integer.prohibitions,
-                       labeled.alternatives = labeled.alternatives,
-                       n.constant.attributes = n.constant.attributes,
-                       extensive = extensive,
-                       seed = seed)
+    if (alt.specific)
+    {
+        a.s <- alternativeSpecificDesign(design.algorithm = design.algorithm,
+                                          attribute.levels = specific.attribute.levels,
+                                          n.questions = n.questions,
+                                          n.versions = n.versions,
+                                          max.subsample = max.subsample,
+                                          seed = seed)
+        design <- a.s$design
+    }
+    else
+    {
+        # Call the algorithm to create the design
+        # Design algorithms     - use only unlabeled levels (i.e. integer level indices)
+        #                       - simply multiply questions per respondent by n.versions
+        #                       - ignore None alternatives, these are added later
+        args <- list(levels.per.attribute = levels.per.attribute,
+                           prior = prior,
+                           n.questions = n.questions * n.versions,
+                           alternatives.per.question = alternatives.per.question,
+                           prohibitions = integer.prohibitions,
+                           labeled.alternatives = labeled.alternatives,
+                           n.constant.attributes = n.constant.attributes,
+                           extensive = extensive,
+                           seed = seed)
 
-    f <- formals(design.function)
-    args <- modifyList(as.list(f), args[names(args) %in% names(f)])
+        f <- formals(design.function)
+        args <- modifyList(as.list(f), args[names(args) %in% names(f)])
 
-    design <- do.call(design.function, args)
+        design <- do.call(design.function, args)
+    }
 
     result <- list(design.algorithm = design.algorithm,
                    attribute.levels = attribute.levels,
@@ -291,20 +310,29 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     result$design <- addVersions(design, n.versions)
     result$design.with.none <- addNoneAlternatives(result$design, none.positions,
                                                    alternatives.per.question)
+    if (alt.specific)
+    {
+        result$d.error <- a.s$d.error
+    }
+    else
+        result$d.error <- DError(result$design,
+                                 sapply(result$attribute.levels, length),
+                                 effects = FALSE, prior = prior,
+                                 n.rotations = n.rotations, seed = seed)
+
     result$labeled.design <- labelDesign(result$design.with.none, attribute.levels)
     result$labeled.alternatives <- labeled.alternatives
     result$balances.and.overlaps <- balancesAndOverlaps(result)
-    result$d.error <- DError(result$design,
-                             sapply(result$attribute.levels, length),
-                             effects = FALSE, prior = prior,
-                             n.rotations = n.rotations, seed = seed)
 
-    ml.model <- mlogitModel(result)
-    if (is.null(ml.model))
-        warning("Standard errors cannot be calculated. The design does not sufficiently explore",
-                " the combinations of levels. To fix this, increase the number of questions or versions.")
-    else
-        result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
+    if (!alt.specific)
+    {
+        ml.model <- mlogitModel(result)
+        if (is.null(ml.model))
+            warning("Standard errors cannot be calculated. The design does not sufficiently explore",
+                    " the combinations of levels. To fix this, increase the number of questions or versions.")
+        else
+            result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
+    }
 
     class(result) <- c(class(result), "ChoiceModelDesign")
     return(result)
@@ -398,16 +426,17 @@ balancesAndOverlaps <- function(cmd) {
     singles <- labelSingleBalanceLevels(singles, cmd$attribute.levels)
     pairs <- labelPairBalanceLevels(pairs, cmd$attribute.levels)
 
-    # flatten pairwise list of list and remove unused
+    # flatten pairwise list of list and remove unused and all zero
     pairs <- unlist(pairs, recursive = FALSE)
     if (!is.null(pairs))
         pairs <- pairs[!is.na(pairs)]
+    pairs <- pairs[lapply(pairs, sum) != 0]
 
     overlaps <- countOverlaps(design, cmd$alternatives.per.question,
                               sapply(cmd$attribute.levels, length))
 
-    # do not calculate diagnostic stats if any constant attributes
-    if (!is.null(cmd$design.constant.na))
+    # do not calculate diagnostic stats if any constant attributes or alternative specific
+    if (!is.null(cmd$design.constant.na) || grepl("Alternative specific", cmd$design.algorithm))
         return(list(overlaps = overlaps, singles = singles, pairs = pairs))
 
     # calculate the balance for each version and across all versions

@@ -6,12 +6,13 @@
 \usage{
 ChoiceModelDesign(design.algorithm = c("Random", "Shortcut",
   "Balanced overlap", "Complete enumeration", "Efficient", "Partial profiles",
-  "Alternative specific - Random", "Alternative specific - Fedorov"),
+  "Alternative specific - Random", "Alternative specific - Federov"),
   attribute.levels = NULL, prior = NULL, n.questions, n.versions = 1,
-  alternatives.per.question, prohibitions = NULL, none.alternatives = 0,
-  none.positions = NULL, labeled.alternatives = FALSE,
-  n.constant.attributes = 0, extensive = FALSE, n.rotations = 10,
-  max.subsample = 1e+08, output = "Labeled design", seed = 54123)
+  alternatives.per.question = 0, prohibitions = NULL,
+  none.alternatives = 0, none.positions = NULL,
+  labeled.alternatives = FALSE, n.constant.attributes = 0,
+  extensive = FALSE, n.rotations = 10, max.subsample = 1e+08,
+  output = "Labeled design", seed = 54123)
 }
 \arguments{
 \item{design.algorithm}{The algorithm used to create the
@@ -19,7 +20,7 @@ design. One of \code{"Random"}, \code{"Shortcut"},
 \code{"Balanced overlap"}, \code{"Complete enumeration"},
 \code{"Efficient"}, \code{Partial profiles},
 \code{"Alternative specific - Random"} and
-\code{"Alternative specific - Fedorov"}.}
+\code{"Alternative specific - Federov"}.}
 
 \item{attribute.levels}{\code{\link{list}} of \code{\link{vector}}s
 containing the labels of levels for each attribute, with names
@@ -70,7 +71,7 @@ the Bayesian criterion/error when the prior mean and variance are supplied for
 partial profiles.}
 
 \item{max.subsample}{The maximum number of questions from a fully enumerated design
-to consider when \code{design.algorithm == "Alternative specific - Fedorov"}.}
+to consider when \code{design.algorithm == "Alternative specific - Federov"}.}
 
 \item{output}{One of \code{"Labeled design"} or \code{"Inputs"}.}
 
@@ -79,9 +80,10 @@ to consider when \code{design.algorithm == "Alternative specific - Fedorov"}.}
 \value{
 A list with components
 \itemize{
-\item \code{design} - a numeric array of dimensions (number of questions by alternatives per
-question by number of attributes) where each value is the index of a level. Ignoring any none
-alternatives.
+\item \code{design} - a numeric matrix with number of rows equal to number of
+versions times number of questions times number of alternatives per question,
+with columns for version number, question number, task number, alternative number,
+and numeric level for each attribute.
 \item \code{design.with.none} - as per \code{design} except one additional row per none alternative
 is added to each question with \code{NA} for all attribute levels.
 \item \code{labeled.design} - as per \code{design.with.none} except indices of levels are

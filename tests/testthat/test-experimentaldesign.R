@@ -55,7 +55,7 @@ withr::with_output_sink(tfile, {
 unlink(tfile)
 
 experiment4 <- CreateExperiment(c(4, 3, 2, 1), 0)
-test_that(paste("Test case"), {
+test_that("Insufficient levels", {
     expect_error(ChoiceModelDesign(design.algorithm = "Random",
                                    attribute.levels = experiment4$attribute.levels,
                                    n.questions = 6,

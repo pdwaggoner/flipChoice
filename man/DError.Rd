@@ -6,7 +6,7 @@
 1996)}
 \usage{
 DError(design.matrix, attribute.levels, effects = TRUE, prior = NULL,
-  n.rotations = 10, seed = 123, has.question.and.task = TRUE)
+  n.rotations = 10, seed = 123)
 }
 \arguments{
 \item{design.matrix}{is a matrix for an unlabeled choice design in the long
@@ -19,9 +19,7 @@ several rows. The columns are:
 - Column 4 indicates the alternative number
 - Columns 5 and up each correspond to an attribute, with the entries in
   the columns indicating the level of the attribute (beginning at level
-  1).
-Either column 2 or 3 can be omitted if the parameter
-has.question.and.task is set to FALSE.}
+  1).}
 
 \item{attribute.levels}{is a vector of numbers indicating how many levels
 are in each attribute. The order should correspond to the order of
@@ -39,10 +37,6 @@ the Bayesian criterion/error when the prior mean and variance are
 supplied for partial profiles.}
 
 \item{seed}{Integer; random seed to be used by the algorithms.}
-
-\item{has.question.and.task}{Whether both the question and task columns are
-supplied in the design. If FALSE, only either the question or task
-should be present.}
 }
 \description{
 Compute the D-error of an unlabeled design (according to Huber and Zwerina
