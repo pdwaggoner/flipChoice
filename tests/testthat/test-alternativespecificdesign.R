@@ -33,8 +33,8 @@ test_that("Small design", {
                                           n.versions = 10,
                                           design.algorithm = "Alternative specific - Random"), NA)
 
-    expect_gt(asd$d.error, asd.2$d.error)
-    expect_gt(asd.2$d.error, asd.3$d.error)
+    expect_lt(asd$d.error, asd.2$d.error)
+    expect_lt(asd.2$d.error, asd.3$d.error)
 })
 
 test_that("Large design", {
@@ -57,7 +57,7 @@ test_that("Large design", {
                                             none.position = c(2, 4),
                                             design.algorithm = "Alternative specific - Random"), NA)
 
-    expect_gt(asd$d.error, asd.2$d.error)
-    expect_gt(asd.2$d.error, asd.3$d.error)
+    expect_lt(asd$d.error, asd.2$d.error)
+    expect_lt(asd.2$d.error, asd.3$d.error)
 })
 
