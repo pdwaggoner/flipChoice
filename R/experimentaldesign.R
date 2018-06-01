@@ -243,6 +243,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                            labeled.alternatives = labeled.alternatives,
                            n.constant.attributes = n.constant.attributes,
                            extensive = extensive,
+                           n.rotations = n.rotations,
                            seed = seed)
 
         f <- formals(design.function)
