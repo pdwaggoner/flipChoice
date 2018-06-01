@@ -61,7 +61,7 @@ alternativeSpecificDesign <- function(design.algorithm = "Alternative specific -
                     Alternative = rep(seq(alternatives.per.question), length.out = nrow(design)),
                     design)
 
-    result <- list(design = data.matrix(design), d.error = d.error)
+    result <- list(design = data.matrix(design), d.error = 1 / d.error)
 
     return(result)
 }
