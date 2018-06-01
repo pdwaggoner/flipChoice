@@ -503,7 +503,7 @@ singleLevelBalances <- function(design) {
     attribute.names <- colnames(columns)
     columns <- split(columns, rep(seq_len(NCOL(columns)),
                                   each = NROW(columns)))
-    singles <- lapply(columns, table)
+    singles <- lapply(columns, table, useNA = "ifany")
     names(singles) <- attribute.names
     return(singles)
 }
@@ -526,7 +526,10 @@ labelSingleBalanceLevels <- function(singles, attribute.levels)
 {
     return(mapply(function(x, y)
     {
-        names(x) <- y[as.integer(names(x))]
+        nms <- y[as.integer(names(x))]
+        if (length(nms) == 1 + length(y))
+            nms[length(nms)] <- "Not shown"
+        names(x) <- nms
         x
     }, singles, attribute.levels, SIMPLIFY = FALSE))
 }
