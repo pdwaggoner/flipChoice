@@ -19,20 +19,27 @@ ExtractParameterStats <- function(fit)
 {
     checkValidFit(fit)
 
-    n.classes <- fit$n.classes
-    is.multi.class <- n.classes > 1L
+    is.multi.class <- fit$n.classes > 1
+
     if (is.multi.class && fit$class.match.fail)
         stop("Parameter statistics are not available as classes from ",
              "different chains could not be matched.")
 
-     if (is.multi.class && ('class_weights' %in% fit$stan.fit@sim$pars_oi))
-         ex <- rstan::extract(fit$stan.fit,
-                              pars = c('class_weights', 'theta', 'sigma'),
-                              permuted = FALSE, inc_warmup = FALSE)
-     else
-         ex <- rstan::extract(fit$stan.fit, pars = c('theta', 'sigma'),
-                              permuted = FALSE, inc_warmup = FALSE)
-     sample.stats <- suppressWarnings(rstan::monitor(ex, probs = c()))
+    if (is.multi.class)
+    {
+        if ("class_weights" %in% fit$stan.fit@model_pars)
+            ex <- rstan::extract(fit$stan.fit,
+                                 pars = c('class_weights', 'theta', 'sigma'),
+                                 permuted = FALSE, inc_warmup = FALSE)
+        else
+            ex <- rstan::extract(fit$stan.fit,
+                                 pars = c('covariates_beta', 'theta', 'sigma'),
+                                 permuted = FALSE, inc_warmup = FALSE)
+    }
+    else
+        ex <- rstan::extract(fit$stan.fit, pars = c('theta', 'sigma'),
+                             permuted = FALSE, inc_warmup = FALSE)
+    sample.stats <- suppressWarnings(rstan::monitor(ex, probs = c()))
     rownames(sample.stats) <- makeLabels(fit, TRUE)
     sample.stats
 }
@@ -59,7 +66,11 @@ makeLabels <- function(fit, add.weight.labels = FALSE)
     if (n.classes > 1L)
         lbls <- paste0(lbls, rep(paste0(', Class ', 1:n.classes), 2 * length(nms)))
     if (add.weight.labels && n.classes > 1L)
+    {
         if ('class_weights' %in% fit$stan.fit@sim$pars_oi)
             lbls <- c(paste0('Class ', 1:n.classes, ' size') , lbls)
+        else
+            lbls <- c(paste0(fit$covariate.names, " (Covariate Coefficient)") , lbls)
+    }
     lbls
 }

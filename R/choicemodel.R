@@ -154,14 +154,15 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
         stop("Insufficient data was supplied.")
 
     if (!is.null(cov.formula))
-        dat <- processCovariateData(cov.formula, cov.data, dat, subset)
+        dat <- processCovariateData(cov.formula, cov.data, dat, subset,
+                                    n.classes)
 
-    result <- hierarchicalBayesChoiceModel(dat, cov.formula, cov.data,
-                                           hb.iterations, hb.chains,
+    result <- hierarchicalBayesChoiceModel(dat, hb.iterations, hb.chains,
                                            hb.max.tree.depth, hb.adapt.delta,
                                            seed, hb.keep.samples, n.classes,
                                            hb.stanfit, normal.covariance,
-                                           hb.warnings, hb.beta.draws.to.keep, ...)
+                                           hb.warnings, hb.beta.draws.to.keep,
+                                           ...)
 
     end.time <- proc.time()
 
@@ -178,6 +179,10 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
     result$n.alternatives <- dat$n.alternatives
     result$n.attributes <- dat$n.attributes
     result$n.parameters <- dat$n.parameters
+    result$covariate.names <- if (is.null(cov.formula))
+                                  NULL
+                              else
+                                  colnames(dat$covariates)
     result$time.taken <- (end.time - start.time)[3]
     result
 }
@@ -239,49 +244,6 @@ accuracyResults <- function(dat, result, n.questions.left.out)
     }
     result
 }
-
-# accuracyResults <- function(dat, result)
-# {
-#     n.respondents <- dat$n.respondents
-#     resp.pars <- result$reduced.respondent.parameters
-#     in.sample.accuracies <- predictionAccuracies(resp.pars, dat$X.in, dat$Y.in, dat$subset)
-#     w <- dat$weights
-#     result$in.sample.accuracy <- sum(in.sample.accuracies * w) / sum(w)
-#     if (dat$n.questions.left.out > 0)
-#     {
-#         result$prediction.accuracies <- predictionAccuracies(resp.pars, dat$X.out, dat$Y.out,
-#                                                                    dat$subset)
-#         result$out.sample.accuracy <- sum(result$prediction.accuracies * w) / sum(w)
-#     }
-#     else
-#     {
-#         result$prediction.accuracies <- in.sample.accuracies
-#         result$out.sample.accuracy <- NA
-#     }
-#     result
-# }
-#
-# predictionAccuracies <- function(resp.pars, X, Y, subset)
-# {
-#     n.respondents <- dim(X)[1]
-#     n.questions <- dim(X)[2]
-#     n.alternatives <- dim(X)[3]
-#     resp.pars <- resp.pars[subset, ]
-#     result <- rep(NA, n.respondents)
-#     for (r in 1:n.respondents)
-#     {
-#         score <- rep(NA, n.questions)
-#         for (j in 1:n.questions)
-#         {
-#             u <- rep(NA, n.alternatives)
-#             for (k in 1:n.alternatives)
-#                 u[k] <- sum(resp.pars[r, ] * X[r, j, k, ])
-#             score[j] <- if(which.max(u) == Y[r, j]) 1 else 0
-#         }
-#         result[r] <- mean(score)
-#     }
-#     result
-# }
 
 #' @title RespondentParameters
 #' @description The parameters for each respondent.

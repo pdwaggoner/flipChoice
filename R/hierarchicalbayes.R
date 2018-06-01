@@ -1,6 +1,5 @@
 #' @importFrom flipU InterceptExceptions
-hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
-                                         n.iterations = 500, n.chains = 8,
+hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
                                          max.tree.depth = 10,
                                          adapt.delta = 0.8, seed = 123,
                                          keep.samples = FALSE, n.classes = 1,
@@ -14,7 +13,8 @@ hierarchicalBayesChoiceModel <- function(dat, cov.formula, cov.data,
 
     stan.dat <- createStanData(dat, n.classes, normal.covariance)
 
-    stan.model <- stanModel(n.classes, normal.covariance, cov.formula)
+    stan.model <- stanModel(n.classes, normal.covariance,
+                            !is.null(dat$covariates))
 
     on.warnings <- GetStanWarningHandler(show.stan.warnings)
     on.error <- GetStanErrorHandler()
@@ -104,13 +104,18 @@ stanParameters <- function(stan.dat, keep.beta)
 {
     full.covariance <- is.null(stan.dat$U)
     multiple.classes <- !is.null(stan.dat$P)
+    has.covariates <- !is.null(stan.dat$covariates)
 
     pars <- c("theta", "sigma", "log_likelihood")
     if (keep.beta)
         pars <- c(pars, "beta")
     if (multiple.classes)
-        pars <- c(pars, "class_weights")
-
+    {
+        if (has.covariates)
+            pars <- c(pars, "covariates_beta")
+        else
+            pars <- c(pars, "class_weights")
+    }
     pars
 }
 
@@ -154,7 +159,7 @@ createStanData <- function(dat, n.classes, normal.covariance)
                      V_attribute = dat$n.attribute.parameters,
                      Y = dat$Y.in,
                      X = dat$X.in,
-                     V_covariates = dat$P,
+                     V_covariates = dat$n.covariates,
                      covariates = dat$covariates,
                      prior_mean = dat$prior.mean,
                      prior_sd = dat$prior.sd)
@@ -245,46 +250,35 @@ ComputeRespPars <- function(stan.fit, par.names, subset,
     result
 }
 
-stanFileName <- function(n.classes, normal.covariance)
+stanModel <- function(n.classes, normal.covariance, has.covariates)
 {
+    covariates.error.msg <- paste0("Fixed covariates is not currently ",
+                                   "implemented for multiple classes")
     if (n.classes == 1)
     {
         if (normal.covariance == "Full")
-            result <- "choicemodel.stan"
-        else
-            result <- "diagonal.stan"
-    }
-    else
-    {
-        if (normal.covariance == "Full")
-            result <- "mixtureofnormals.stan"
-        else
-            result <- "diagonalmixture.stan"
-    }
-
-    result <- file.path(system.file("src", "stan_files", package = "flipChoice",
-                                    mustWork = TRUE), result)
-
-    result
-}
-
-stanModel <- function(n.classes, normal.covariance, cov.formula)
-{
-    if (n.classes == 1)
-    {
-        if (!is.null(cov.formula))
-            stanmodels$choicemodelFC
-        else if (normal.covariance == "Full")
-            stanmodels$choicemodel
+        {
+            if (has.covariates)
+                stanmodels$choicemodelFC
+            else
+                stanmodels$choicemodel
+        }
+        else if (has.covariates)
+            stop(covariates.error.msg)
         else
             stanmodels$diagonal
     }
     else
     {
-        if (!is.null(cov.formula))
-            stop("Fixed covariates is not currently implemented for multiple classes")
-        else if (normal.covariance == "Full")
-            stanmodels$mixtureofnormals
+        if (normal.covariance == "Full")
+        {
+            if (has.covariates)
+                stanmodels$mixtureofnormalsC
+            else
+                stanmodels$mixtureofnormals
+        }
+        else if (has.covariates)
+            stop(covariates.error.msg)
         else
             stanmodels$diagonalmixture
     }
@@ -336,8 +330,8 @@ IsTestRServer <- function()
 removeBeta <- function(stan.fit)
 {
     nms <- stan.fit@sim$fnames_oi
-    beta.nms <- nms[grepl("beta", nms)]
-    non.beta.nms <- nms[!grepl("beta", nms)]
+    beta.nms <- nms[grepl("^beta", nms)]
+    non.beta.nms <- nms[!grepl("^beta", nms)]
     stan.fit@sim$fnames_oi <- non.beta.nms
     stan.fit@sim$n_flatnames <- length(non.beta.nms)
     stan.fit@sim$pars_oi <- stan.fit@sim$pars_oi[stan.fit@sim$pars_oi != "beta"]

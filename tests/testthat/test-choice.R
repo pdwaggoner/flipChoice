@@ -125,3 +125,16 @@ test_that("HB with fixed covariates", {
     PlotPosteriorIntervals(result)
     TracePlots(result)
 })
+
+test_that("Multi-class HB with covariates", {
+    data("eggs.cov", package = "flipChoice")
+    result <- FitChoiceModel(experiment.data = eggs.data,
+                             cov.formula = ~gender, cov.data = eggs.cov,
+                             n.classes = 2, hb.iterations = 10,
+                             hb.chains = 1, hb.warnings = FALSE)
+    expect_error(print(result), NA)
+
+    ExtractParameterStats(result)
+    PlotPosteriorIntervals(result)
+    TracePlots(result)
+})
