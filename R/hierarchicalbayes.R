@@ -473,7 +473,9 @@ MatchChainClasses <- function(stan.fit, n.chains, n.classes, n.variables)
             stan.fit@sim$samples <- samples
         else
             warning("Classes could not be matched between chains. ",
-                    "Parameter statistics will not be available.")
+                    "Parameter statistics will not be available. ",
+                    "It is recommended that you either run the model with one chain, ",
+                    "or increase the number of iterations.")
 
         result <- list(stan.fit = stan.fit, match.fail = match.fail)
     }
