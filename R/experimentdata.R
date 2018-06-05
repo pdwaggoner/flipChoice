@@ -1,7 +1,7 @@
 #' @importFrom flipData CleanSubset NoData
 processExperimentData <- function(experiment.data, subset, weights,
                                   n.questions.left.out, seed, input.prior.mean,
-                                  input.prior.sd, missing)
+                                  input.prior.sd, missing, covariates)
 {
     nms <- names(experiment.data)
     choice.name <- nms[1]
@@ -13,10 +13,12 @@ processExperimentData <- function(experiment.data, subset, weights,
         stop("The number of parameters in the Experiment question is invalid.")
 
     if (missing == "Error if missing data")
-        errorIfMissingDataFoundExperiment(experiment.data, subset, weights)
+        errorIfMissingDataFoundExperiment(experiment.data, subset, weights,
+                                          covariates)
 
     non.missing.table <- nonMissingTableForExperiment(experiment.data, subset,
-                                                      weights, n.questions,
+                                                      weights, covariates,
+                                                      n.questions,
                                                       n.alternatives,
                                                       n.attributes, missing)
     non.missing <- nonMissingRespondents(non.missing.table,
@@ -34,6 +36,8 @@ processExperimentData <- function(experiment.data, subset, weights,
     weights <- prepareWeights(weights, subset)
     experiment.data <- experiment.data[subset, ]
     non.missing.table <- non.missing.table[subset, ]
+    if (!is.null(covariates))
+        covariates <- covariates[subset, ]
     n.respondents <- nrow(experiment.data)
     Y <- extractChoices(experiment.data, non.missing.table)
     attribute.data <- experiment.data[, -1:-n.questions]
@@ -84,6 +88,7 @@ processExperimentData <- function(experiment.data, subset, weights,
          n.questions.left.in = split.data$n.questions.left.in,
          subset = subset,
          weights = weights,
+         covariates = covariates,
          parameter.scales = parameter.scales,
          prior.mean = prior.mean,
          prior.sd = prior.sd)
@@ -171,6 +176,9 @@ createDesignMatrix <- function(attribute.data, n.attributes, n.questions,
                         {
                             mn <- meansAndSDs$means[i]
                             std <- meansAndSDs$sds[i]
+                            # Divide by 2 * SD as recommended by Gelman in
+                            # "Scaling regression inputs by dividing by two
+                            # standard deviations (2008)"
                             X[rs, j, p] <- 0.5 * (v - mn) / std
 
                             if (q == 1 && j == 1)
@@ -416,11 +424,13 @@ getParameterMeanAndSD <- function(attribute.data, n.attributes, n.questions,
 }
 
 #' @importFrom flipData MissingDataFail
-errorIfMissingDataFoundExperiment <- function(experiment.data, subset, weights)
+errorIfMissingDataFoundExperiment <- function(experiment.data, subset, weights,
+                                              covariates)
 {
     if (any(is.na(experiment.data)) ||
         (!is.null(subset) && any(is.na(subset))) ||
-        (!is.null(weights) && any(is.na(weights))))
+        (!is.null(weights) && any(is.na(weights))) ||
+        (!is.null(covariates) && any(is.na(covariates))))
         MissingDataFail();
 }
 
@@ -437,7 +447,8 @@ nonMissingRespondents <- function(non.missing.table, n.questions.left.out,
 }
 
 nonMissingTableForExperiment <- function(experiment.data, subset, weights,
-                                         n.questions, n.alternatives,
+                                         covariates, n.questions,
+                                         n.alternatives,
                                          n.attributes, missing)
 {
     result <- matrix(TRUE, nrow = nrow(experiment.data), ncol = n.questions)
@@ -464,5 +475,7 @@ nonMissingTableForExperiment <- function(experiment.data, subset, weights,
         result <- result & !is.na(subset)
     if (!is.null(weights))
         result <- result & !is.na(weights)
+    if (!is.null(covariates))
+        result <- result & !is.na(rowSums(covariates))
     result
 }

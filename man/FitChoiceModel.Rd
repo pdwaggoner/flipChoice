@@ -26,7 +26,10 @@ FitChoiceModel(experiment.data = NULL, cho.file = NULL,
 column contains the level names of an attribute.}
 
 \item{cov.formula}{An optional \code{\link{formula}} for any fixed
-(respondent-specific) covariates to be included in the model.}
+(respondent-specific) covariates to be included in the model.
+When only 1 class is specified, covariates are applied to the mean
+parameter theta (fixed covariates). When more than 1 class is
+specified, covariates are applied to the class weight parameters.}
 
 \item{cov.data}{An optional \code{\link{data.frame}} containing the
 variables present in \code{cov.formula}.}

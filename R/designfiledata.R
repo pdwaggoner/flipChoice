@@ -3,7 +3,7 @@ processDesignFile <- function(design.file, attribute.levels.file,
                               choices, questions, subset, weights,
                               n.questions.left.out, seed,
                               input.prior.mean, input.prior.sd,
-                              include.choice.parameters, missing)
+                              include.choice.parameters, missing, covariates)
 {
     output <- readDesignFile(design.file, attribute.levels.file)
     design <- output$design
@@ -21,10 +21,10 @@ processDesignFile <- function(design.file, attribute.levels.file,
     questions <- data.frame(sapply(questions, as.numeric))
 
     if (missing == "Error if missing data")
-        errorIfMissingDataFound(choices, questions, subset, weights, missing)
+        errorIfMissingDataFound(choices, questions, subset, weights, covariates, missing)
 
     non.missing.table <- nonMissingTable(choices, questions, subset, weights,
-                                         missing)
+                                         covariates, missing)
     non.missing <- nonMissingRespondents(non.missing.table,
                                          n.questions.left.out, missing,
                                          n.questions)
@@ -42,6 +42,8 @@ processDesignFile <- function(design.file, attribute.levels.file,
     choices <- choices[subset, ]
     questions <- questions[subset, ]
     non.missing.table <- non.missing.table[subset, ]
+    if (!is.null(covariates))
+        covariates <- covariates[subset, ]
 
     # A "None of these" option is left out from the design
     add.none.of.these <- n.alternatives == length(unique(design[[3]])) + 1
@@ -183,7 +185,8 @@ readDesignFile <- function(design.file, attribute.levels.file)
 }
 
 #' @importFrom flipData MissingDataFail
-nonMissingTable <- function(choices, questions, subset, weights, missing)
+nonMissingTable <- function(choices, questions, subset, weights, covariates,
+                            missing)
 {
     n.respondents <- nrow(choices)
     n.questions <- ncol(choices)
@@ -203,6 +206,8 @@ nonMissingTable <- function(choices, questions, subset, weights, missing)
         missing.ind <- missing.ind | is.na(subset)
     if (!is.null(weights))
         missing.ind <- missing.ind | is.na(weights)
+    if (!is.null(covariates))
+        missing.ind <- missing.ind | is.na(rowSums(covariates))
 
     non.missing.table[missing.ind, ] <- FALSE
     non.missing.table
@@ -255,10 +260,11 @@ orderedAttributes <- function(input.prior.mean, n.attributes, n.parameters)
 
 #' @importFrom flipData MissingDataFail
 errorIfMissingDataFound <- function(choices, questions, subset, weights,
-                                    missing)
+                                    covariates, missing)
 {
     if (any(is.na(choices)) || any(is.na(questions)) ||
         (!is.null(subset) && any(is.na(subset))) ||
-        (!is.null(weights) && any(is.na(weights))))
+        (!is.null(weights) && any(is.na(weights)))
+        (!is.null(covariates) && any(is.na(covariates))))
         MissingDataFail();
 }

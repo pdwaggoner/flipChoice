@@ -1,40 +1,24 @@
-#' Returns a model matrix for the fixed covariates in a choice model
-#' @param formula model formula for the fixed (respondent-specific)
-#'     covariates
-#' @param data data.frame containing the covariate info for each
-#'     respondent
-#' @param stan.dat list formed from input data describing the choice
-#'     model design and responses, to be used by stan
-#' @param subset integer vector giving the subset of data to be used during fitting.
-#' @param n.classes number of classes
-#' @param missing How missing data is to be treated.
-#' @importFrom stats model.matrix
+#' Additional processing of the data
+#' (it is assummed that it contains covariates)
+#' @param dat list formed from input data describing the choice
+#'     model design, responses and other data
+#' @importFrom stats model.matrix.default
 #' @noRd
-processCovariateData <- function(formula, data, stan.dat, subset, n.classes,
-                                 missing)
+processCovariateData <- function(dat, n.classes)
 {
-    # Need to deal with missing values and standardise covariates
-    cdat <- model.matrix.default(formula, data)  # [, -1, drop = FALSE]
-    non.missing <- apply(cdat, 1, function(x) !any(is.na(x)))
-    filter.subset <- CleanSubset(subset, nrow(cdat))
-    subset <- filter.subset & non.missing
+    covariates <- dat$covariates
+    dat$n.covariates <- ncol(covariates)
 
-    cdat <- cdat[subset, , drop = FALSE]
-
-    if (nrow(cdat) != stan.dat$n.respondents)
-        stop(gettextf("The length of the data in %s and %s do not match",
-                      sQuote("experiment.data"), sQuote("cov.data")))
-
-    stan.dat$n.covariates <- ncol(cdat)
-    stan.dat$covariates <- cdat
-
-    if (n.classes == 1)
+    if (n.classes == 1) # fixed covariates
     {
-        g <- expand.grid(colnames(stan.dat$covariates), stan.dat$par.names, stringsAsFactors = FALSE)
-        stan.dat$par.names <- paste(g$Var1, g$Var2, sep = "__")
-        g <- expand.grid(colnames(stan.dat$covariates), stan.dat$all.names, stringsAsFactors = FALSE)
-        stan.dat$all.names <- paste(g$Var1, g$Var2, sep = "__")
+        g <- expand.grid(colnames(covariates), dat$par.names, stringsAsFactors = FALSE)
+        dat$par.names <- paste(g$Var1, g$Var2, sep = "__")
+        g <- expand.grid(colnames(covariates), dat$all.names, stringsAsFactors = FALSE)
+        dat$all.names <- paste(g$Var1, g$Var2, sep = "__")
     }
 
-    stan.dat
+    for (i in 1:dat$n.covariates)
+        if (!all(sort(unique(covariates[, i])) == c(0, 1)))
+            dat$covariates[, i] <- 0.5 * scale(covariates[, i])
+    dat
 }

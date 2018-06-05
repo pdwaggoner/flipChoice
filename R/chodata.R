@@ -2,11 +2,13 @@
 processChoFile <- function(cho.file, attribute.levels.file,
                            subset, weights, n.questions.left.out, seed,
                            input.prior.mean, input.prior.sd,
-                           include.choice.parameters, respondent.ids, missing)
+                           include.choice.parameters, respondent.ids, missing,
+                           covariates)
 {
     if (missing == "Error if missing data" &&
         ((!is.null(subset) && any(is.na(subset))) ||
-        (!is.null(weights) && any(is.na(weights)))))
+        (!is.null(weights) && any(is.na(weights)))) ||
+        (!is.null(covariates) && any(is.na(covariates))))
         MissingDataFail();
 
     raw.lines <- readLines(cho.file)
@@ -142,8 +144,8 @@ processChoFile <- function(cho.file, attribute.levels.file,
 
     non.missing <- nonMissingRespondentsCho(respondent.indices,
                                             respondent.has.missing, subset,
-                                            weights, n.questions.left.out,
-                                            missing)
+                                            weights, covariates,
+                                            n.questions.left.out, missing)
 
     filter.subset <- CleanSubset(subset, n.respondents)
     subset <- filter.subset & non.missing
@@ -158,6 +160,8 @@ processChoFile <- function(cho.file, attribute.levels.file,
     X <- X[rs.subset, , ]
     Y <- Y[rs.subset]
     respondent.indices <- respondent.indices[subset]
+    if (!is.null(covariates))
+        covariates <- covariates[subset, ]
     n.respondents <- sum(subset)
 
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
@@ -186,6 +190,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
          n.questions.left.in = split.data$n.questions.left.in,
          subset = subset,
          weights = weights,
+         covariates = covariates,
          parameter.scales = rep(1, n.parameters),
          prior.mean = prior.mean,
          prior.sd = prior.sd)
@@ -331,7 +336,7 @@ reconcileRespondentIDs <- function(respondent.ids, file.respondent.ids)
 
 nonMissingRespondentsCho <- function(respondent.indices,
                                      respondent.has.missing, subset, weights,
-                                     n.questions.left.out, missing)
+                                     covariates, n.questions.left.out, missing)
 {
     result <- sapply(respondent.indices, length) > n.questions.left.out
     if (missing == "Exclude cases with missing data")
@@ -340,5 +345,7 @@ nonMissingRespondentsCho <- function(respondent.indices,
         result <- result & !is.na(subset)
     if (!is.null(weights))
         result <- result & !is.na(weights)
+    if (!is.null(covariates))
+        result <- result & !is.na(rowSums(covariates))
     result
 }

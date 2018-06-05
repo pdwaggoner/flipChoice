@@ -8,6 +8,9 @@
 #'     column contains the level names of an attribute.
 #' @param cov.formula An optional \code{\link{formula}} for any fixed
 #'     (respondent-specific) covariates to be included in the model.
+#'     When only 1 class is specified, covariates are applied to the mean
+#'     parameter theta (fixed covariates). When more than 1 class is
+#'     specified, covariates are applied to the class weight parameters.
 #' @param cov.data An optional \code{\link{data.frame}} containing the
 #'     variables present in \code{cov.formula}.
 #' @param choices A data.frame of choices made by respondents for each
@@ -136,26 +139,31 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
 
     start.time <- proc.time()
 
+    covariates <- if (!is.null(cov.formula))
+        model.matrix.default(cov.formula, cov.data)
+    else
+        NULL
+
     dat <- if (!is.null(experiment.data))
         processExperimentData(experiment.data, subset, weights, tasks.left.out,
-                              seed, hb.prior.mean, hb.prior.sd, missing)
+                              seed, hb.prior.mean, hb.prior.sd, missing,
+                              covariates)
     else if (!is.null(cho.file) && !is.null(attribute.levels.file))
         processChoFile(cho.file, attribute.levels.file,
                        subset, weights, tasks.left.out, seed,
                        hb.prior.mean, hb.prior.sd, include.choice.parameters,
-                       respondent.ids, missing)
+                       respondent.ids, missing, covariates)
     else if (!is.null(design.file) && !is.null(choices) &&
              !is.null(questions))
         processDesignFile(design.file, attribute.levels.file, choices,
                           questions, subset, weights, tasks.left.out,
                           seed, hb.prior.mean, hb.prior.sd,
-                          include.choice.parameters, missing)
+                          include.choice.parameters, missing, covariates)
     else
         stop("Insufficient data was supplied.")
 
-    if (!is.null(cov.formula))
-        dat <- processCovariateData(cov.formula, cov.data, dat, subset,
-                                    n.classes)
+    if (!is.null(dat$covariates))
+        dat <- processCovariateData(dat, n.classes)
 
     result <- hierarchicalBayesChoiceModel(dat, hb.iterations, hb.chains,
                                            hb.max.tree.depth, hb.adapt.delta,

@@ -82,7 +82,8 @@ test_that("Experiment missing data", {
                                  n.questions.left.out = 0,
                                  seed = 123, input.prior.mean = 0,
                                  input.prior.sd = 5,
-                                 missing = "Error if missing data"),
+                                 missing = "Error if missing data",
+                                 covariates = NULL),
                  paste0("The data contains missing values. ",
                         "Change the 'missing' option to run the analysis."))
 
@@ -91,7 +92,8 @@ test_that("Experiment missing data", {
                           n.questions.left.out = 0,
                           seed = 123, input.prior.mean = 0,
                           input.prior.sd = 5,
-                          missing = "Exclude cases with missing data")
+                          missing = "Exclude cases with missing data",
+                          covariates = NULL)
     expect_equal(dat$n.respondents, 379)
     expect_equal(dim(dat$X.in), c(3032, 3, 13))
     expect_equal(length(dat$Y.in), 3032)
@@ -107,7 +109,8 @@ test_that("Experiment missing data", {
                                  n.questions.left.out = 0,
                                  seed = 123, input.prior.mean = 0,
                                  input.prior.sd = 5,
-                                 missing = "Use partial data")
+                                 missing = "Use partial data",
+                                 covariates = NULL)
     expect_equal(dat$n.respondents, 380)
     expect_equal(dim(dat$X.in), c(3039, 3, 13))
     expect_equal(dat$X.in[1, 1:3, 1:5], structure(c(0, 1, 0, 0, 0,
@@ -123,7 +126,8 @@ test_that("Experiment missing data", {
                                  n.questions.left.out = 1,
                                  seed = 123, input.prior.mean = 0,
                                  input.prior.sd = 5,
-                                 missing = "Use partial data")
+                                 missing = "Use partial data",
+                                 covariates = NULL)
     expect_equal(dat$Y.in[1:14], c(3, 3, 1, 2, 1, 1, 3,
                                    3, 2, 2, 2, 2, 3, 3))
     expect_equal(dat$n.questions.left.in[1:5], c(6, 7, 7, 7, 7))
@@ -143,7 +147,8 @@ test_that("Design file missing data", {
                       n.questions.left.out = 0,
                       seed = 123, input.prior.mean = 0, input.prior.sd = 5,
                       include.choice.parameters = TRUE,
-                      missing = "Error if missing data"),
+                      missing = "Error if missing data",
+                      covariates = NULL),
                  paste0("The data contains missing values. ",
                         "Change the 'missing' option to run the analysis."))
 
@@ -155,7 +160,8 @@ test_that("Design file missing data", {
                       n.questions.left.out = 0,
                       seed = 123, input.prior.mean = 0, input.prior.sd = 5,
                       include.choice.parameters = TRUE,
-                      missing = "Exclude cases with missing data")
+                      missing = "Exclude cases with missing data",
+                      covariates = NULL)
     expect_equal(dat$n.respondents, 378)
     expect_equal(dim(dat$X.in), c(3024, 3, 16))
     expect_equal(dat$X.in[1, 1:3, 1:5], structure(c(0, 1, 0, 0, 0,
@@ -172,7 +178,8 @@ test_that("Design file missing data", {
                              n.questions.left.out = 0,
                              seed = 123, input.prior.mean = 0, input.prior.sd = 5,
                              include.choice.parameters = TRUE,
-                             missing = "Use partial data")
+                             missing = "Use partial data",
+                             covariates = NULL)
     expect_equal(dat$n.respondents, 380)
     expect_equal(dat$X.in[1, 1:3, 1:5], structure(c(0, 1, 0, 0, 0,
                                                     1, 0, 0, 1, 0,
@@ -190,7 +197,8 @@ test_that("CHO file missing data", {
                           input.prior.mean = 0, input.prior.sd = 5,
                           include.choice.parameters = TRUE,
                           respondent.ids = respondent.ids,
-                          missing = "Error if missing data"),
+                          missing = "Error if missing data",
+                          covariates = NULL),
                  paste0("The data contains missing values. ",
                         "Change the 'missing' option to run the analysis."))
 
@@ -201,7 +209,8 @@ test_that("CHO file missing data", {
                           input.prior.mean = 0, input.prior.sd = 5,
                           include.choice.parameters = TRUE,
                           respondent.ids = respondent.ids,
-                          missing = "Exclude cases with missing data")
+                          missing = "Exclude cases with missing data",
+                          covariates = NULL)
     expect_equal(dat$n.respondents, 599)
     expect_equal(dim(dat$X.in), c(8984L, 4L, 24L))
     expect_equal(dat$X.in[1, , 1:8], structure(c(0, 1, 0, 0, 0, 0, 1, 0,
@@ -226,7 +235,8 @@ test_that("CHO file missing data", {
                           input.prior.mean = 0, input.prior.sd = 5,
                           include.choice.parameters = TRUE,
                           respondent.ids = respondent.ids,
-                          missing = "Use partial data")
+                          missing = "Use partial data",
+                          covariates = NULL)
     expect_equal(dat$n.respondents, 600)
     expect_equal(dim(dat$X.in), c(8998L, 4L, 24L))
     expect_equal(dat$X.in[1, , 1:8], structure(c(0, 1, 0, 0, 0, 0, 1, 0,
