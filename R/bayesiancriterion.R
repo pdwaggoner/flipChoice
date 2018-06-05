@@ -84,33 +84,39 @@ computeQuadratureValues <- function(p, n.rotations, seed, mean.vector, sd)
     n.extended.simplex <- ncol(extended.simplex.abscissas)
 
     set.seed(seed)
-    abscissas.vectors <- array(dim = c(2, n.rotations, n.extended.simplex, p))
+    abscissas.vectors <- vector(2 * n.rotations * n.extended.simplex, mode = "list")
+    ind <- 1
     for (i in 1:2)
         for (j in 1:n.rotations)
         {
             q <- randortho(p)
             for (k in 1:n.extended.simplex)
-                abscissas.vectors[i, j, k, ] <- mean.vector + sd *
+            {
+                abscissas.vectors[[ind]] <- mean.vector + sd *
                                             (radial.abscissas[i] *
                                             (q %*%
                                             extended.simplex.abscissas[, k]))
+                ind <- ind + 1
+            }
         }
 
     list(radial.weight.zero = radialWeightZero(p),
          radial.weights = radialWeights(p),
          extended.simplex.weights = extendedSimplexWeights(p),
-         abscissas.vectors = abscissas.vectors)
+         abscissas.vectors = abscissas.vectors,
+         n.rotations = n.rotations,
+         n.extended.simplex = n.extended.simplex)
 }
 
 bayesianCriterion <- function(design, prior, n.questions,
                               alternatives.per.question)
 {
-    dims <- dim(prior$abscissas.vectors)
-    n.rotations <- dims[2]
-    n.extended.simplex <- dims[3]
+    n.rotations <- prior$n.rotations
+    n.extended.simplex <- prior$n.extended.simplex
     result <- prior$radial.weight.zero *
               dPCriterion(design, prior$mean, n.questions,
                           alternatives.per.question)
+    ind <- 1
     for (i in 1:2)
         for (j in 1:n.rotations)
             for (k in 1:n.extended.simplex)
@@ -119,9 +125,10 @@ bayesianCriterion <- function(design, prior, n.questions,
                     return(-Inf)
                 result <- result + prior$radial.weights[i] *
                           prior$extended.simplex.weights[k] *
-                          dPCriterion(design, prior$abscissas.vectors[i, j, k, ],
+                          dPCriterion(design, prior$abscissas.vectors[[ind]],
                                       n.questions,
                                       alternatives.per.question) / n.rotations
+                ind <- ind + 1
             }
     result
 }
@@ -129,20 +136,23 @@ bayesianCriterion <- function(design, prior, n.questions,
 quadraturePartialInfoMatrices <- function(design, prior, n.questions, question,
                                           alternatives.per.question)
 {
-    dims <- dim(prior$abscissas.vectors)
-    n.rotations <- dims[2]
-    n.extended.simplex <- dims[3]
+    n.rotations <- prior$n.rotations
+    n.extended.simplex <- prior$n.extended.simplex
     p <- length(prior$mean)
     radius.zero <- dPPartialInfoMatrix(design, prior$mean, n.questions,
                                        question, alternatives.per.question)
-    abscissas <- array(dim = c(2, n.rotations, n.extended.simplex, p, p))
+    abscissas <- vector(2 * n.rotations * n.extended.simplex, mode = "list")
+    ind <- 1
     for (i in 1:2)
         for (j in 1:n.rotations)
             for (k in 1:n.extended.simplex)
-                abscissas[i, j, k, , ] <- dPPartialInfoMatrix(design,
-                                          prior$abscissas.vectors[i, j, k, ],
+            {
+                abscissas[[ind]] <- dPPartialInfoMatrix(design,
+                                          prior$abscissas.vectors[[ind]],
                                           n.questions, question,
                                           alternatives.per.question)
+                ind <- ind + 1
+            }
     list(radius.zero = radius.zero,
          abscissas = abscissas)
 }
@@ -152,13 +162,13 @@ bayesianCriterionShortcut <- function(question.design, prior,
                                       alternatives.per.question)
 {
     prior.mean <- prior$mean
-    dims <- dim(prior$abscissas.vectors)
-    n.rotations <- dims[2]
-    n.extended.simplex <- dims[3]
+    n.rotations <- prior$n.rotations
+    n.extended.simplex <- prior$n.extended.simplex
     result <- prior$radial.weight.zero *
               dPCriterionShortcut(question.design, prior.mean,
                                   partial.info.matrices$radius.zero,
                                   alternatives.per.question)
+    ind <- 1
     for (i in 1:2)
         for (j in 1:n.rotations)
             for (k in 1:n.extended.simplex)
@@ -168,10 +178,11 @@ bayesianCriterionShortcut <- function(question.design, prior,
                 result <- result + prior$radial.weights[i] *
                     prior$extended.simplex.weights[k] *
                     dPCriterionShortcut(question.design,
-                                    prior$abscissas.vectors[i, j, k, ],
-                                    partial.info.matrices$abscissas[i, j, k, , ],
+                                    prior$abscissas.vectors[[ind]],
+                                    partial.info.matrices$abscissas[[ind]],
                                     alternatives.per.question) /
                                     n.rotations
+                ind <- ind + 1
             }
     result
 }
@@ -209,13 +220,13 @@ quadratureBayesianCriterion <- function(design, prior, n.questions,
 bayesianError <- function(design, prior, n.questions,
                           alternatives.per.question)
 {
-    dims <- dim(prior$abscissas.vectors)
-    n.rotations <- dims[2]
-    n.extended.simplex <- dims[3]
+    n.rotations <- prior$n.rotations
+    n.extended.simplex <- prior$n.extended.simplex
     result <- prior$radial.weight.zero *
         dPCriterion(design, prior$mean, n.questions,
                     alternatives.per.question)
     K <- length(prior$mean)
+    ind <- 1
     for (i in 1:2)
         for (j in 1:n.rotations)
             for (k in 1:n.extended.simplex)
@@ -224,9 +235,10 @@ bayesianError <- function(design, prior, n.questions,
                     return(-Inf)
                 result <- result + prior$radial.weights[i] *
                     prior$extended.simplex.weights[k] *
-                    exp(dPCriterion(design, prior$abscissas.vectors[i, j, k, ],
+                    exp(dPCriterion(design, prior$abscissas.vectors[[ind]],
                             n.questions,
                             alternatives.per.question)) ^ (-1 / K) / n.rotations
+                ind <- ind + 1
             }
     result
 }
