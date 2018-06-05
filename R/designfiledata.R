@@ -141,6 +141,7 @@ processDesignFile <- function(design.file, attribute.levels.file,
          n.questions.left.in = split.data$n.questions.left.in,
          subset = subset,
          weights = weights,
+         covariates = covariates,
          parameter.scales = rep(1, n.parameters),
          prior.mean = prior.mean,
          prior.sd = prior.sd)
