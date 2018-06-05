@@ -17,8 +17,12 @@ processCovariateData <- function(dat, n.classes)
         dat$all.names <- paste(g$Var1, g$Var2, sep = "__")
     }
 
-    for (i in 1:dat$n.covariates)
+    for (i in 2:dat$n.covariates) # start at 2 to skip the intercept covariate
         if (!all(sort(unique(covariates[, i])) == c(0, 1)))
+        {
+            if (sd(covariates[, i]) == 0)
+                stop("One of the covariates has no variation.")
             dat$covariates[, i] <- 0.5 * scale(covariates[, i])
+        }
     dat
 }
