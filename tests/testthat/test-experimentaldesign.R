@@ -61,3 +61,38 @@ test_that("Insufficient levels", {
                                    n.questions = 6,
                                    alternatives.per.question = 3), "All attributes must have at least 2 levels.")
 })
+
+# Warning about priors
+no.prior <- structure(c("Brand", "Hershey", "Dove", "Godiva", "Lindt", "Price",
+               "$0.99", "$1.49", "$1.99", "$2.49", "Cocoa strength", "70%",
+               "Dark", "Milk", "White", "Sugar", "Standard", "50% reduced sugar",
+               "Sugar free", "", "Origin", "USA", "Switzerland", "Belgium",
+               "Belgian (Single origin Venezuelan Criollo beans)", "Nuts", "Almonds",
+               "Hazelnuts", "No", "", "Ethical", "Fair trade", "BLANK", "",
+               ""), .Dim = c(5L, 7L))
+
+has.prior <- structure(c("Brand", "Hershey", "Dove", "Godiva", "Lindt", "mean",
+                         "1", "2", "3", "4", "Price", "$0.99", "$1.49", "$1.99", "$2.49",
+                         "Cocoa strength", "70%", "Dark", "Milk", "White", "Sugar", "Standard",
+                         "50% reduced sugar", "Sugar free", "", "Origin", "USA", "Switzerland",
+                         "Belgium", "Belgian (Single origin Venezuelan Criollo beans)",
+                         "Nuts", "Almonds", "Hazelnuts", "No", "", "Ethical", "Fair trade",
+                         "BLANK", "", ""), .Dim = c(5L, 8L))
+
+expect_warning(ChoiceModelDesign(design.algorithm = "Shortcut",
+                            attribute.levels = no.prior,
+                            prior = NULL,
+                            n.questions = 6,
+                            n.versions = 3,
+                            alternatives.per.question = 4,
+                            seed = 1), NA)
+
+expect_warning(ChoiceModelDesign(design.algorithm = "Shortcut",
+                            attribute.levels = has.prior,
+                            prior = NULL,
+                            n.questions = 6,
+                            n.versions = 3,
+                            alternatives.per.question = 4,
+                            seed = 1),
+               paste0("Prior data will be ignored as it can only be used ",
+                      "with algorithms 'Efficient' or 'Partial profiles'."))

@@ -163,11 +163,10 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
         labeled.alternatives <- TRUE
     }
 
-
-    if (!is.null(prior) && !(design.algorithm %in% c("Efficient",
-                                                     "Partial profiles")))
-        warning(gettextf("Prior data can only be used with algorithm %s and will be ignored.",
-                         sQuote("Efficient")))
+    if ((!is.null(prior) || !all(prior == 0)) &&
+        !(design.algorithm %in% c("Efficient", "Partial profiles")))
+        warning("Prior data will be ignored as it can only be used with ",
+                "algorithms 'Efficient' or 'Partial profiles'.")
 
     if(any(levels.per.attribute < 2))
         stop("All attributes must have at least 2 levels.")
@@ -342,6 +341,14 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
 ## Additional columns added to every design output returned by our algorithms
 .non.attr.col.names <- c("Version", "Task", "Question", "Alternative")
 .n.non.attr.col <- length(.non.attr.col.names)
+
+checkDesignColNames <- function(design.matrix)
+{
+    for (name in .non.attr.col.names)
+        if (!name %in% colnames(design.matrix))
+            stop("The input design needs to contain a column called '", name,
+                 "'.")
+}
 
 #' @export
 #' @method print ChoiceModelDesign
