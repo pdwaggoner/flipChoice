@@ -90,10 +90,6 @@ RunStanSampling <- function(stan.dat, n.iterations, n.chains,
                             max.tree.depth, adapt.delta,
                             seed, stan.model, keep.beta, ...)
 {
-    if (!is.null(stan.dat$RSC))
-    {
-        stop("MaxDiff!")
-    }
     pars <- stanParameters(stan.dat, keep.beta)
     init <- initialParameterValues(stan.dat)
 
