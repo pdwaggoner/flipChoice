@@ -55,12 +55,13 @@ model {
         // gamma distribution with mode = 1 and p(x < 20) = 0.999
         sigma[p] ~ gamma(1.39435729464721, 0.39435729464721);
 
-        for (v in 1:V)
-            theta[p, v] ~ normal(prior_mean[v], prior_sd[v]);
+        theta[p] ~ normal(prior_mean, prior_sd);
         L_omega[p] ~ lkj_corr_cholesky(4);
         for (r in 1:R)
             standard_normal[r, p] ~ normal(0, 1);
     }
+    for (p in 1:(P - 1))
+        covariates_beta[p] ~ normal(0, 5);
 
     for (r in 1:R)
     {

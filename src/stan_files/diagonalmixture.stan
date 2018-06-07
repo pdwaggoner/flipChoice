@@ -49,8 +49,7 @@ model {
         // gamma distribution with mode = 1 and p(x < 20) = 0.999
         sigma_unique[p] ~ gamma(1.39435729464721, 0.39435729464721);
 
-        for (v in 1:V)
-            theta[p, v] ~ normal(prior_mean[v], prior_sd[v]);
+        theta[p] ~ normal(prior_mean, prior_sd);
         for (r in 1:R)
             standard_normal[r, p] ~ normal(0, 1);
     }
