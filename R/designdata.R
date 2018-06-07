@@ -1,16 +1,39 @@
-#' @importFrom flipData CleanSubset NoData
-processDesignFile <- function(design.file, attribute.levels.file,
-                              choices, questions, subset, weights,
-                              n.questions.left.out, seed,
-                              input.prior.mean, input.prior.sd,
+processDesignObject <- function(design.object, choices, questions, subset,
+                                weights, n.questions.left.out, seed,
+                                input.prior.mean, input.prior.sd,
+                                include.choice.parameters, missing,
+                                covariates)
+{
+    processDesign(design.object$design, design.object$attribute.levels,
+                  choices, questions, subset, weights, n.questions.left.out,
+                  seed, input.prior.mean, input.prior.sd,
+                  include.choice.parameters, missing, covariates)
+}
+
+processDesignFile <- function(design.file, attribute.levels.file, choices,
+                              questions, subset, weights, n.questions.left.out,
+                              seed, input.prior.mean, input.prior.sd,
                               include.choice.parameters, missing, covariates)
 {
     output <- readDesignFile(design.file, attribute.levels.file)
-    design <- output$design
-    attribute.levels <- output$attribute.levels
+    processDesign(output$design, output$attribute.levels, choices, questions,
+                  subset, weights, n.questions.left.out, seed,
+                  input.prior.mean, input.prior.sd, include.choice.parameters,
+                  missing, covariates)
+}
+
+#' @importFrom flipData CleanSubset NoData
+processDesign <- function(design, attribute.levels, choices, questions, subset,
+                          weights, n.questions.left.out, seed, input.prior.mean,
+                          input.prior.sd, include.choice.parameters, missing,
+                          covariates)
+{
+    checkDesignColNames(design)
+
+    design.attributes <- design[, !colnames(design) %in% .non.attr.col.names]
 
     n.questions <- ncol(questions)
-    n.attributes <- ncol(design) - 3
+    n.attributes <- ncol(design.attributes)
     n.alternatives <- getNumberOfAlternatives(choices)
 
     if (n.attributes != length(attribute.levels))
@@ -46,9 +69,9 @@ processDesignFile <- function(design.file, attribute.levels.file,
         covariates <- covariates[subset, ]
 
     # A "None of these" option is left out from the design
-    add.none.of.these <- n.alternatives == length(unique(design[[3]])) + 1
+    add.none.of.these <- n.alternatives == length(unique(design[, "Alternative"])) + 1
     # A "None of these" option is included in the design
-    none.of.these.included <- any(rowSums(design[-1:-3]) == 0)
+    none.of.these.included <- any(rowSums(design.attributes) == 0)
     has.none.of.these <- add.none.of.these || none.of.these.included
 
     n.attribute.parameters <- unlist(lapply(attribute.levels, length)) - 1
@@ -68,7 +91,6 @@ processDesignFile <- function(design.file, attribute.levels.file,
     n.rs <- sum(non.missing.table)
 
     X <- array(data = 0, dim = c(n.rs, n.alternatives, n.parameters))
-    design.attributes <- design[, (1:n.attributes) + 3]
 
     rs <- 1
     for (i in 1:n.respondents)
@@ -78,7 +100,7 @@ processDesignFile <- function(design.file, attribute.levels.file,
             if (non.missing.table[i, j])
             {
                 question.number <- questions[i, j]
-                ind <- which(design[[2]] == question.number)[1]
+                ind <- which(design[, "Task"] == question.number)[1]
                 for (k in 1:n.alternatives)
                 {
                     if (has.none.of.these && k == n.alternatives)
@@ -168,7 +190,6 @@ readDesignFile <- function(design.file, attribute.levels.file)
         # numbers, e.g. "12"
         design <- data.frame(sapply(design, as.numeric))
         attribute.levels <- processAttributeLevelsFile(attribute.levels.file)
-        result <- list(design = design, attribute.levels = attribute.levels)
     }
     else
     {
@@ -180,9 +201,12 @@ readDesignFile <- function(design.file, attribute.levels.file)
             attribute.levels[[nms[i]]] <- levels(attribute.factor)
             design[[i + 3]] <- as.numeric(attribute.factor)
         }
-        result <- list(design = design, attribute.levels = attribute.levels)
     }
-    result
+    design <- as.matrix(design)
+    # Add an empty "Question" column
+    design <- cbind(design[, 1:2], rep(NA, nrow(design)), design[, -1:-2])
+    colnames(design)[1:4] <- c("Version", "Task", "Question", "Alternative")
+    list(design = design, attribute.levels = attribute.levels)
 }
 
 #' @importFrom flipData MissingDataFail

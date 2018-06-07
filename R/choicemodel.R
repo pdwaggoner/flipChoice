@@ -1,6 +1,7 @@
 #' @title FitChoiceModel
 #' @description Fit a choice-based conjoint model using methods such
 #'     as Hierarchical Bayes
+#' @param design A design object produced by ChoiceModelDesign
 #' @param experiment.data A data.frame from an Experiment question
 #' @param cho.file The file path to a cho file.
 #' @param design.file The file path to a Sawtooth design file.
@@ -15,7 +16,7 @@
 #'     variables present in \code{cov.formula}.
 #' @param choices A data.frame of choices made by respondents for each
 #'     question.
-#' @param questions A data.frame of IDs of questions presented to the
+#' @param questions A data.frame of IDs of tasks presented to the
 #'     respondents.
 #' @param n.classes The number of latent classes.
 #' @param subset An optional vector specifying a subset of
@@ -116,8 +117,9 @@
 #' @importFrom flipFormat Labels
 #' @export
 #'
-FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
-                           design.file = NULL, attribute.levels.file = NULL,
+FitChoiceModel <- function(design = NULL, experiment.data = NULL,
+                           cho.file = NULL, design.file = NULL,
+                           attribute.levels.file = NULL,
                            cov.formula = NULL, cov.data = NULL,
                            choices = NULL, questions = NULL, n.classes = 1,
                            subset = NULL, weights = NULL,
@@ -144,7 +146,11 @@ FitChoiceModel <- function(experiment.data = NULL, cho.file = NULL,
     else
         NULL
 
-    dat <- if (!is.null(experiment.data))
+    dat <- if (!is.null(design) && !is.null(choices) && !is.null(questions))
+        processDesignObject(design, choices, questions, subset, weights,
+                            tasks.left.out, seed, hb.prior.mean, hb.prior.sd,
+                            include.choice.parameters, missing, covariates)
+    else if (!is.null(experiment.data))
         processExperimentData(experiment.data, subset, weights, tasks.left.out,
                               seed, hb.prior.mean, hb.prior.sd, missing,
                               covariates)

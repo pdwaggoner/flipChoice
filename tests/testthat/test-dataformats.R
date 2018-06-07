@@ -16,6 +16,7 @@ attribute.levels.file.cho <- findInstDirFile("Attribute_labels_-_Training.xlsx")
 attribute.levels.file.jmp <- findInstDirFile("eggs_labels.xlsx")
 
 data(eggs, package = "flipChoice")
+data(eggs.design, package = "flipChoice")
 data(cho.ids, package = "flipChoice")
 
 choices.jmp <- eggs.data[, 1:8]
@@ -28,6 +29,14 @@ for (i in 1:8)
     levels(choices.jmp.none.of.these[[i]]) <- LETTERS[1:4]
 }
 tasks.jmp <- data.frame(t(matrix(1:3040, nrow = 8)))
+
+test_that("design object" {
+    result <- FitChoiceModel(design = eggs.design,
+                             choices = choices.jmp, questions = tasks.jmp,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE)
+    expect_error(print(result), NA)
+})
 
 test_that("cho file", {
     result <- FitChoiceModel(cho.file = cho.file,
