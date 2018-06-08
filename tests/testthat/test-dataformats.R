@@ -30,7 +30,7 @@ for (i in 1:8)
 }
 tasks.jmp <- data.frame(t(matrix(1:3040, nrow = 8)))
 
-test_that("design object" {
+test_that("design object", {
     result <- FitChoiceModel(design = eggs.design,
                              choices = choices.jmp, questions = tasks.jmp,
                              hb.iterations = 10, hb.chains = 1,
