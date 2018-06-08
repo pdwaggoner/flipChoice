@@ -1,4 +1,4 @@
-context("Efficient")
+context("Modfed")
 
 non.attr.col <- flipChoice:::.non.attr.col.names
 n.non.attr.col <- length(non.attr.col)
@@ -13,11 +13,11 @@ test_that("3*3*2/4/10 dummy coding; old interface",
     ##                                    seed = seed)
     n.q <- 10
     apq <- 4
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                              attribute.levels = pa, prior = prior, n.questions = n.q,
                              alternatives.per.question = apq, seed = seed)
     prior <- numeric(5)
-    out2 <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out2 <- ChoiceModelDesign(design.algorithm = "Modfed",
                              attribute.levels = pa, prior = prior, n.questions = n.q,
                              alternatives.per.question = apq, seed = seed)
     expect_identical(out, out2)
@@ -40,7 +40,7 @@ vnames <- pd[1, !pd[1,] %in% c("SD", "Mean")]
 n.q <- 10
 apq <- 4
 
-out <- ChoiceModelDesign(design.algorithm = "Efficient",
+out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = pd, prior = NULL, n.questions = n.q,
                          alternatives.per.question = apq, seed = seed,
                          output = "Labeled design")
@@ -85,25 +85,25 @@ test_that("3^3/3/9 effects coding",
     expect_true(all(out$model.matrix %in% c(-1, 0, 1)))
 })
 
-test_that("Efficient: bad prior",
+test_that("Modfed: bad prior",
 {
     seed <- 331
     pd <- cbind(c("price", "200", "250", "300"), c("mean", 0, 1, ""),
                 c("time", "morn", "aft", "eve"),
                 c("type", "train", "bus", ""), c("mean", 2, 3, ""), c("sd", 1, 2, ""))
-    expect_error(ChoiceModelDesign("Efficient", pd,
+    expect_error(ChoiceModelDesign("Modfed", pd,
                                    alternatives.per.question = 4, n.questions = 12,
                                        seed = seed), "price, 3")
 
     pd <- cbind(c("price", "200", "250", "300"), c("mean", 0, 1, "2"),
                 c("time", "morn", "aft", "eve"),
                 c("type", "train", "bus", ""), c("mean", 2, 3, ""), c("sd", 1, "", ""))
-    expect_error(ChoiceModelDesign("Efficient", pd,
+    expect_error(ChoiceModelDesign("Modfed", pd,
                                    alternatives.per.question = 4, n.questions = 12,
                                        seed = seed), "type, 2")
 })
 
-test_that("Efficient: vector prior",
+test_that("Modfed: vector prior",
 {
     seed <- 2218789
     pa <- cbind(c("price", "100", "125", "150", "175", "200"),
@@ -119,20 +119,20 @@ test_that("Efficient: vector prior",
     expect_equal(out$error, .325, tolerance = .05)
 })
 
-test_that("Efficient: prior means and variances old interface",
+test_that("Modfed: prior means and variances old interface",
 {
     seed <- 97
     pa <- cbind(c("price", "100", "125", "150", "175", "200"),
                 c("time", "morn", "aft", "eve", "late night", ""))
     n.coef <- sum(pa[-1, ] != "") - ncol(pa)
     prior <- matrix(c(0, 2), nrow = n.coef, ncol = 2, byrow = TRUE)
-    out <- ChoiceModelDesign(design.algorithm = "Efficient", attribute.levels = pa,
+    out <- ChoiceModelDesign(design.algorithm = "Modfed", attribute.levels = pa,
                              prior = prior, n.questions = 10, alternatives.per.question = 3,
                                        seed = seed)
     expect_equal(out$db.error, 1.72, tolerance = 1e-2)
 })
 
-test_that("Efficient: none alternatives",
+test_that("Modfed: none alternatives",
 {
     seed <- 20
     pa <- cbind(c("price", "200", "250", "300"), c("time", "morn", "aft", "eve"),
@@ -143,7 +143,7 @@ test_that("Efficient: none alternatives",
     n.q <- 10
     apq <- 4
     n.a <- 2
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                              attribute.levels = pa, prior = NULL, n.questions = n.q,
                              alternatives.per.question = apq, seed = seed,
                              none.alternatives = 2)
@@ -151,7 +151,7 @@ test_that("Efficient: none alternatives",
     expect_equal(max(out$design.with.none[, "Alternative"]), n.a + apq)
 })
 
-test_that("Efficient: labeled alternatives",
+test_that("Modfed: labeled alternatives",
 {
     seed <- 98
     lpa1 <- c(engine = 3, transmission = 2, colour = 7)
@@ -182,7 +182,7 @@ test_that("Efficient: labeled alternatives",
                              c("manual", "automatic", "", "", "", "", ""),
                              c("red", "green", "blue", "yellow", "black", "white", "silver"))
     pa <- rbind(c("brand", "engine", "transmission", "colour"), pa)
-    out2 <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out2 <- ChoiceModelDesign(design.algorithm = "Modfed",
                              attribute.levels = pa, prior = NULL, n.questions = n.q,
                              seed = seed,
                              labeled.alternatives = TRUE)
@@ -207,7 +207,7 @@ test_that("Parsing of pasted prior with some means and sd's missing",
     n.q <- 10
     apq <- 4
 
-    ## out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    ## out <- ChoiceModelDesign(design.algorithm = "Modfed",
     ##                          attribute.levels = pd, prior = NULL, n.questions = n.q,
     ##                          alternatives.per.question = apq, seed = seed,
     ##                          output = "Labeled design")
@@ -238,7 +238,7 @@ test_that("Correct prior specification improves fit on sim data",
     n.q <- 10
     apq <- 4
 
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                              attribute.levels = pd, prior = NULL, n.questions = n.q,
                              alternatives.per.question = apq, seed = seed,
                              output = "Labeled design")
@@ -265,7 +265,7 @@ test_that("Correct prior specification improves fit on sim data",
                 c("Mean", type.mean, ""),
                 c("SD", c(1, 1, "")))
 
-    out.bad.prior <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out.bad.prior <- ChoiceModelDesign(design.algorithm = "Modfed",
                              attribute.levels = pd.bad.prior, prior = NULL, n.questions = n.q,
                              alternatives.per.question = apq, seed = seed,
                              output = "Labeled design")
@@ -324,7 +324,7 @@ test_that("D-error calculation agrees with Huber-Zwerina Table 1 3^3/3/9",
                  .577, tolerance = .0005)
 })
 
-test_that("Efficient outperforms choiceDes",
+test_that("Modfed outperforms choiceDes",
 {
     seed <- 7778
 
@@ -336,7 +336,7 @@ test_that("Efficient outperforms choiceDes",
     des <- choiceDes::dcm.design(levs1, nb = 1, sets = n.q, apq, print = FALSE)
     cd.df <- des$levels
     attr.list <- lapply(levs1, seq.int)
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                              attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                              alternatives.per.question = apq, seed = seed,
                              output = "Labeled design")
@@ -365,7 +365,7 @@ test_that("HZ paper Table 2, 3^3/3/9",
     names(attr.list) <- letters[seq_along(levs)]
     apq <- 3
     n.q <- 9
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -382,7 +382,7 @@ test_that("HZ paper Table 2, 3^3/3/9",
 ##     names(attr.list) <- letters[seq_along(levs)]
 ##     apq <- 3
 ##     n.q <- 9
-##     out <- ChoiceModelDesign(design.algorithm = "Efficient",
+##     out <- ChoiceModelDesign(design.algorithm = "Modfed",
 ##                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
 ##                          seed = seed, alternatives.per.question = apq,
 ##                          labeled.alternatives = FALSE, none.alternative = TRUE)
@@ -399,7 +399,7 @@ test_that("HZ paper Table 2, 3^4/2/15",
     names(attr.list) <- letters[seq_along(levs)]
     apq <- 2
     n.q <- 15
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -421,7 +421,7 @@ test_that("HZ paper Table 2, 4^4/4/16",
     names(attr.list) <- letters[seq_along(levs)]
     apq <- 4
     n.q <- 16
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -443,7 +443,7 @@ test_that("HZ paper Table 2, 4*3^3/3/48",
     names(attr.list) <- letters[seq_along(levs)]
     apq <- 3
     n.q <- 48
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -471,7 +471,7 @@ test_that("HZ paper Table 2, 9*8*4*3^4*2^3/3/63",
     apq <- 3
     n.q <- 63
     btime <- Sys.time()
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -498,7 +498,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta",
 
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -528,7 +528,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta",
     n.q <- 15
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -558,7 +558,7 @@ test_that("HZ paper Table 2, 4^4/4/16, non-zero beta",
     pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
     names(pmeans) <- names(levs)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -590,7 +590,7 @@ test_that("HZ paper Table 2, 4*3^3/3/48, non-zero beta",
     pmeans[2:4] <- replicate(3, c(-1, 0, 1), simplify = FALSE)
     names(pmeans) <- names(levs)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -618,7 +618,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta*1.25",
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -649,7 +649,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta*1.25",
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -680,7 +680,7 @@ test_that("HZ paper Table 2, 4^4/4/16, non-zero beta*1.25",
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -713,7 +713,7 @@ test_that("HZ paper Table 2, 4*3^3/3/48, non-zero beta*1.25",
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -741,7 +741,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta*.75",
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -772,7 +772,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta*.75",
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -803,7 +803,7 @@ test_that("HZ paper Table 2, 4^4/4/16, non-zero beta*.75",
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -836,7 +836,7 @@ test_that("HZ paper Table 2, 4*3^3/3/48, non-zero beta*.75",
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
     beta <- constrainedPrior(levs, pmeans, coding = "D")
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -867,7 +867,7 @@ test_that("Burgess and Street 1992, p. 91: 3x3x6/5/9",
     mm <- model.matrix(~A+B+C, bs1.design, contrasts = ca)[, -1]
     d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
 
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -895,7 +895,7 @@ test_that("Burgess and Street 1992, Appendix A.2: 4^5x2x8^2x9/3/99",
 
     d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
 
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -923,7 +923,7 @@ test_that("Burgess and Street 1992, Appendix 8 A.1: 4^4*2^2*8*36/3/288",
 
     d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)  # dummy coding results in NA
 
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -958,7 +958,7 @@ test_that("Sandor and Wedel 2001, Table 5: 3^5/2/15",
     ## reported D-error in S & W matches with est.beta not prior.beta here for some reason
     d.err.pub <- idefix:::Derr(est.beta, mm, apq)
 
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = prior.beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -989,7 +989,7 @@ test_that("Sandor and Wedel 2001: 3^4/2/15",
     ## d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
     d.err.pub <- idefix:::Derr(prior.coef, mm, apq)
 
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = prior.coef, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -1015,7 +1015,7 @@ test_that("Street, Burgess, Louviere 2005 Table 5: 4^5/2/16",
 
     d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
 
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -1044,7 +1044,7 @@ test_that("Street, Burgess, Louviere 2005 Table 9: 2^2*4^2/3/16",
 
     d.err.pub <- idefix:::Derr(numeric(ncol(mm)), mm, apq)
 
-    out <- ChoiceModelDesign(design.algorithm = "Efficient",
+    out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = NULL, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
                          labeled.alternatives = FALSE, none.alternative = FALSE)
@@ -1060,7 +1060,7 @@ test_that("Street, Burgess, Louviere 2005 Table 9: 2^2*4^2/3/16",
 ##     pd <- cbind(c("brand", letters[1:4]), c("price", 1:3, ""))
 ##     n.q <- 18
 ##     apq <- 4
-##     out <- ChoiceModelDesign(design.algorithm = "Efficient",
+##     out <- ChoiceModelDesign(design.algorithm = "Modfed",
 ##                              attribute.levels = pd, prior = NULL, n.questions = n.q,
 ##                              seed = seed, alternatives.per.question = 4,
 ##                              labeled.alternatives = FALSE, none.alternative = TRUE)

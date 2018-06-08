@@ -4,7 +4,7 @@
 \alias{FitChoiceModel}
 \title{FitChoiceModel}
 \usage{
-FitChoiceModel(experiment.data = NULL, cho.file = NULL,
+FitChoiceModel(design = NULL, experiment.data = NULL, cho.file = NULL,
   design.file = NULL, attribute.levels.file = NULL, cov.formula = NULL,
   cov.data = NULL, choices = NULL, questions = NULL, n.classes = 1,
   subset = NULL, weights = NULL, missing = "Use partial data",
@@ -16,6 +16,8 @@ FitChoiceModel(experiment.data = NULL, cho.file = NULL,
   respondent.ids = NULL, ...)
 }
 \arguments{
+\item{design}{A design object produced by ChoiceModelDesign}
+
 \item{experiment.data}{A data.frame from an Experiment question}
 
 \item{cho.file}{The file path to a cho file.}
@@ -37,7 +39,7 @@ variables present in \code{cov.formula}.}
 \item{choices}{A data.frame of choices made by respondents for each
 question.}
 
-\item{questions}{A data.frame of IDs of questions presented to the
+\item{questions}{A data.frame of IDs of tasks presented to the
 respondents.}
 
 \item{n.classes}{The number of latent classes.}

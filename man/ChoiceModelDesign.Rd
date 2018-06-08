@@ -18,9 +18,10 @@ ChoiceModelDesign(design.algorithm = c("Random", "Shortcut",
 \item{design.algorithm}{The algorithm used to create the
 design. One of \code{"Random"}, \code{"Shortcut"},
 \code{"Balanced overlap"}, \code{"Complete enumeration"},
-\code{"Efficient"}, \code{Partial profiles},
+\code{"Efficient"}, \code{"Partial profiles"}, \code{"Modfed"},
 \code{"Alternative specific - Random"} and
-\code{"Alternative specific - Federov"}.}
+\code{"Alternative specific - Federov"}. See the details for a
+description of the algorithms.}
 
 \item{attribute.levels}{\code{\link{list}} of \code{\link{vector}}s
 containing the labels of levels for each attribute, with names
@@ -52,66 +53,64 @@ specified attribute levels are prohibited.}
 \item{none.alternatives}{Integer; the number of 'None' in all
 questions. Not required if \code{none.positions} is supplied.}
 
-\item{none.positions}{Integer \code{\link{vector}} specifying the indices
-of the 'None' alternatives in each question. If not specified, 'None'
-will be the last alternative(s). A comma-delimited string of integers
-may be supplied instead of Integer \code{\link{vector}}.}
+\item{none.positions}{Integer \code{\link{vector}} specifying the
+indices of the 'None' alternatives in each question. If not
+specified, 'None' will be the last alternative(s). A
+comma-delimited string of integers may be supplied instead of
+Integer \code{\link{vector}}.}
 
 \item{labeled.alternatives}{Logical; whether the first attribute
 labels the alternatives.}
 
-\item{n.constant.attributes}{Integer; the number of attributes to keep
-constant for partial profiles.}
+\item{n.constant.attributes}{Integer; the number of attributes to
+keep constant for partial profiles.}
 
-\item{extensive}{Logical; whether to used the extensive algorithm instead of
-the integrated algorithm for partial profiles.}
+\item{extensive}{Logical; whether to used the extensive algorithm
+instead of the integrated algorithm for partial profiles.}
 
-\item{n.rotations}{The number of random rotations performed when computing
-the Bayesian criterion/error when the prior mean and variance are supplied for
-partial profiles.}
+\item{n.rotations}{The number of random rotations performed when
+computing the Bayesian criterion/error when the prior mean and
+variance are supplied for partial profiles.}
 
-\item{max.subsample}{The maximum number of questions from a fully enumerated design
-to consider when \code{design.algorithm == "Alternative specific - Federov"}.}
+\item{max.subsample}{The maximum number of questions from a fully
+enumerated design to consider when \code{design.algorithm ==
+"Alternative specific - Federov"}.}
 
 \item{output}{One of \code{"Labeled design"} or \code{"Inputs"}.}
 
 \item{seed}{Integer; random seed to be used by the algorithms.}
 }
 \value{
-A list with components
-\itemize{
-\item \code{design} - a numeric matrix with number of rows equal to number of
-versions times number of questions times number of alternatives per question,
-with columns for version number, question number, task number, alternative number,
-and numeric level for each attribute.
-\item \code{design.with.none} - as per \code{design} except one additional row per none alternative
-is added to each question with \code{NA} for all attribute levels.
-\item \code{labeled.design} - as per \code{design.with.none} except indices of levels are
-replaced by their labels.
-\item \code{design.algorithm} - as per input.
-\item \code{attribute.levels} - as per input.
-\item \code{prohibitions} - as per input.
-\item \code{n.questions} - as per input.
-\item \code{n.versions} - as per input.
-\item \code{alternatives.per.question} - as per input.
-\item \code{none.alternatives} - as per input.
-\item \code{labeled.alternatives} - as per input.
-\item \code{output} - as per input.
-\item \code{db.error} - the Db-error of \code{design}.
-\item \code{d.error} - the D-error of \code{design}.
-\item \code{d.criterion} - the D-optimality criterion when the partial
-profiles algorithm is used.
-\item \code{model.matrix} - the model matrix of dummy coded variables for each alternative
-in every choice set.
-\item \code{balances.and.overlaps} a list with components
-    \itemize{
-    \item\code{singles} a \code{list} of the counts of each level per attribute.
-    \item\code{pairs} a \code{list} of the counts of pairwise occurences of levels
-    for each pair of attributes.
-    \item\code{overlaps} a \code{vector} of the percentage of questions that include
-    one or more duplicated level per attribute.
-    }
-}
+A list with components \itemize{ \item \code{design} - a
+    numeric matrix with number of rows equal to number of versions
+    times number of questions times number of alternatives per
+    question, with columns for version number, question number,
+    task number, alternative number, and numeric level for each
+    attribute.  \item \code{design.with.none} - as per
+    \code{design} except one additional row per none alternative is
+    added to each question with \code{NA} for all attribute levels.
+    \item \code{labeled.design} - as per \code{design.with.none}
+    except indices of levels are replaced by their labels.  \item
+    \code{design.algorithm} - as per input.  \item
+    \code{attribute.levels} - as per input.  \item
+    \code{prohibitions} - as per input.  \item \code{n.questions} -
+    as per input.  \item \code{n.versions} - as per input.  \item
+    \code{alternatives.per.question} - as per input.  \item
+    \code{none.alternatives} - as per input.  \item
+    \code{labeled.alternatives} - as per input.  \item
+    \code{output} - as per input.  \item \code{db.error} - the
+    Db-error of \code{design}.  \item \code{d.error} - the D-error
+    of \code{design}.  \item \code{d.criterion} - the D-optimality
+    criterion when the partial profiles algorithm is used.  \item
+    \code{model.matrix} - the model matrix of dummy coded variables
+    for each alternative in every choice set.  \item
+    \code{balances.and.overlaps} a list with components \itemize{
+    \item\code{singles} a \code{list} of the counts of each level
+    per attribute.  \item\code{pairs} a \code{list} of the counts
+    of pairwise occurences of levels for each pair of attributes.
+    \item\code{overlaps} a \code{vector} of the percentage of
+    questions that include one or more duplicated level per
+    attribute.  } }
 }
 \description{
 Creates choice model experimental designs according to a given algorithm.
@@ -126,9 +125,43 @@ If \code{prior} is supplied and \code{design.algorithm ==
     mean for the coefficients and the second is taken to be the
     prior variances.  If only one column is present, the prior for
     the coefficients is assumed to be centered at those values.
+
+ Details for the possible choices for \code{design.algorithm} are as follows.
+\itemize{
+\item \code{Random} - Randomly chooses levels, only ensuring alternatives
+are not identical within a question.
+\item \code{Shortcut} -  The design is built with each alternative consisting
+of the least frequently used Level for each attribute. If levels are equally frequent,
+the least used level within the question is selected, or else a random choice is made.
+\item \code{Complete enumeration} -  For each alternative, every possible alternative
+is evaluated and the one with the lowest cost selected. The cost of an alternative
+depends on its incremental impact upon the design in terms of a combination of
+single level balance, pairwise level balance and level overlap within questions.
+\item \code{Balanced overlap} -  As per \code{"Complete enumeration"} except level
+overlaps are less strongly penalized.
+\item \code{Partial profiles} -  The design is chosen using a recent algorithm for partial
+profiles.  See the references.
+\item \code{Efficient} - Equivalent to \code{"Partial profiles"} with
+\code{n.constant.attributes = 0}.
+\item \code{Modfed} The design is chosen using a modified Federov algorithm to
+optimize the D-error, so that the variance of the model parameter estimates
+is minimized. Uses \code{\link[idefix]{Modfed}}.
+\item \code{Alternative specific - Random} Creates a design with attributes that
+are specific to each alternative. Random levels are chosen for each attribute.
+\item \code{Alternative specific - Federov} Creates a design with attributes
+that are specific to each alternative. The design is optimized to maximize the
+information about the model parameters, given the responses.
+}
 }
 \examples{
 x <- CreateExperiment(c(3, 5, 7, 10), 20)
 ChoiceModelDesign("Random", x$attribute.levels, n.questions = 30,
     alternatives.per.question = 4, prohibitions = x$prohibitions)
+}
+\references{
+The partial profiles algorithm is an implementation of
+    D. P. Cuervo, R. Kessels, P. Goos and K. Sorensen (2016). An
+    integrated algorithm for the optimal design of stated choice
+    experiments with partial profiles. Transportation Research Part
+    B 93.
 }

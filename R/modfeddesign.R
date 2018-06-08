@@ -64,7 +64,7 @@
 #' \dontrun{
 #' efficientDesign(levels.per.attribute, prior, 3, 9)
 #' }
-efficientDesign <- function(
+modfedDesign <- function(
                                levels.per.attribute = NULL,
                                prior = NULL,
                                alternatives.per.question,
