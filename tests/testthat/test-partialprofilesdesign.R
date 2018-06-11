@@ -77,7 +77,7 @@ test_that("Partial profiles vs modified Federov with a prior distribution",
                                 alternatives.per.question = 3,
                                 n.constant.attributes = 0,
                                 seed = 1)
-    result.fed <- ChoiceModelDesign(design.algorithm = "Efficient",
+    result.fed <- ChoiceModelDesign(design.algorithm = "Modfed",
                                 attribute.levels = attribute.levels,
                                 prior = prior,
                                 n.questions = 10,

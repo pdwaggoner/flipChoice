@@ -49,7 +49,7 @@
 #' @param max.subsample The maximum number of questions from a fully
 #'     enumerated design to consider when \code{design.algorithm ==
 #'     "Alternative specific - Federov"}.
-#' @param output One of \code{"Labeled design"} or \code{"Inputs"}.
+v#' @param output One of \code{"Labeled design"} or \code{"Inputs"}.
 #' @param seed Integer; random seed to be used by the algorithms.
 #' @return A list with components \itemize{ \item \code{design} - a
 #'     numeric matrix with number of rows equal to number of versions
@@ -136,7 +136,8 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                                                    "Efficient",
                                                    "Partial profiles",
                                                    "Alternative specific - Random",
-                                                   "Alternative specific - Federov"),
+                                                   "Alternative specific - Federov",
+                                                   "Modfed"),
                               attribute.levels = NULL,
                               prior = NULL,
                               n.questions,
