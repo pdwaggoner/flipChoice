@@ -6,7 +6,7 @@
 \usage{
 ChoiceModelDesign(design.algorithm = c("Random", "Shortcut",
   "Balanced overlap", "Complete enumeration", "Efficient", "Partial profiles",
-  "Alternative specific - Random", "Alternative specific - Federov"),
+  "Alternative specific - Random", "Alternative specific - Federov", "Modfed"),
   attribute.levels = NULL, prior = NULL, n.questions, n.versions = 1,
   alternatives.per.question = 0, prohibitions = NULL,
   none.alternatives = 0, none.positions = NULL,
