@@ -198,9 +198,9 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     }
 
     if ((!is.null(prior) || !all(prior == 0)) &&
-        !(design.algorithm %in% c("Efficient", "Partial profiles")))
+        !(design.algorithm %in% c("Efficient", "Partial profiles", "Modfed")))
         warning("Prior data will be ignored as it can only be used with ",
-                "algorithms 'Efficient' or 'Partial profiles'.")
+                "algorithms 'Efficient', 'Modfed', or 'Partial profiles'.")
 
     if(any(levels.per.attribute < 2))
         stop("All attributes must have at least 2 levels.")
@@ -243,7 +243,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
 
     # Check if prohibitions are valid for the algorithm
     algorithms.without.prohibitions <- c("Efficient", "Shortcut", "Partial profiles", "Alternative specific - Random",
-                                         "Alternative specific - Federov")
+                                         "Alternative specific - Federov", "Modfed")
     if (!is.null(prohibitions) && length(prohibitions) > 0 && design.algorithm %in% algorithms.without.prohibitions)
         warning(gettextf("Prohibitions are not yet implemented for algorithm %s and will be ignored.",
                     sQuote(design.algorithm)))
@@ -294,7 +294,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                    none.alternatives = none.alternatives,
                    output = output)
 
-    if (design.algorithm == "Efficient")
+    if (design.algorithm == "Modfed")
     {
         code <- ifelse(any(design$model.matrix == -1), "E", "D")
         cfun <- if (code == "E") "contr.sum" else "contr.treatment"
