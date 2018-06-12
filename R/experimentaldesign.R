@@ -197,7 +197,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
         labeled.alternatives <- TRUE
     }
 
-    if ((!is.null(prior) || !all(prior == 0)) &&
+    if (!is.null(prior) && !all(prior == 0) &&
         !(design.algorithm %in% c("Efficient", "Partial profiles", "Modfed")))
         warning("Prior data will be ignored as it can only be used with ",
                 "algorithms 'Efficient', 'Modfed', or 'Partial profiles'.")

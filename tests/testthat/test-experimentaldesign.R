@@ -33,7 +33,7 @@ derr <- matrix(0, ncol = 4, nrow = 4)
 
 tfile <- tempfile()
 withr::with_output_sink(tfile, {
-    for (model in c("Random", "Complete enumeration", "Balanced overlap", "Shortcut")) {  # can't handle prohibitions with "Shortcut"
+    for (model in c("Shortcut")) {  # can't handle prohibitions with "Shortcut"
         for (i in seq(length(levels.test.cases))) {
             test_that(paste(model, "Test case", i), {
                 prohibitions <- if(model == "Shortcut") NULL else prohibitions.test.cases[[i]]
@@ -95,4 +95,4 @@ expect_warning(ChoiceModelDesign(design.algorithm = "Shortcut",
                             alternatives.per.question = 4,
                             seed = 1),
                paste0("Prior data will be ignored as it can only be used ",
-                      "with algorithms 'Efficient' or 'Partial profiles'."))
+                      "with algorithms 'Efficient', 'Modfed', or 'Partial profiles'."))
