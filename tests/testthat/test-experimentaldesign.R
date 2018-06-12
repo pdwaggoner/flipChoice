@@ -79,20 +79,24 @@ has.prior <- structure(c("Brand", "Hershey", "Dove", "Godiva", "Lindt", "mean",
                          "Nuts", "Almonds", "Hazelnuts", "No", "", "Ethical", "Fair trade",
                          "BLANK", "", ""), .Dim = c(5L, 8L))
 
-expect_warning(ChoiceModelDesign(design.algorithm = "Shortcut",
-                            attribute.levels = no.prior,
-                            prior = NULL,
-                            n.questions = 6,
-                            n.versions = 3,
-                            alternatives.per.question = 4,
-                            seed = 1), NA)
+test_that("No warning about prior when none given",
+    expect_warning(ChoiceModelDesign(design.algorithm = "Shortcut",
+                                attribute.levels = no.prior,
+                                prior = NULL,
+                                n.questions = 6,
+                                n.versions = 3,
+                                alternatives.per.question = 4,
+                                seed = 1), NA)
+)
 
-expect_warning(ChoiceModelDesign(design.algorithm = "Shortcut",
-                            attribute.levels = has.prior,
-                            prior = NULL,
-                            n.questions = 6,
-                            n.versions = 3,
-                            alternatives.per.question = 4,
-                            seed = 1),
-               paste0("Prior data will be ignored as it can only be used ",
-                      "with algorithms 'Efficient', 'Modfed', or 'Partial profiles'."))
+test_that("Warning when prior given with wrong algorithm",
+    expect_warning(ChoiceModelDesign(design.algorithm = "Shortcut",
+                                attribute.levels = has.prior,
+                                prior = NULL,
+                                n.questions = 6,
+                                n.versions = 3,
+                                alternatives.per.question = 4,
+                                seed = 1),
+                   paste0("Prior data will be ignored as it can only be used ",
+                          "with algorithms 'Efficient', 'Modfed', or 'Partial profiles'."))
+)
