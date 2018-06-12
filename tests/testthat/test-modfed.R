@@ -9,7 +9,7 @@ test_that("3*3*2/4/10 dummy coding; old interface",
     pa <- cbind(c("price", "200", "250", "300"), c("time", "morn", "aft", "eve"),
                 c("type", "train", "bus", ""))
     prior <- NULL  # matrix(nrow = 0, ncol = 0)
-    ## out <- efficientDesign(al, prior, 4, 10, dummy.coding = TRUE,
+    ## out <- modfedDesign(al, prior, 4, 10, dummy.coding = TRUE,
     ##                                    seed = seed)
     n.q <- 10
     apq <- 4
@@ -79,7 +79,7 @@ test_that("3^3/3/9 effects coding",
                 c("type", "train", "bus", "car"))
     al <- pastedAttributesToVector(pa)
     prior <- numeric(sum(al) - length(al))
-    out <- efficientDesign(al, prior, 4, 12,
+    out <- modfedDesign(al, prior, 4, 12,
                                        dummy.coding = FALSE,
                                        seed = seed)
     expect_true(all(out$model.matrix %in% c(-1, 0, 1)))
@@ -113,7 +113,7 @@ test_that("Modfed: vector prior",
     al <- pastedAttributesToVector(pa)
     n.coef <- sum(pa[-1, ] != "") - ncol(pa)
     prior <- 1 + numeric(n.coef)
-    out <- efficientDesign(al, prior, 5, 15,
+    out <- modfedDesign(al, prior, 5, 15,
                                        dummy.coding = FALSE,
                                        seed = seed)
     expect_equal(out$error, .325, tolerance = .05)
@@ -138,7 +138,7 @@ test_that("Modfed: none alternatives",
     pa <- cbind(c("price", "200", "250", "300"), c("time", "morn", "aft", "eve"),
                 c("type", "train", "bus", ""))
     prior <- matrix(nrow = 0, ncol = 0)
-    ## out <- efficientDesign(al, prior, 4, 10, dummy.coding = TRUE,
+    ## out <- modfedDesign(al, prior, 4, 10, dummy.coding = TRUE,
     ##                                    seed = seed)
     n.q <- 10
     apq <- 4
@@ -157,11 +157,11 @@ test_that("Modfed: labeled alternatives",
     lpa1 <- c(engine = 3, transmission = 2, colour = 7)
     lpa2 <- c(brand = 4, lpa1)
     prior <- matrix(nrow = 0, ncol = 0)
-    ## out <- efficientDesign(al, prior, 4, 10, dummy.coding = TRUE,
+    ## out <- modfedDesign(al, prior, 4, 10, dummy.coding = TRUE,
     ##                                    seed = seed)
     n.q <- 20
 
-    out <- efficientDesign(
+    out <- modfedDesign(
                                    levels.per.attribute = lpa2,
                                    prior = NULL,
                                    lpa2[1],
