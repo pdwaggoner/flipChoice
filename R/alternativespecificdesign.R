@@ -55,9 +55,8 @@ alternativeSpecificDesign <- function(design.algorithm = "Alternative specific -
     # Standardize format with ChoiceModelDesign
     design <- splitAlternativesByRow(design, alternatives.per.question, n.attributes.per.alternative)
     colnames(design) <- names(unlist(n.levels.per.attribute))
-    design <- cbind(#Version = versions.col,
-                    #Task = rep(seq(n.questions * n.versions), each = alternatives.per.question),
-                    Question = rep(rep(seq(n.questions), each = alternatives.per.question), n.versions),
+    rownames(design) <- NULL
+    design <- cbind(Question = rep(rep(seq(n.questions), each = alternatives.per.question), n.versions),
                     Alternative = rep(seq(alternatives.per.question), length.out = nrow(design)),
                     design)
 
