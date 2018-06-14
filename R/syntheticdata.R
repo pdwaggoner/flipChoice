@@ -31,8 +31,7 @@ processSyntheticPriors <- function(synthetic.priors, n.parameters)
     if (is.matrix(synthetic.priors) && is.character(synthetic.priors))
     {
         parsed.data <- parsePastedData(synthetic.priors, n.sim = 10,
-                                       coding = "D",
-                                       labeled.alternatives)
+                                       coding = "D")
         prior <- parsed.data[["prior"]]
         if (!is.matrix(prior))
             stop(error.msg)

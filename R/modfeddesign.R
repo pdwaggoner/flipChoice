@@ -267,7 +267,7 @@ parsePastedPrior <- function(prior, candidates, n.sim = 10)
 
 #' @importFrom stats rnorm
 #' @noRd
-parsePastedData <- function(paste.data, n.sim = 10, coding = "D", labeled.alts = FALSE)
+parsePastedData <- function(paste.data, n.sim = 10, coding = "D")
 {
     ## if (is.null(prior) || length(prior) == 0L)
     ##     return(numeric(n.par))

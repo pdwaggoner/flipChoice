@@ -37,7 +37,7 @@ dScore <- function(design)
 #' @references See https://faculty.fuqua.duke.edu/~jch8/bio/Papers/Huber%20Zwerina%201996%20Marketing%20Research.pdf
 #' @export
 DError <- function(design.matrix, attribute.levels, effects = TRUE,
-                   prior = NULL, n.rotations = 10, seed = 123)
+                   prior = NULL, n.rotations = 1, seed = 123)
 {
     if (!is.matrix(design.matrix))
         stop("The input design needs to be a matrix.")

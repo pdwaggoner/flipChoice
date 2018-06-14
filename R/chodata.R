@@ -142,6 +142,9 @@ processChoFile <- function(cho.file, attribute.levels.file,
         all.names <- output$all.names
     }
 
+    checkNumberOfQuestionsLeftOut(max(sapply(respondent.indices, length)),
+                                  n.questions.left.out)
+
     non.missing <- nonMissingRespondentsCho(respondent.indices,
                                             respondent.has.missing, subset,
                                             weights, covariates,

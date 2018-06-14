@@ -150,7 +150,7 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                               labeled.alternatives = FALSE,
                               n.constant.attributes = 0,
                               extensive = FALSE,
-                              n.rotations = 10,
+                              n.rotations = 1,
                               max.subsample = 1e8,
                               output = "Labeled design",
                               seed = 54123) {
@@ -178,8 +178,8 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
         }
         else if (is.character(attribute.levels))
         {
-            parsed.data <- parsePastedData(attribute.levels, n.sim = 10, coding = "D",
-                                           labeled.alternatives)
+            parsed.data <- parsePastedData(attribute.levels, n.sim = 10,
+                                           coding = "D")
             levels.per.attribute <- parsed.data[["lvls"]]
             attribute.levels <- parsed.data[["attribute.list"]]
             if (is.null(prior))

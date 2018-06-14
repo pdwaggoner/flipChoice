@@ -6,7 +6,7 @@
 \usage{
 partialProfilesDesign(levels.per.attribute, prior = NULL,
   alternatives.per.question, n.questions, n.constant.attributes,
-  extensive = FALSE, seed = 123, n.rotations = 10)
+  extensive = FALSE, seed = 123, n.rotations = 1)
 }
 \arguments{
 \item{levels.per.attribute}{A \emph{named} vector containing the

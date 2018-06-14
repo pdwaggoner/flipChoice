@@ -6,7 +6,7 @@
 1996)}
 \usage{
 DError(design.matrix, attribute.levels, effects = TRUE, prior = NULL,
-  n.rotations = 10, seed = 123)
+  n.rotations = 1, seed = 123)
 }
 \arguments{
 \item{design.matrix}{is a matrix for an unlabeled choice design in the long

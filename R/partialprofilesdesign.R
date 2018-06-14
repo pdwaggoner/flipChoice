@@ -53,7 +53,7 @@
 partialProfilesDesign <- function(levels.per.attribute, prior = NULL,
                                   alternatives.per.question, n.questions,
                                   n.constant.attributes, extensive = FALSE,
-                                  seed = 123, n.rotations = 10)
+                                  seed = 123, n.rotations = 1)
 {
     n.attributes <- length(levels.per.attribute)
     if (is.null(names(levels.per.attribute)))

@@ -11,7 +11,7 @@ ChoiceModelDesign(design.algorithm = c("Random", "Shortcut",
   alternatives.per.question = 0, prohibitions = NULL,
   none.alternatives = 0, none.positions = NULL,
   labeled.alternatives = FALSE, n.constant.attributes = 0,
-  extensive = FALSE, n.rotations = 10, max.subsample = 1e+08,
+  extensive = FALSE, n.rotations = 1, max.subsample = 1e+08,
   output = "Labeled design", seed = 54123)
 }
 \arguments{

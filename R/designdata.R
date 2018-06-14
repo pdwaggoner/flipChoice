@@ -43,6 +43,8 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
     n.questions <- max(design[, "Question"])
     n.alternatives <- max(design[, "Alternative"])
 
+    checkNumberOfQuestionsLeftOut(n.questions, n.questions.left.out)
+
     if (!is.null(choices) && !is.null(questions))
     {
         choices <- data.frame(sapply(choices, as.numeric))
@@ -354,4 +356,11 @@ constructRespondentIndices <- function(non.missing.table)
         result[[i]] <- start.ind:end.ind
     }
     result
+}
+
+checkNumberOfQuestionsLeftOut <- function(n.questions, n.questions.left.out)
+{
+    if (n.questions <= n.questions.left.out)
+        stop("The number of questions left out needs to be less than the ",
+             "number of questions per respondent (", n.questions ,").")
 }

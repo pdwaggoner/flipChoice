@@ -12,6 +12,7 @@ processExperimentData <- function(experiment.data, subset, weights,
     n.attributes <- (length(nms) - n.questions) / n.qc
     if (round(n.attributes) != n.attributes)
         stop("The number of parameters in the Experiment question is invalid.")
+    checkNumberOfQuestionsLeftOut(n.questions, n.questions.left.out)
 
     if (missing == "Error if missing data")
         errorIfMissingDataFoundExperiment(experiment.data, subset, weights,
