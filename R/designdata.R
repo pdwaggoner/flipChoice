@@ -243,8 +243,25 @@ readDesignFile <- function(design.file, attribute.levels.file)
         }
     }
     design <- as.matrix(design)
-    # Add an empty "Question" column
-    design <- cbind(design[, 1:2], rep(NA, nrow(design)), design[, -1:-2])
+
+    # Add a "Question" column
+    n.rows <- nrow(design)
+    question <- rep(NA, n.rows)
+    question[1] <- 1
+    for (i in 2:n.rows)
+    {
+        if (design[i, 1] == design[i - 1, 1]) # Version
+        {
+            question[i] <- if (design[i, 2] == design[i - 1, 2]) # Task
+                question[i - 1]
+            else
+                question[i - 1] + 1
+        }
+        else
+            question[i] <- 1
+    }
+    design <- cbind(design[, 1:2], question, design[, -1:-2])
+
     colnames(design)[1:4] <- c("Version", "Task", "Question", "Alternative")
     list(design = design, attribute.levels = attribute.levels)
 }
