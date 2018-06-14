@@ -6,7 +6,8 @@
 \usage{
 FitChoiceModel(design = NULL, experiment.data = NULL, cho.file = NULL,
   design.file = NULL, attribute.levels.file = NULL, cov.formula = NULL,
-  cov.data = NULL, choices = NULL, questions = NULL, n.classes = 1,
+  cov.data = NULL, choices = NULL, questions = NULL,
+  synthetic.priors = NULL, synthetic.sample.size = 100, n.classes = 1,
   subset = NULL, weights = NULL, missing = "Use partial data",
   seed = 123, tasks.left.out = 0, normal.covariance = "Full",
   hb.iterations = 500, hb.chains = 8, hb.max.tree.depth = 10,
@@ -41,6 +42,14 @@ question.}
 
 \item{questions}{A data.frame of IDs of tasks presented to the
 respondents.}
+
+\item{synthetic.priors}{A 2-column matrix whose columns correspond to the
+mean and standard deviations of the parameters; or a character matrix
+with attribute levels and corresponding mean and sd columns after each
+attribute level column.}
+
+\item{synthetic.sample.size}{The number of synthetic respondents to
+generate.}
 
 \item{n.classes}{The number of latent classes.}
 
@@ -105,6 +114,8 @@ respondent IDs to use.}
 
 \item{...}{Additional parameters to pass on to \code{rstan::stan}
 and \code{rstan::sampling}.}
+
+\item{prior}{Matrix containing prior values for the model}
 }
 \value{
 A list with the following components: \itemize{

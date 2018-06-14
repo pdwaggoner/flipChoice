@@ -11,9 +11,10 @@
 #'     description of the algorithms.
 #' @param attribute.levels \code{\link{list}} of \code{\link{vector}}s
 #'     containing the labels of levels for each attribute, with names
-#'     corresponding to the attribute labels; \emph{or} a character
-#'     matrix with first row containing attribute names and subsequent
-#'     rows containing attribute levels.
+#'     corresponding to the attribute labels; \emph{or} a character matrix with
+#'     the first row containing attribute names and subsequent rows containing
+#'     attribute levels; \emph{or} a character matrix with attribute levels and
+#'     optional mean and sd columns after each attribute level column.
 #' @param prior Matrix containing prior values for the model
 #'     coefficients; only used for \code{design.algorithm ==
 #'     "Efficient"} and \code{design.algorithm == "Partial profiles"};

@@ -18,6 +18,13 @@
 #'     question.
 #' @param questions A data.frame of IDs of tasks presented to the
 #'     respondents.
+#' @param synthetic.priors A 2-column matrix whose columns correspond to the
+#'     mean and standard deviations of the parameters; or a character matrix
+#'     with attribute levels and corresponding mean and sd columns after each
+#'     attribute level column.
+#' @param synthetic.sample.size The number of synthetic respondents to
+#'     generate.
+#' @param prior Matrix containing prior values for the model
 #' @param n.classes The number of latent classes.
 #' @param subset An optional vector specifying a subset of
 #'     observations to be used in the fitting process.
@@ -121,7 +128,10 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                            cho.file = NULL, design.file = NULL,
                            attribute.levels.file = NULL,
                            cov.formula = NULL, cov.data = NULL,
-                           choices = NULL, questions = NULL, n.classes = 1,
+                           choices = NULL, questions = NULL,
+                           synthetic.priors = NULL,
+                           synthetic.sample.size = 100,
+                           n.classes = 1,
                            subset = NULL, weights = NULL,
                            missing = "Use partial data", seed = 123,
                            tasks.left.out = 0, normal.covariance = "Full",
@@ -146,25 +156,28 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     else
         NULL
 
-    dat <- if (!is.null(design) && !is.null(choices) && !is.null(questions))
+    dat <- if (!is.null(design) && (!is.null(synthetic.priors) ||
+                                (!is.null(choices) && !is.null(questions))))
         processDesignObject(design, choices, questions, subset, weights,
                             tasks.left.out, seed, hb.prior.mean, hb.prior.sd,
-                            include.choice.parameters, missing, covariates)
+                            include.choice.parameters, missing, covariates,
+                            synthetic.priors, synthetic.sample.size)
     else if (!is.null(experiment.data))
         processExperimentData(experiment.data, subset, weights, tasks.left.out,
                               seed, hb.prior.mean, hb.prior.sd, missing,
-                              covariates)
+                              covariates, synthetic.priors)
     else if (!is.null(cho.file) && !is.null(attribute.levels.file))
         processChoFile(cho.file, attribute.levels.file,
                        subset, weights, tasks.left.out, seed,
                        hb.prior.mean, hb.prior.sd, include.choice.parameters,
-                       respondent.ids, missing, covariates)
-    else if (!is.null(design.file) && !is.null(choices) &&
-             !is.null(questions))
+                       respondent.ids, missing, covariates, synthetic.priors)
+    else if (!is.null(design.file) && (!is.null(synthetic.priors) ||
+                                (!is.null(choices) && !is.null(questions))))
         processDesignFile(design.file, attribute.levels.file, choices,
                           questions, subset, weights, tasks.left.out,
                           seed, hb.prior.mean, hb.prior.sd,
-                          include.choice.parameters, missing, covariates)
+                          include.choice.parameters, missing, covariates,
+                          synthetic.priors, synthetic.sample.size)
     else
         stop("Insufficient data was supplied.")
 

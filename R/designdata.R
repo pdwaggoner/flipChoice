@@ -2,71 +2,105 @@ processDesignObject <- function(design.object, choices, questions, subset,
                                 weights, n.questions.left.out, seed,
                                 input.prior.mean, input.prior.sd,
                                 include.choice.parameters, missing,
-                                covariates)
+                                covariates, synthetic.priors,
+                                synthetic.sample.size)
 {
-    processDesign(design.object$design, design.object$attribute.levels,
+    processDesign(design.object$design.with.none,
+                  design.object$attribute.levels,
                   choices, questions, subset, weights, n.questions.left.out,
                   seed, input.prior.mean, input.prior.sd,
-                  include.choice.parameters, missing, covariates)
+                  include.choice.parameters, missing, covariates,
+                  synthetic.priors, synthetic.sample.size)
 }
 
 processDesignFile <- function(design.file, attribute.levels.file, choices,
                               questions, subset, weights, n.questions.left.out,
                               seed, input.prior.mean, input.prior.sd,
-                              include.choice.parameters, missing, covariates)
+                              include.choice.parameters, missing, covariates,
+                              synthetic.priors, synthetic.sample.size)
 {
     output <- readDesignFile(design.file, attribute.levels.file)
     processDesign(output$design, output$attribute.levels, choices, questions,
                   subset, weights, n.questions.left.out, seed,
                   input.prior.mean, input.prior.sd, include.choice.parameters,
-                  missing, covariates)
+                  missing, covariates, synthetic.priors, synthetic.sample.size)
 }
 
 #' @importFrom flipData CleanSubset NoData
 processDesign <- function(design, attribute.levels, choices, questions, subset,
                           weights, n.questions.left.out, seed, input.prior.mean,
                           input.prior.sd, include.choice.parameters, missing,
-                          covariates)
+                          covariates, synthetic.priors, synthetic.sample.size)
 {
     checkDesignColNames(design)
 
     design.attributes <- design[, !colnames(design) %in% .non.attr.col.names]
-
-    n.questions <- ncol(questions)
     n.attributes <- ncol(design.attributes)
-    n.alternatives <- getNumberOfAlternatives(choices)
-
     if (n.attributes != length(attribute.levels))
         stop("The number of attributes in the design file is inconsistent ",
              "with the number of attributes in the attribute levels file.")
 
-    choices <- data.frame(sapply(choices, as.numeric))
-    questions <- data.frame(sapply(questions, as.numeric))
+    n.questions <- max(design[, "Question"])
+    n.alternatives <- max(design[, "Alternative"])
 
-    if (missing == "Error if missing data")
-        errorIfMissingDataFound(choices, questions, subset, weights, covariates, missing)
+    if (!is.null(choices) && !is.null(questions))
+    {
+        choices <- data.frame(sapply(choices, as.numeric))
+        questions <- data.frame(sapply(questions, as.numeric))
 
-    non.missing.table <- nonMissingTable(choices, questions, subset, weights,
-                                         covariates, missing)
-    non.missing <- nonMissingRespondents(non.missing.table,
-                                         n.questions.left.out, missing,
-                                         n.questions)
+        if (missing == "Error if missing data")
+            errorIfMissingDataFound(choices, questions, subset, weights,
+                                    covariates, missing)
 
-    filter.subset <- CleanSubset(subset, nrow(choices))
-    subset <- filter.subset & non.missing
+        non.missing.table <- nonMissingTable(choices, questions, subset, weights,
+                                             covariates, missing)
+        non.missing <- nonMissingRespondents(non.missing.table,
+                                             n.questions.left.out, missing,
+                                             n.questions)
 
-    if (sum(filter.subset) == 0)
-        stop("All respondents have been filtered out.")
-    else if (sum(subset) == 0)
-        NoData()
+        filter.subset <- CleanSubset(subset, nrow(choices))
+        subset <- filter.subset & non.missing
 
-    n.respondents <- sum(subset)
-    weights <- prepareWeights(weights, subset)
-    choices <- choices[subset, ]
-    questions <- questions[subset, ]
-    non.missing.table <- non.missing.table[subset, ]
-    if (!is.null(covariates))
-        covariates <- covariates[subset, ]
+        if (sum(filter.subset) == 0)
+            stop("All respondents have been filtered out.")
+        else if (sum(subset) == 0)
+            NoData()
+
+        n.respondents <- sum(subset)
+        weights <- prepareWeights(weights, subset)
+        choices <- choices[subset, ]
+        questions <- questions[subset, ]
+        non.missing.table <- non.missing.table[subset, ]
+        if (!is.null(covariates))
+            covariates <- covariates[subset, ]
+    }
+    else if (!is.null(synthetic.priors))
+    {
+        questions <- generateSyntheticTasks(synthetic.sample.size, design)
+        n.respondents <- synthetic.sample.size
+        non.missing.table <- matrix(TRUE, nrow = n.respondents,
+                                    ncol = n.questions)
+        if (!is.null(subset))
+        {
+            warning("Filters have been ignored as respondent choices and ",
+                    "tasks were not supplied.")
+        }
+        subset <- rep(TRUE, n.respondents)
+        if (!is.null(weights))
+        {
+            warning("Weights have been ignored as respondent choices and ",
+                    "tasks were not supplied.")
+        }
+        weights <- rep(1, n.respondents)
+        if (!is.null(covariates))
+        {
+            warning("Covariates have been ignored as respondent choices and ",
+                    "tasks were not supplied.")
+            covariates <- NULL
+        }
+    }
+    else
+        stop("Insufficient choice data was supplied.")
 
     # A "None of these" option is left out from the design
     add.none.of.these <- n.alternatives == length(unique(design[, "Alternative"])) + 1
@@ -81,7 +115,6 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
 
     checkPriorParameters(input.prior.mean, input.prior.sd, n.alternatives,
                          n.attributes, n.parameters, include.choice.parameters)
-
     ordered.attributes <- orderedAttributes(input.prior.mean, n.attributes,
                                             n.parameters)
     if (any(ordered.attributes) && has.none.of.these)
@@ -89,7 +122,6 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
              ' alternative is present in the analysis.')
 
     n.rs <- sum(non.missing.table)
-
     X <- array(data = 0, dim = c(n.rs, n.alternatives, n.parameters))
 
     rs <- 1
@@ -122,7 +154,6 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
             }
         }
     }
-    Y <- c(t(as.matrix(choices)))[c(t(non.missing.table))]
 
     if (include.choice.parameters)
     {
@@ -137,8 +168,15 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
         all.names <- output$all.names
     }
 
+    respondent.indices <- constructRespondentIndices(non.missing.table)
+
+    Y <- if (!is.null(synthetic.priors))
+        generateSyntheticChoices(X, respondent.indices, synthetic.priors, seed)
+    else
+        c(t(as.matrix(choices)))[c(t(non.missing.table))]
+
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
-                                       non.missing.table = non.missing.table)
+                                       respondent.indices)
 
     prior.mean <- processInputPrior(input.prior.mean, n.parameters,
                                     n.attributes, n.attribute.parameters)
@@ -209,6 +247,24 @@ readDesignFile <- function(design.file, attribute.levels.file)
     list(design = design, attribute.levels = attribute.levels)
 }
 
+generateSyntheticTasks <- function(synthetic.sample.size, design)
+{
+    design.versions <- design[, "Version"]
+    design.tasks <- design[, "Task"]
+    n.versions <- max(design.versions)
+    n.questions <- max(design[, "Question"])
+    versions <- sample(n.versions, synthetic.sample.size, replace = TRUE)
+
+    result <- matrix(NA, nrow = synthetic.sample.size, ncol = n.questions)
+
+    for (i in 1:synthetic.sample.size)
+    {
+        ind <- design.versions == versions[i]
+        result[i, ] <- unique(design.tasks[ind])
+    }
+    result
+}
+
 #' @importFrom flipData MissingDataFail
 nonMissingTable <- function(choices, questions, subset, weights, covariates,
                             missing)
@@ -242,15 +298,6 @@ nonMissingTable <- function(choices, questions, subset, weights, covariates,
 fillXNoneOfThese <- function(n.parameters, n.attributes, n.attribute.parameters)
 {
     rep(0, n.parameters)
-}
-
-getNumberOfAlternatives <- function(choices)
-{
-    first.choices.column <- choices[[1]]
-    if (is.numeric(first.choices.column))
-        length(unique(first.choices.column))
-    else
-        length(levels(first.choices.column))
 }
 
 # Reads Excel file given local path or URL
@@ -292,4 +339,19 @@ errorIfMissingDataFound <- function(choices, questions, subset, weights,
         (!is.null(weights) && any(is.na(weights)))
         (!is.null(covariates) && any(is.na(covariates))))
         MissingDataFail();
+}
+
+constructRespondentIndices <- function(non.missing.table)
+{
+    n.respondents <- nrow(non.missing.table)
+    result <- vector(n.respondents, mode = "list")
+    start.ind <- NA
+    end.ind <- 0
+    for (i in 1:n.respondents)
+    {
+        start.ind <- end.ind + 1
+        end.ind <- start.ind + sum(non.missing.table[i, ]) - 1
+        result[[i]] <- start.ind:end.ind
+    }
+    result
 }

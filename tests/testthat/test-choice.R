@@ -138,3 +138,12 @@ test_that("Multi-class HB with covariates", {
     PlotPosteriorIntervals(result)
     TracePlots(result)
 })
+
+test_that("Synthetic data", {
+    data("eggs.cov", package = "flipChoice")
+    synthetic.priors <- matrix(c(rep(0, 13), rep(2, 13)), ncol = 2)
+    result <- FitChoiceModel(experiment.data = eggs.data, hb.iterations = 10,
+                             hb.chains = 1, hb.warnings = FALSE,
+                             synthetic.priors = synthetic.priors)
+    expect_error(print(result), NA)
+})

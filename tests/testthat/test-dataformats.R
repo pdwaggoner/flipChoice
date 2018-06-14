@@ -38,6 +38,27 @@ test_that("design object", {
     expect_error(print(result), NA)
 })
 
+test_that("design object synthetic data", {
+    synthetic.priors <- matrix(c(rep(0, 16), rep(2, 16)), ncol = 2)
+    result <- FitChoiceModel(design = eggs.design,
+                             choices = choices.jmp, questions = tasks.jmp,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             synthetic.priors = synthetic.priors,
+                             synthetic.sample.size = 1000)
+    expect_error(print(result), NA)
+})
+
+test_that("design object synthetic data without choices", {
+    synthetic.priors <- matrix(c(rep(0, 16), rep(2, 16)), ncol = 2)
+    result <- FitChoiceModel(design = eggs.design,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             synthetic.priors = synthetic.priors,
+                             synthetic.sample.size = 1000)
+    expect_error(print(result), NA)
+})
+
 test_that("cho file", {
     result <- FitChoiceModel(cho.file = cho.file,
                              attribute.levels.file = attribute.levels.file.cho,
@@ -53,6 +74,17 @@ test_that("cho none file", {
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              respondent.ids = respondent.ids)
+    expect_error(print(result), NA)
+})
+
+test_that("cho file synthetic data", {
+    synthetic.priors <- matrix(c(rep(0, 24), rep(2, 24)), ncol = 2)
+    result <- FitChoiceModel(cho.file = cho.file,
+                             attribute.levels.file = attribute.levels.file.cho,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             respondent.ids = respondent.ids,
+                             synthetic.priors = synthetic.priors)
     expect_error(print(result), NA)
 })
 
@@ -80,6 +112,18 @@ test_that("jmp format with labels", {
                              choices = choices.jmp, questions = tasks.jmp,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE)
+    expect_error(print(result), NA)
+})
+
+test_that("jmp format synthetic data", {
+    synthetic.priors <- matrix(c(rep(0, 17), rep(2, 17)), ncol = 2)
+    result <- FitChoiceModel(design.file = jmp.design.file,
+                             attribute.levels.file = attribute.levels.file.jmp,
+                             choices = choices.jmp.none.of.these,
+                             questions = tasks.jmp,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             synthetic.priors = synthetic.priors)
     expect_error(print(result), NA)
 })
 

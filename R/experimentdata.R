@@ -1,7 +1,8 @@
 #' @importFrom flipData CleanSubset NoData
 processExperimentData <- function(experiment.data, subset, weights,
                                   n.questions.left.out, seed, input.prior.mean,
-                                  input.prior.sd, missing, covariates)
+                                  input.prior.sd, missing, covariates,
+                                  synthetic.priors)
 {
     nms <- names(experiment.data)
     choice.name <- nms[1]
@@ -66,8 +67,15 @@ processExperimentData <- function(experiment.data, subset, weights,
     prior.sd <- processInputPrior(input.prior.sd, n.parameters,
                                   n.attributes, n.attribute.parameters,
                                   parameter.scales)
+
+    respondent.indices <- constructRespondentIndices(non.missing.table)
+
+    if (!is.null(synthetic.priors))
+        Y <- generateSyntheticChoices(x.list$X, respondent.indices,
+                                      synthetic.priors, seed)
+
     split.data <- crossValidationSplit(x.list$X, Y, n.questions.left.out, seed,
-                                       non.missing.table = non.missing.table)
+                                       respondent.indices)
 
     list(n.questions = n.questions,
          n.questions.left.out = n.questions.left.out,
@@ -299,16 +307,9 @@ processInputPrior <- function(prior.par, n.parameters, n.attributes,
 }
 
 crossValidationSplit <- function(X, Y, n.questions.left.out, seed,
-                                 non.missing.table = NULL,
-                                 respondent.indices = NULL)
+                                 respondent.indices)
 {
-    n.respondents <- if (!is.null(non.missing.table))
-        nrow(non.missing.table)
-    else if (!is.null(respondent.indices))
-        length(respondent.indices)
-    else
-        stop("Required inputs are missing.")
-
+    n.respondents <- length(respondent.indices)
     n.questions.left.in <- rep(NA, n.respondents)
     if (n.questions.left.out > 0)
     {
@@ -326,10 +327,7 @@ crossValidationSplit <- function(X, Y, n.questions.left.out, seed,
         rs.in <- 0
         for (r in 1:n.respondents)
         {
-            n.questions <- if (!is.null(non.missing.table))
-                sum(non.missing.table[r, ])
-            else
-                length(respondent.indices[[r]])
+            n.questions <- length(respondent.indices[[r]])
             n.questions.left.in[r] <- n.questions - n.questions.left.out
             ind.left.out <- sample(n.questions, n.questions.left.out)
             ind.left.in <- setdiff(1:n.questions, ind.left.out)
@@ -350,10 +348,7 @@ crossValidationSplit <- function(X, Y, n.questions.left.out, seed,
         Y.in <- Y
         X.out <- NULL
         Y.out <- NULL
-        n.questions.left.in <- if (!is.null(non.missing.table))
-            rowSums(non.missing.table)
-        else
-            sapply(respondent.indices, length)
+        n.questions.left.in <- sapply(respondent.indices, length)
     }
     list(X.in = X.in, X.out = X.out, Y.in = Y.in, Y.out = Y.out,
          n.questions.left.in = n.questions.left.in)

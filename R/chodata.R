@@ -3,7 +3,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
                            subset, weights, n.questions.left.out, seed,
                            input.prior.mean, input.prior.sd,
                            include.choice.parameters, respondent.ids, missing,
-                           covariates)
+                           covariates, synthetic.priors)
 {
     if (missing == "Error if missing data" &&
         ((!is.null(subset) && any(is.na(subset))) ||
@@ -164,8 +164,11 @@ processChoFile <- function(cho.file, attribute.levels.file,
         covariates <- covariates[subset, ]
     n.respondents <- sum(subset)
 
+    if (!is.null(synthetic.priors))
+        Y <- generateSyntheticChoices(X, respondent.indices, synthetic.priors, seed)
+
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
-                                       respondent.indices = respondent.indices)
+                                       respondent.indices)
 
     prior.mean <- processInputPrior(input.prior.mean, n.parameters,
                                     n.attributes, n.attribute.parameters)
