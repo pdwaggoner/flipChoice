@@ -30,6 +30,25 @@ for (i in 1:8)
 }
 tasks.jmp <- data.frame(t(matrix(1:3040, nrow = 8)))
 
+eggs.synthetic.priors <- structure(c("Alternative", "A", "B", "C", "", "",
+    "mean", " 0", " 0", " 0", NA, NA, "sd", " 0", "1.0", "1.0", NA, NA,
+    "Weight", "55g", "60g", "65g", "70g", "", "mean", " 0", " 1", " 2", " 3",
+    NA, "sd", " 0", "0.5", "1.0", "1.5", NA, "Organic", "BLANK",
+    "Antibiotic and hormone free", "", "", "", "mean", "0.0", "0.5", NA, NA,
+    NA, "sd", " 0", " 1", NA, NA, NA, "Charity", "BLANK",
+    "10% of Revenue donated to RSPCA", "", "", "", "mean", "0.00", "0.25", NA,
+    NA, NA, "sd", " 0", "0.5", NA, NA, NA, "Quality", "Fresh Eggs (Caged)",
+    "Barn Raised", "Free Range", "", "", "mean", "0.00", "0.25", "0.50", NA,
+    NA, "sd", " 0", "0.5", "1.0", NA, NA, "Uniformity",
+    "All eggs appear the same", "Some eggs appear different (e.g. Shell Colour)",
+    "", "", "", "mean", " 0", " 0", NA, NA, NA, "sd", " 0", "0.5", NA, NA, NA,
+    "Feed", "BLANK", "Fed on grain and fish (high in Omega)",
+    "Fed only on vegetables", "", "", "mean", "0.0", "0.5", "0.0", NA, NA,
+    "sd", " 0", " 1", " 1", NA, NA, "Price", "2 dollars", "3 dollars",
+    "4 dollars", "5 dollars", "6 dollars", "mean", " 0", "-2", "-3", "-4",
+    "-5", "sd", " 0", "1.0", "1.5", "2.0", "2.5"), .Dim = c(6L, 24L),
+    .Dimnames = list(c("nm", "1", "2", "3", "4", "5"), NULL))
+
 test_that("design object", {
     result <- FitChoiceModel(design = eggs.design,
                              choices = choices.jmp, questions = tasks.jmp,
@@ -45,6 +64,16 @@ test_that("design object synthetic data", {
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              synthetic.priors = synthetic.priors,
+                             synthetic.sample.size = 1000)
+    expect_error(print(result), NA)
+})
+
+test_that("design object synthetic data entered priors", {
+    result <- FitChoiceModel(design = eggs.design,
+                             choices = choices.jmp, questions = tasks.jmp,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             synthetic.priors = eggs.synthetic.priors,
                              synthetic.sample.size = 1000)
     expect_error(print(result), NA)
 })
