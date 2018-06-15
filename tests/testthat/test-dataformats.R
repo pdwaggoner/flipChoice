@@ -148,7 +148,7 @@ test_that("jmp format synthetic data", {
     synthetic.priors <- matrix(c(rep(0, 16), rep(2, 16)), ncol = 2)
     result <- FitChoiceModel(design.file = jmp.design.file,
                              attribute.levels.file = attribute.levels.file.jmp,
-                             choices = choices.jmp.none.of.these,
+                             choices = choices.jmp,
                              questions = tasks.jmp,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
