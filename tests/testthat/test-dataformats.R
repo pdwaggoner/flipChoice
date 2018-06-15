@@ -145,7 +145,7 @@ test_that("jmp format with labels", {
 })
 
 test_that("jmp format synthetic data", {
-    synthetic.priors <- matrix(c(rep(0, 17), rep(2, 17)), ncol = 2)
+    synthetic.priors <- matrix(c(rep(0, 16), rep(2, 16)), ncol = 2)
     result <- FitChoiceModel(design.file = jmp.design.file,
                              attribute.levels.file = attribute.levels.file.jmp,
                              choices = choices.jmp.none.of.these,
