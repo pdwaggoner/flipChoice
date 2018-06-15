@@ -61,8 +61,8 @@ test_that("Bayesian optimal integrated algorithm",
                               alternatives.per.question = 3,
                               n.constant.attributes = 0,
                               seed = 1)
-    expect_equal(result$d.criterion, -6.30145393214796)
-    expect_equal(result$d.error, 2.73147951766982)
+    expect_equal(result$d.criterion, -6.14093323545092)
+    expect_equal(result$d.error, 2.64730779241882)
 })
 
 test_that("Partial profiles vs modified Federov with a prior distribution",
