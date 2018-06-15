@@ -41,12 +41,12 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
              "with the number of attributes in the attribute levels file.")
 
     n.questions <- max(design[, "Question"])
-    n.alternatives <- max(design[, "Alternative"])
 
     checkNumberOfQuestionsLeftOut(n.questions, n.questions.left.out)
 
     if (!is.null(choices) && !is.null(questions))
     {
+        n.alternatives <- getNumberOfAlternatives(choices)
         choices <- data.frame(sapply(choices, as.numeric))
         questions <- data.frame(sapply(questions, as.numeric))
 
@@ -78,6 +78,7 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
     }
     else if (!is.null(synthetic.priors))
     {
+        n.alternatives <- max(design[, "Alternative"])
         questions <- generateSyntheticTasks(synthetic.sample.size, design)
         n.respondents <- synthetic.sample.size
         non.missing.table <- matrix(TRUE, nrow = n.respondents,
@@ -380,4 +381,13 @@ checkNumberOfQuestionsLeftOut <- function(n.questions, n.questions.left.out)
     if (n.questions <= n.questions.left.out)
         stop("The number of questions left out needs to be less than the ",
              "number of questions per respondent (", n.questions ,").")
+}
+
+getNumberOfAlternatives <- function(choices)
+{
+    first.choices.column <- choices[[1]]
+    if (is.numeric(first.choices.column))
+        length(unique(first.choices.column))
+    else
+        length(levels(first.choices.column))
 }
