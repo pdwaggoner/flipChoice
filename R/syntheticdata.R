@@ -33,7 +33,7 @@ processSyntheticPriors <- function(synthetic.priors, n.parameters)
         parsed.data <- parsePastedData(synthetic.priors, n.sim = 10,
                                        coding = "D")
         prior <- parsed.data[["prior"]]
-        if (!is.matrix(prior))
+        if (!is.matrix(prior) || nrow(prior) != n.parameters)
             stop(error.msg)
         else
         {
