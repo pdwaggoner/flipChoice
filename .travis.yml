@@ -6,6 +6,10 @@ sudo: required
 cache: packages
 warnings_are_errors: false
 
+env:
+  matrix:
+    - CXX_OLEVEL=2 CXX=g++
+
 # install debian libraries to match R-servers
 # update pre-installed packages to latest versions
 before_install:
@@ -16,6 +20,14 @@ before_install:
   - rcode+="n.fail <- as.numeric(sub('Failed:[[:space:]]', '', out[grep('Failed:[[:space:]]', out)])); "
   - rcode+="write.csv(as.data.frame(res), file='test_results.csv'); "
   - rcode+="quit(status=n.fail, save='no');"
+  - mkdir -p ~/.R/
+  - echo "CXX = `R CMD config CXX`" >> ~/.R/Makevars
+  - echo "CXXFLAGS = `R CMD config CXXFLAGS` -g0 -flto -Wno-unused-local-typedefs" >> ~/.R/Makevars
+  - echo "CXXFLAGS += -Wno-ignored-attributes -Wno-deprecated-declerations" >> ~/.R/Makevars
+  - export CLANG_EXTRA_ARG=""
+  - if [[ $CXX = "clang++" ]] ;  then export CLANG_EXTRA_ARG=" -Qunused-arguments -fcolor-diagnostics " ; fi
+  - sed -i.bak "s/ g++/ ${CXX}${CLANG_EXTRA_ARG}/" ~/.R/Makevars
+  - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
 
 r_packages:
   - devtools
