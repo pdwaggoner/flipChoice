@@ -36,9 +36,7 @@ r_github_packages:
 script:
   - R CMD build --no-manual --no-build-vignettes --no-resave-data .
   - R CMD check --as-cran --no-manual --no-build-vignettes --no-tests *.tar.gz
-  - if [ -d tests/testthat ]; then
-    travis_wait ./runTravisTests.sh
-    fi
+  - travis_wait ./runTravisTests.sh
 
 notifications:
   slack:
