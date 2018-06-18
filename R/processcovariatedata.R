@@ -2,7 +2,6 @@
 #' (it is assummed that it contains covariates)
 #' @param dat list formed from input data describing the choice
 #'     model design, responses and other data
-#' @importFrom stats model.matrix.default
 #' @noRd
 processCovariateData <- function(dat, n.classes)
 {

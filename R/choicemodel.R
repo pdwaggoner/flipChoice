@@ -122,6 +122,7 @@
 #' print(fit.with.prior)
 #' }
 #' @importFrom flipFormat Labels
+#' @importFrom stats model.matrix.default
 #' @export
 #'
 FitChoiceModel <- function(design = NULL, experiment.data = NULL,
