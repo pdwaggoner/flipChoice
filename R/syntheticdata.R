@@ -16,7 +16,8 @@ generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
         {
             ind <- respondent.indices[[i]][j]
             discriminants <- X[ind, , ] %*% respondent.parameters[i, ]
-            result[ind] <- which.max(discriminants)
+            probs <- exp(discriminants) / sum(exp(discriminants))
+            result[ind] <- which(rmultinom(1, 1, probs) == 1)
         }
     }
     result
