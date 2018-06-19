@@ -168,7 +168,11 @@ processChoFile <- function(cho.file, attribute.levels.file,
     n.respondents <- sum(subset)
 
     if (!is.null(synthetic.priors))
-        Y <- generateSyntheticChoices(X, respondent.indices, synthetic.priors, seed)
+    {
+        output <- generateSyntheticChoices(X, respondent.indices, synthetic.priors, seed)
+        Y <- output$choices
+        synthetic.respondent.parameters <- output$respondent.parameters
+    }
 
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
                                        respondent.indices)
@@ -199,7 +203,8 @@ processChoFile <- function(cho.file, attribute.levels.file,
          covariates = covariates,
          parameter.scales = rep(1, n.parameters),
          prior.mean = prior.mean,
-         prior.sd = prior.sd)
+         prior.sd = prior.sd,
+         synthetic.respondent.parameters = synthetic.respondent.parameters)
 }
 
 processAttributeLevelsFile <- function(attribute.levels.file)

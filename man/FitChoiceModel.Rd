@@ -121,6 +121,11 @@ and \code{rstan::sampling}.}
 A list with the following components: \itemize{
     \item \code{respondent.parameters} A matrix containing the parameters
     of each respondent.
+    \item \code{reduced.respondent.parameters} A matrix containing the
+    parameters of each respondent, excluding the constrained parameters.
+    \item \code{synthetic.respondent.parameters} If synthetic priors are
+    used, this is a matrix containing the synthetic parameters of
+    each respondent, excluding the constrained parameters.
     \item \code{parameter.statistics} A matrix
     containing parameter statistics such as effective sample size
     and Rhat.

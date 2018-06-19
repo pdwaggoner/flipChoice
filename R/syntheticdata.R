@@ -8,7 +8,7 @@ generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
     respondent.parameters <- t(matrix(rnorm(n.respondents * n.parameters,
                                             prior$mean, prior$sd),
                                       nrow = n.parameters))
-    result <- rep(NA, dim(X)[1])
+    choices <- rep(NA, dim(X)[1])
     for (i in 1:n.respondents)
     {
         n.questions <- length(respondent.indices[[i]])
@@ -17,10 +17,11 @@ generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
             ind <- respondent.indices[[i]][j]
             discriminants <- X[ind, , ] %*% respondent.parameters[i, ]
             probs <- exp(discriminants) / sum(exp(discriminants))
-            result[ind] <- which(rmultinom(1, 1, probs) == 1)
+            choices[ind] <- which(rmultinom(1, 1, probs) == 1)
         }
     }
-    result
+    list(choices = choices,
+         respondent.parameters = respondent.parameters)
 }
 
 processSyntheticPriors <- function(synthetic.priors, n.parameters)

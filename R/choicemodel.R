@@ -74,6 +74,11 @@
 #' @return A list with the following components: \itemize{
 #'     \item \code{respondent.parameters} A matrix containing the parameters
 #'     of each respondent.
+#'     \item \code{reduced.respondent.parameters} A matrix containing the
+#'     parameters of each respondent, excluding the constrained parameters.
+#'     \item \code{synthetic.respondent.parameters} If synthetic priors are
+#'     used, this is a matrix containing the synthetic parameters of
+#'     each respondent, excluding the constrained parameters.
 #'     \item \code{parameter.statistics} A matrix
 #'     containing parameter statistics such as effective sample size
 #'     and Rhat.
@@ -194,6 +199,9 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
 
     end.time <- proc.time()
 
+    synthetic.resp.pars <- dat$synthetic.respondent.parameters
+    colnames(synthetic.resp.pars) <- colnames(result$reduced.respondent.parameters)
+
     result <- accuracyResults(dat, result, tasks.left.out)
     result$algorithm <- "HB-Stan"
     result$n.questions.left.out <- tasks.left.out
@@ -211,6 +219,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                                   NULL
                               else
                                   colnames(dat$covariates)
+    result$synthetic.respondent.parameters <- synthetic.resp.pars
     result$time.taken <- (end.time - start.time)[3]
     result
 }

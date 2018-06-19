@@ -173,10 +173,15 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
 
     respondent.indices <- constructRespondentIndices(non.missing.table)
 
-    Y <- if (!is.null(synthetic.priors))
-        generateSyntheticChoices(X, respondent.indices, synthetic.priors, seed)
+    if (!is.null(synthetic.priors))
+    {
+        output <- generateSyntheticChoices(X, respondent.indices,
+                                           synthetic.priors, seed)
+        Y <- output$choices
+        synthetic.respondent.parameters <- output$respondent.parameters
+    }
     else
-        c(t(as.matrix(choices)))[c(t(non.missing.table))]
+        Y <- c(t(as.matrix(choices)))[c(t(non.missing.table))]
 
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
                                        respondent.indices)
@@ -207,7 +212,8 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
          covariates = covariates,
          parameter.scales = rep(1, n.parameters),
          prior.mean = prior.mean,
-         prior.sd = prior.sd)
+         prior.sd = prior.sd,
+         synthetic.respondent.parameters = synthetic.respondent.parameters)
 }
 
 readDesignFile <- function(design.file, attribute.levels.file)
