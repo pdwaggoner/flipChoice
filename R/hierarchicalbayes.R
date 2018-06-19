@@ -252,8 +252,8 @@ ComputeRespPars <- function(stan.fit, par.names, subset,
 
 stanModel <- function(n.classes, normal.covariance, has.covariates)
 {
-    covariates.error.msg <- paste0("Fixed covariates is not currently ",
-                                   "implemented for multiple classes")
+    covariates.error.msg <- paste0("Covariates is not currently implemented ",
+                                   "for the specified settings.")
     if (n.classes == 1)
     {
         if (normal.covariance == "Full")
