@@ -78,6 +78,8 @@ processExperimentData <- function(experiment.data, subset, weights,
         Y <- output$choices
         synthetic.respondent.parameters <- output$respondent.parameters
     }
+    else
+        synthetic.respondent.parameters <- NULL
 
     split.data <- crossValidationSplit(x.list$X, Y, n.questions.left.out, seed,
                                        respondent.indices)
