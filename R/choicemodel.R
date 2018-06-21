@@ -200,7 +200,8 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     end.time <- proc.time()
 
     synthetic.resp.pars <- dat$synthetic.respondent.parameters
-    colnames(synthetic.resp.pars) <- colnames(result$reduced.respondent.parameters)
+    if (!is.null(synthetic.resp.pars))
+        colnames(synthetic.resp.pars) <- colnames(result$reduced.respondent.parameters)
 
     result <- accuracyResults(dat, result, tasks.left.out)
     result$algorithm <- "HB-Stan"
