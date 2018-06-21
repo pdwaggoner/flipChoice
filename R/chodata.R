@@ -173,6 +173,8 @@ processChoFile <- function(cho.file, attribute.levels.file,
         Y <- output$choices
         synthetic.respondent.parameters <- output$respondent.parameters
     }
+    else
+        synthetic.respondent.parameters <- NULL
 
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
                                        respondent.indices)

@@ -181,7 +181,10 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
         synthetic.respondent.parameters <- output$respondent.parameters
     }
     else
+    {
         Y <- c(t(as.matrix(choices)))[c(t(non.missing.table))]
+        synthetic.respondent.parameters <- NULL
+    }
 
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
                                        respondent.indices)
