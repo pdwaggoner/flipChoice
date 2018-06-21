@@ -79,7 +79,8 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
     else if (!is.null(synthetic.priors))
     {
         n.alternatives <- max(design[, "Alternative"])
-        questions <- generateSyntheticTasks(synthetic.sample.size, design)
+        questions <- generateSyntheticTasks(synthetic.sample.size, design,
+                                            seed)
         n.respondents <- synthetic.sample.size
         non.missing.table <- matrix(TRUE, nrow = n.respondents,
                                     ncol = n.questions)
@@ -276,12 +277,13 @@ readDesignFile <- function(design.file, attribute.levels.file)
     list(design = design, attribute.levels = attribute.levels)
 }
 
-generateSyntheticTasks <- function(synthetic.sample.size, design)
+generateSyntheticTasks <- function(synthetic.sample.size, design, seed)
 {
     design.versions <- design[, "Version"]
     design.tasks <- design[, "Task"]
     n.versions <- max(design.versions)
     n.questions <- max(design[, "Question"])
+    set.seed(seed)
     versions <- sample(n.versions, synthetic.sample.size, replace = TRUE)
 
     result <- matrix(NA, nrow = synthetic.sample.size, ncol = n.questions)
