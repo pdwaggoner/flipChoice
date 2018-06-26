@@ -359,15 +359,12 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
     result$labeled.alternatives <- labeled.alternatives
     result$balances.and.overlaps <- balancesAndOverlaps(result)
 
-    if (!alt.specific)
-    {
-        ml.model <- mlogitModel(result)
-        if (is.null(ml.model))
-            warning("Standard errors cannot be calculated. The design does not sufficiently explore",
-                    " the combinations of levels. To fix this, increase the number of questions or versions.")
-        else
-            result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
-    }
+    ml.model <- mlogitModel(result)
+    if (is.null(ml.model))
+        warning("Standard errors cannot be calculated. The design does not sufficiently explore",
+                " the combinations of levels. To fix this, increase the number of questions or versions.")
+    else
+        result$standard.errors <- summary(ml.model)$CoefTable[, 1:2]
 
     class(result) <- c(class(result), "ChoiceModelDesign")
     return(result)
@@ -692,6 +689,12 @@ mlogitModel <- function(cmd, choices = NULL) {
     labeled <- labeled[, !colnames(labeled) %in% c("Version", "Task")]
     labeled <- labeled[rep_len(seq_len(nrow(labeled)), length.out = length(choices)), ]
 
+    if (grepl("Alternative specific", cmd$design.algorithm))
+    {
+        first.levels <- sapply(cmd$attribute.levels, function(x) x[1])
+        for (i in 3:ncol(labeled))
+            labeled[is.na(labeled[, i]), i] <- first.levels[i - 2]
+    }
     labeled$Choice <- choices
     mlogit.df <- mlogit.data(labeled, choice = "Choice", shape = "long",
                              varying = which(!colnames(labeled) %in% .non.attr.col.names),
