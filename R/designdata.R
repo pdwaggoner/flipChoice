@@ -46,9 +46,17 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
 
     if (!is.null(choices) && !is.null(questions))
     {
+        choices <- if (is.matrix(choices))
+            data.frame(choices)
+        else
+            data.frame(sapply(choices, as.numeric))
+
+        questions <- if (is.matrix(questions))
+            data.frame(questions)
+        else
+            data.frame(sapply(questions, as.numeric))
+
         n.alternatives <- getNumberOfAlternatives(choices)
-        choices <- data.frame(sapply(choices, as.numeric))
-        questions <- data.frame(sapply(questions, as.numeric))
 
         if (missing == "Error if missing data")
             errorIfMissingDataFound(choices, questions, subset, weights,

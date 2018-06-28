@@ -18,6 +18,7 @@ attribute.levels.file.jmp <- findInstDirFile("eggs_labels.xlsx")
 data(eggs, package = "flipChoice")
 data(eggs.design, package = "flipChoice")
 data(cho.ids, package = "flipChoice")
+data(test.design.data, package = "flipChoice")
 
 choices.jmp <- eggs.data[, 1:8]
 choices.jmp.none.of.these <- choices.jmp
@@ -30,24 +31,14 @@ for (i in 1:8)
 }
 tasks.jmp <- data.frame(t(matrix(1:3040, nrow = 8)))
 
-eggs.synthetic.priors <- structure(c("Alternative", "A", "B", "C", "", "",
-    "mean", " 0", " 0", " 0", NA, NA, "sd", " 0", "1.0", "1.0", NA, NA,
-    "Weight", "55g", "60g", "65g", "70g", "", "mean", " 0", " 1", " 2", " 3",
-    NA, "sd", " 0", "0.5", "1.0", "1.5", NA, "Organic", "BLANK",
-    "Antibiotic and hormone free", "", "", "", "mean", "0.0", "0.5", NA, NA,
-    NA, "sd", " 0", " 1", NA, NA, NA, "Charity", "BLANK",
-    "10% of Revenue donated to RSPCA", "", "", "", "mean", "0.00", "0.25", NA,
-    NA, NA, "sd", " 0", "0.5", NA, NA, NA, "Quality", "Fresh Eggs (Caged)",
-    "Barn Raised", "Free Range", "", "", "mean", "0.00", "0.25", "0.50", NA,
-    NA, "sd", " 0", "0.5", "1.0", NA, NA, "Uniformity",
-    "All eggs appear the same", "Some eggs appear different (e.g. Shell Colour)",
-    "", "", "", "mean", " 0", " 0", NA, NA, NA, "sd", " 0", "0.5", NA, NA, NA,
-    "Feed", "BLANK", "Fed on grain and fish (high in Omega)",
-    "Fed only on vegetables", "", "", "mean", "0.0", "0.5", "0.0", NA, NA,
-    "sd", " 0", " 1", " 1", NA, NA, "Price", "2 dollars", "3 dollars",
-    "4 dollars", "5 dollars", "6 dollars", "mean", " 0", "-2", "-3", "-4",
-    "-5", "sd", " 0", "1.0", "1.5", "2.0", "2.5"), .Dim = c(6L, 24L),
-    .Dimnames = list(c("nm", "1", "2", "3", "4", "5"), NULL))
+attribute.levels <- list(Att1 = 1:2, Att2 = 1:2, Att3 = 1:3)
+test.design <- ChoiceModelDesign(design.algorithm = "Partial profiles",
+                                 attribute.levels = attribute.levels,
+                                 prior = NULL,
+                                 n.questions = 10,
+                                 n.versions = 2,
+                                 alternatives.per.question = 2,
+                                 seed = 1)
 
 test_that("design object", {
     result <- FitChoiceModel(design = eggs.design,
@@ -58,9 +49,10 @@ test_that("design object", {
 })
 
 test_that("design object synthetic data", {
-    synthetic.priors <- matrix(c(rep(0, 16), rep(2, 16)), ncol = 2)
-    result <- FitChoiceModel(design = eggs.design,
-                             choices = choices.jmp, questions = tasks.jmp,
+    synthetic.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
+    result <- FitChoiceModel(design = test.design,
+                             choices = test.choices,
+                             questions = test.questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              synthetic.priors = synthetic.priors,
@@ -69,22 +61,23 @@ test_that("design object synthetic data", {
 })
 
 test_that("design object synthetic data entered priors", {
-    result <- FitChoiceModel(design = eggs.design,
-                             choices = choices.jmp, questions = tasks.jmp,
+    result <- FitChoiceModel(design = test.design,
+                             choices = test.choices,
+                             questions = test.questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors = eggs.synthetic.priors,
+                             synthetic.priors = test.synthetic.priors,
                              synthetic.sample.size = 1000)
     expect_error(print(result), NA)
 })
 
 test_that("design object synthetic data without choices", {
-    synthetic.priors <- matrix(c(rep(0, 16), rep(2, 16)), ncol = 2)
-    result <- FitChoiceModel(design = eggs.design,
+    synthetic.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
+    result <- FitChoiceModel(design = test.design,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              synthetic.priors = synthetic.priors,
-                             synthetic.sample.size = 1000)
+                             synthetic.sample.size = 100)
     expect_error(print(result), NA)
 })
 
