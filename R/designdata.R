@@ -406,7 +406,7 @@ getNumberOfAlternatives <- function(choices)
 {
     first.choices.column <- choices[[1]]
     if (is.numeric(first.choices.column))
-        length(unique(first.choices.column))
+        sum(!is.na(unique(first.choices.column)))
     else
         length(levels(first.choices.column))
 }
