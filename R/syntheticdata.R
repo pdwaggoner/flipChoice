@@ -1,3 +1,4 @@
+#' @importFrom stats rmultinom
 generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
                                      seed)
 {
@@ -26,10 +27,10 @@ generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
 
 processSyntheticPriors <- function(synthetic.priors, n.parameters)
 {
-    error.msg <- paste0("The priors for generating synthetic data are not in ",
-                        "a valid format (e.g., a matrix with ", n.parameters,
-                        " rows and 2 columns). Please refer to the ",
-                        "documentation for FitChoiceModel.")
+    error.msg <- paste0("The priors for generating synthetic choices do not ",
+                        "match the supplied data. Please refer to the ",
+                        "documentation for the valid formats of the ",
+                        "synthetic priors.")
     if (is.matrix(synthetic.priors) && is.character(synthetic.priors))
     {
         parsed.data <- parsePastedData(synthetic.priors, n.sim = 10,

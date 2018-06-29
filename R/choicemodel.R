@@ -155,6 +155,9 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     if (any(hb.prior.sd <= 0))
         stop("All prior standard deviations must be greater than 0.")
 
+    if (!is.null(synthetic.priors) && max(dim(synthetic.priors)) == 0)
+        stop("Synthetic priors have not been specified.")
+
     start.time <- proc.time()
 
     covariates <- if (!is.null(cov.formula))
@@ -272,12 +275,14 @@ accuracyResults <- function(dat, result, n.questions.left.out)
             }
             out.sample.accuracies[i] <- mean(score)
         }
-        result$prediction.accuracies <- out.sample.accuracies
+        result$prediction.accuracies <- rep(NA, length(dat$subset))
+        result$prediction.accuracies[dat$subset] <- out.sample.accuracies
         result$out.sample.accuracy <- sum(out.sample.accuracies * w) / sum(w)
     }
     else
     {
-        result$prediction.accuracies <- in.sample.accuracies
+        result$prediction.accuracies <- rep(NA, length(dat$subset))
+        result$prediction.accuracies[dat$subset] <- in.sample.accuracies
         result$out.sample.accuracy <- NA
     }
     result
