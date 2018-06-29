@@ -41,8 +41,9 @@ test.design <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                                  seed = 1)
 
 test_that("design object", {
-    result <- FitChoiceModel(design = eggs.design,
-                             choices = choices.jmp, questions = tasks.jmp,
+    result <- FitChoiceModel(design = test.design,
+                             choices = test.design.data$choices,
+                             questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE)
     expect_error(print(result), NA)
@@ -51,8 +52,8 @@ test_that("design object", {
 test_that("design object synthetic data", {
     synthetic.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
     result <- FitChoiceModel(design = test.design,
-                             choices = test.choices,
-                             questions = test.questions,
+                             choices = test.design.data$choices,
+                             questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              synthetic.priors = synthetic.priors,
@@ -62,11 +63,11 @@ test_that("design object synthetic data", {
 
 test_that("design object synthetic data entered priors", {
     result <- FitChoiceModel(design = test.design,
-                             choices = test.choices,
-                             questions = test.questions,
+                             choices = test.design.data$choices,
+                             questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors = test.synthetic.priors,
+                             synthetic.priors = test.design.data$synthetic.priors,
                              synthetic.sample.size = 1000)
     expect_error(print(result), NA)
 })
