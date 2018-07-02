@@ -391,28 +391,36 @@ constrainedPrior <- function(
     {
         p <- prior.means[[n]]
         s <- prior.sd[[n]]
-        n.lvl <- lvls[n]
-        n.c <- n.lvl - 1
-        default.beta <- numeric(n.c)
-        default.sd <- numeric(n.c)
-        if (!is.null(p) || !is.null(s))
+        if (lvls[n] == 1) # numeric attribute
         {
-            Cmat <- contr.fun(as.factor(seq_len(n.lvl)))
-            Cleftinv <- solve(crossprod(Cmat), t(Cmat))
-            if (is.null(p))
-                tbeta <- default.beta
-            else
-                tbeta <- Cleftinv%*%p
-
-            if (is.null(s))
-                tsd <- default.sd
-            else  # V(beta.c) = C*diag(V(beta.uc))*C^T
-                tsd <- sqrt(diag(tcrossprod(Cleftinv%*%diag(s^2), Cleftinv)))
+            tbeta <- if (!is.null(p)) p else 0
+            tsd <- if (!is.null(s)) s else 0
         }
-        else
+        else # categorical attribute
         {
-            tbeta <- default.beta
-            tsd <- default.sd
+            n.lvl <- lvls[n]
+            n.c <- n.lvl - 1
+            default.beta <- numeric(n.c)
+            default.sd <- numeric(n.c)
+            if (!is.null(p) || !is.null(s))
+            {
+                Cmat <- contr.fun(as.factor(seq_len(n.lvl)))
+                Cleftinv <- solve(crossprod(Cmat), t(Cmat))
+                if (is.null(p))
+                    tbeta <- default.beta
+                else
+                    tbeta <- Cleftinv%*%p
+
+                if (is.null(s))
+                    tsd <- default.sd
+                else  # V(beta.c) = C*diag(V(beta.uc))*C^T
+                    tsd <- sqrt(diag(tcrossprod(Cleftinv%*%diag(s^2), Cleftinv)))
+            }
+            else
+            {
+                tbeta <- default.beta
+                tsd <- default.sd
+            }
         }
         beta.c <- c(beta.c, tbeta)
         sd.c <- c(sd.c, tsd)
