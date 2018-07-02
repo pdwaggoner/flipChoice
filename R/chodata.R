@@ -169,7 +169,9 @@ processChoFile <- function(cho.file, attribute.levels.file,
 
     if (!is.null(synthetic.priors))
     {
-        output <- generateSyntheticChoices(X, respondent.indices, synthetic.priors, seed)
+        output <- generateSyntheticChoices(X, respondent.indices,
+                                           synthetic.priors, seed,
+                                           n.alternatives)
         Y <- output$choices
         synthetic.respondent.parameters <- output$respondent.parameters
     }

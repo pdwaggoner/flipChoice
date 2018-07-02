@@ -76,6 +76,18 @@ test_that("design object synthetic data", {
     expect_error(print(result), NA)
 })
 
+test_that("design object synthetic data without alternatives", {
+    synthetic.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
+    result <- FitChoiceModel(design = test.design,
+                             choices = test.design.data$choices,
+                             questions = test.design.data$questions,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             synthetic.priors = synthetic.priors[-1, ],
+                             synthetic.sample.size = 1000)
+    expect_error(print(result), NA)
+})
+
 test_that("design object synthetic data entered priors", {
     result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,

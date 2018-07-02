@@ -293,7 +293,8 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
                    n.versions = n.versions,
                    alternatives.per.question = alternatives.per.question,
                    none.alternatives = none.alternatives,
-                   output = output)
+                   output = output,
+                   prior = prior)
 
     if (design.algorithm == "Modfed")
     {
