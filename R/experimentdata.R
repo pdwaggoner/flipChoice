@@ -74,7 +74,7 @@ processExperimentData <- function(experiment.data, subset, weights,
     if (!is.null(synthetic.priors))
     {
         output <- generateSyntheticChoices(x.list$X, respondent.indices,
-                                           synthetic.priors, seed)
+                                           synthetic.priors, seed, parameter.scales)
         Y <- output$choices
         synthetic.respondent.parameters <- output$respondent.parameters
     }

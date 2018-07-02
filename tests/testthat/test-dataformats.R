@@ -40,6 +40,21 @@ test.design <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                                  alternatives.per.question = 2,
                                  seed = 1)
 
+test_that("experiment question synthetic data", {
+    exp.synthetic.prior <- structure(c("Alt", "a", "b", "c", "", "mean", "0", "0", "0",
+                "", "Weight", "a", "b", "c", "d", "mean", "0", "1", "2", "3",
+                "sd", "0", "0.5", "1", "1.5", "Organic", "a", "b", "", "", "mean",
+                "0", "1", "", "", "Charity", "a", "b", "", "", "mean", "0", "1",
+                "", "", "Quality", "a", "b", "c", "", "Uniformity", "a", "b",
+                "", "", "Feed", "a", "b", "c", "", "Price", "a", "", "", "",
+                "mean", "-3", "", "", ""), .Dim = c(5L, 14L))
+    result <- FitChoiceModel(experiment.data = eggs.data, hb.iterations = 10,
+                             hb.chains = 1, hb.warnings = FALSE,
+                             hb.beta.draws.to.keep = 2,
+                             synthetic.priors = exp.synthetic.prior)
+    expect_error(print(result), NA)
+})
+
 test_that("design object", {
     result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,

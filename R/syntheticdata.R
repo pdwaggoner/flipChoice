@@ -1,6 +1,6 @@
 #' @importFrom stats rmultinom
 generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
-                                     seed)
+                                     seed, parameter.scales = NULL)
 {
     set.seed(seed)
     n.respondents <- length(respondent.indices)
@@ -9,6 +9,9 @@ generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
     respondent.parameters <- t(matrix(rnorm(n.respondents * n.parameters,
                                             prior$mean, prior$sd),
                                       nrow = n.parameters))
+    if (!is.null(parameter.scales))
+        respondent.parameters <- t(t(respondent.parameters) * parameter.scales)
+
     choices <- rep(NA, dim(X)[1])
     for (i in 1:n.respondents)
     {
