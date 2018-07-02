@@ -155,7 +155,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     if (any(hb.prior.sd <= 0))
         stop("All prior standard deviations must be greater than 0.")
 
-    if ((!is.null(synthetic.priors) || max(dim(synthetic.priors)) == 0) &&
+    if ((is.null(synthetic.priors) || max(dim(synthetic.priors)) == 0) &&
             (!is.null(design) && !is.null(design$prior)))
         synthetic.priors <- design$prior
 

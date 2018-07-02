@@ -67,18 +67,15 @@ processSyntheticPriors <- function(synthetic.priors, n.parameters,
              (nrow(synthetic.priors) == n.parameters ||
               nrow(synthetic.priors) == n.pars.without.alts))
     {
-        if (nrow(prior) == n.parameters)
+        if (nrow(synthetic.priors) == n.parameters)
         {
             prior.mean <- synthetic.priors[, 1]
             prior.sd <- synthetic.priors[, 2]
         }
-        else
+        else # let alternative parameters have priors of zero
         {
-            # let alternative parameters have priors of zero
-            {
-                prior.mean <- c(prior.zeros, synthetic.priors[, 1])
-                prior.sd <- c(prior.zeros, synthetic.priors[, 2])
-            }
+            prior.mean <- c(prior.zeros, synthetic.priors[, 1])
+            prior.sd <- c(prior.zeros, synthetic.priors[, 2])
         }
     }
     else
