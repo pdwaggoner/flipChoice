@@ -24,8 +24,18 @@ alternativeSpecificDesign <- function(design.algorithm = "Alternative specific -
     else
     {
         n.enumerated.questions <- prod(levels.per.attribute)
+        if (n.enumerated.questions < n.questions * n.versions)
+            stop("There are fewer possible questions (", n.enumerated.questions,
+                 ") than the total number of questions in the design (", n.questions * n.versions,
+                 "). Please decrease either the number of versions or the number of questions.")
         #print(paste(n.enumerated.questions, "rows in full factorial design."))
         n.sample <- min(max.subsample, n.enumerated.questions)
+        if (n.sample < n.questions * n.versions)
+        {
+            warning("The maximum number of candidate questions is less than the total number of",
+                    " questions in the design (", n.questions * n.versions, ") and will be increased accordingly.")
+            n.sample <- n.questions * n.versions
+        }
 
         # Generate a pool of n.sample questions, from which to create the optimal design.
         # If we need (almost) the whole sample or the enumeration is small enough, it is faster to
