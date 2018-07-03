@@ -136,6 +136,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                            cov.formula = NULL, cov.data = NULL,
                            choices = NULL, questions = NULL,
                            synthetic.priors = NULL,
+                           synthetic.priors.from.design = FALSE,
                            synthetic.sample.size = 100,
                            n.classes = 1,
                            subset = NULL, weights = NULL,
@@ -155,9 +156,14 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     if (any(hb.prior.sd <= 0))
         stop("All prior standard deviations must be greater than 0.")
 
-    if ((is.null(synthetic.priors) || max(dim(synthetic.priors)) == 0) &&
-            (!is.null(design) && !is.null(design$prior)))
-        synthetic.priors <- design$prior
+    if (synthetic.priors.from.design)
+    {
+        if (!is.null(design) && !is.null(design$prior))
+            synthetic.priors <- design$prior
+        else
+            stop("There is no prior in the design for use as a synthetic ",
+                 "prior.")
+    }
 
     if (!is.null(synthetic.priors) && max(dim(synthetic.priors)) == 0)
         stop("Synthetic priors have not been specified.")

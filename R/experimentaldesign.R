@@ -203,6 +203,17 @@ ChoiceModelDesign <- function(design.algorithm = c("Random", "Shortcut",
         warning("Prior data will be ignored as it can only be used with ",
                 "algorithms 'Efficient', 'Modfed', or 'Partial profiles'.")
 
+    if (!is.null(prior))
+    {
+        n.parameters <- sum(levels.per.attribute - 1)
+        if ((is.vector(prior) && length(prior) != n.parameters) ||
+            (!is.vector(prior) && nrow(prior) != n.parameters))
+        {
+                stop("The format of the priors does not match ",
+                     "the supplied attributes and levels.")
+        }
+    }
+
     if(any(levels.per.attribute < 2))
         stop("All attributes must have at least 2 levels.")
 

@@ -33,9 +33,9 @@ generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
 processSyntheticPriors <- function(synthetic.priors, n.parameters,
                                    n.alternatives)
 {
-    error.msg <- paste0("The priors for generating synthetic choices do not ",
-                        "match the supplied data. Please refer to the ",
-                        "documentation for the valid formats of the ",
+    error.msg <- paste0("The format of the priors for generating synthetic ",
+                        "choices does not match the supplied data. Please ",
+                        "refer to the documentation on how to format the",
                         "synthetic priors.")
     n.pars.without.alts <- n.parameters - n.alternatives + 1
     prior.zeros <- rep(0, n.alternatives - 1)
