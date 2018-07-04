@@ -4,9 +4,10 @@
 #' @param design A design object produced by ChoiceModelDesign
 #' @param experiment.data A data.frame from an Experiment question
 #' @param cho.file The file path to a cho file.
-#' @param design.file The file path to a Sawtooth design file.
-#' @param attribute.levels.file A dataframe or matrix where each
-#'     column contains the level names of an attribute.
+#' @param design.file The file path to a Sawtooth design file (dual file
+#'     format) or a JMP design file.
+#' @param attribute.levels.file The file path to an Excel file containing the
+#'     level names of each attribute.
 #' @param cov.formula An optional \code{\link{formula}} for any fixed
 #'     (respondent-specific) covariates to be included in the model.
 #'     When only 1 class is specified, covariates are applied to the mean
@@ -24,7 +25,6 @@
 #'     attribute level column.
 #' @param synthetic.sample.size The number of synthetic respondents to
 #'     generate.
-#' @param prior Matrix containing prior values for the model
 #' @param n.classes The number of latent classes.
 #' @param subset An optional vector specifying a subset of
 #'     observations to be used in the fitting process.
