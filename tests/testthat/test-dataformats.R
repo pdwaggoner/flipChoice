@@ -107,7 +107,7 @@ test_that("design object synthetic data entered priors", {
 })
 
 test_that("design object synthetic data priors from design", {
-    result <- FitChoiceModel(design = test.design,
+    result <- FitChoiceModel(design = test.design.with.prior,
                              choices = test.design.data$choices,
                              questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,

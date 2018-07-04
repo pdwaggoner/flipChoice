@@ -7,14 +7,14 @@
 FitChoiceModel(design = NULL, experiment.data = NULL, cho.file = NULL,
   design.file = NULL, attribute.levels.file = NULL, cov.formula = NULL,
   cov.data = NULL, choices = NULL, questions = NULL,
-  synthetic.priors = NULL, synthetic.sample.size = 100, n.classes = 1,
-  subset = NULL, weights = NULL, missing = "Use partial data",
-  seed = 123, tasks.left.out = 0, normal.covariance = "Full",
-  hb.iterations = 500, hb.chains = 8, hb.max.tree.depth = 10,
-  hb.adapt.delta = 0.8, hb.keep.samples = FALSE, hb.stanfit = TRUE,
-  hb.prior.mean = 0, hb.prior.sd = 5, hb.warnings = TRUE,
-  hb.beta.draws.to.keep = 0, include.choice.parameters = TRUE,
-  respondent.ids = NULL, ...)
+  synthetic.priors = NULL, synthetic.priors.from.design = FALSE,
+  synthetic.sample.size = 100, n.classes = 1, subset = NULL,
+  weights = NULL, missing = "Use partial data", seed = 123,
+  tasks.left.out = 0, normal.covariance = "Full", hb.iterations = 500,
+  hb.chains = 8, hb.max.tree.depth = 10, hb.adapt.delta = 0.8,
+  hb.keep.samples = FALSE, hb.stanfit = TRUE, hb.prior.mean = 0,
+  hb.prior.sd = 5, hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
+  include.choice.parameters = TRUE, respondent.ids = NULL, ...)
 }
 \arguments{
 \item{design}{A design object produced by ChoiceModelDesign}
@@ -23,10 +23,11 @@ FitChoiceModel(design = NULL, experiment.data = NULL, cho.file = NULL,
 
 \item{cho.file}{The file path to a cho file.}
 
-\item{design.file}{The file path to a Sawtooth design file.}
+\item{design.file}{The file path to a Sawtooth design file (dual file
+format) or a JMP design file.}
 
-\item{attribute.levels.file}{A dataframe or matrix where each
-column contains the level names of an attribute.}
+\item{attribute.levels.file}{The file path to an Excel file containing the
+level names of each attribute.}
 
 \item{cov.formula}{An optional \code{\link{formula}} for any fixed
 (respondent-specific) covariates to be included in the model.
@@ -114,8 +115,6 @@ respondent IDs to use.}
 
 \item{...}{Additional parameters to pass on to \code{rstan::stan}
 and \code{rstan::sampling}.}
-
-\item{prior}{Matrix containing prior values for the model}
 }
 \value{
 A list with the following components: \itemize{
