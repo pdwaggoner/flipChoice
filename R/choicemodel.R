@@ -166,7 +166,8 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     }
 
     if (!is.null(synthetic.priors) && max(dim(synthetic.priors)) == 0)
-        stop("Synthetic priors have not been specified.")
+        stop("Generating synthetic choices has been selected but no priors ",
+             "have been specified.")
 
     start.time <- proc.time()
 
