@@ -487,9 +487,12 @@ balancesAndOverlaps <- function(cmd) {
     overlaps <- countOverlaps(design, cmd$alternatives.per.question,
                               sapply(cmd$attribute.levels, length))
 
-    # do not calculate diagnostic stats if any constant attributes or alternative specific
-    if (!is.null(cmd$design.constant.na) || grepl("Alternative specific", cmd$design.algorithm))
+    # do not calculate diagnostic stats if any constant attributes
+    if (!is.null(cmd$design.constant.na))
         return(list(overlaps = overlaps, singles = singles, pairs = pairs))
+    # do not calculate diagnostic stats or overlaps if alternative specific
+    if (grepl("Alternative specific", cmd$design.algorithm))
+        return(list(singles = singles, pairs = pairs))
 
     # calculate the balance for each version and across all versions
     version.balances.singles <- matrix(0, nrow = cmd$n.versions, ncol = length(singles))
