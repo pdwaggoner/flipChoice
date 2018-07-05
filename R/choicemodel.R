@@ -23,6 +23,8 @@
 #'     mean and standard deviations of the parameters; or a character matrix
 #'     with attribute levels and corresponding mean and sd columns after each
 #'     attribute level column.
+#' @param synthetic.priors.from.design Whether synthetic priors from the design
+#'     object are to be used.
 #' @param synthetic.sample.size The number of synthetic respondents to
 #'     generate.
 #' @param n.classes The number of latent classes.

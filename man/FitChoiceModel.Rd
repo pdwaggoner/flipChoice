@@ -49,6 +49,9 @@ mean and standard deviations of the parameters; or a character matrix
 with attribute levels and corresponding mean and sd columns after each
 attribute level column.}
 
+\item{synthetic.priors.from.design}{Whether synthetic priors from the design
+object are to be used.}
+
 \item{synthetic.sample.size}{The number of synthetic respondents to
 generate.}
 

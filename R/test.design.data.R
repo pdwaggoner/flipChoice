@@ -3,7 +3,7 @@
 #'
 #' @docType data
 #' @keywords datasets
-#' @name test.design
+#' @name test.design.data
 #' @usage data(test.design.data)
 #' @format Contains a list with the following items:
 #' \itemize{
