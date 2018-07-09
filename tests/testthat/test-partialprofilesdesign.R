@@ -62,7 +62,7 @@ test_that("Bayesian optimal integrated algorithm",
                               n.constant.attributes = 0,
                               seed = 1)
     expect_equal(result$d.criterion, -6.14093323545092)
-    expect_equal(result$d.error, 2.64730779241882)
+    expect_equal(result$d.error, 2.40434177650021)
 })
 
 test_that(paste0("Bayesian optimal integrated algorithm with zero variation ",
@@ -646,7 +646,7 @@ test_that("Sandor and Wedel 2001: 3^4/2/15",
                              labeled.alternatives = FALSE,
                              none.alternative = FALSE)
 
-    encoded.design <- encodeDesign(sw2.design[,-1:-2], TRUE)
+    encoded.design <- encodeDesign(sw2.design[,-1:-2], FALSE)
     pub.bayesian.error <- dBError(encoded.design, prior.coef.with.sd,
                                   15, 2, 10, 1)
     expect_true(out$d.error < pub.bayesian.error)
