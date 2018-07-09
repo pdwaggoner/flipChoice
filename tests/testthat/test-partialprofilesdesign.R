@@ -65,6 +65,26 @@ test_that("Bayesian optimal integrated algorithm",
     expect_equal(result$d.error, 2.64730779241882)
 })
 
+test_that(paste0("Bayesian optimal integrated algorithm with zero variation ",
+          "for some parameters"),
+{
+    pa <- cbind(c("price", "100", "125", "150", "175", "200"),
+              c("time", "morn", "aft", "eve", "late night", ""))
+    n.coef <- sum(pa[-1, ] != "") - ncol(pa)
+    prior <- structure(c(1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 0, 0, 1),
+                     .Dim = c(7L, 2L))
+    result <- ChoiceModelDesign(design.algorithm = "Partial profiles",
+                              attribute.levels = pa,
+                              prior = prior,
+                              n.questions = 10,
+                              n.versions = 1,
+                              alternatives.per.question = 3,
+                              n.constant.attributes = 0,
+                              seed = 1)
+    expect_equal(result$d.criterion, -6.27812047284674)
+    expect_equal(result$d.error, 2.4519272629644)
+})
+
 test_that("Partial profiles vs modified Federov with a prior distribution",
 {
     prior <- matrix(c(-1, 0, 1, 0, -1, 0, 2, 2, 2, 2, 2, 2), ncol = 2)
