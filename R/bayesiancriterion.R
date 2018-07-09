@@ -77,8 +77,11 @@ radialAbscissas <- function(p)
 }
 
 #' @importFrom pracma randortho
-computeQuadratureValues <- function(p, n.rotations, seed, mean.vector, sd)
+computeQuadratureValues <- function(mean.vector, sd.vector, n.rotations, seed)
 {
+    nonzero.variation <- sd.vector > 0
+    p <- sum(nonzero.variation)
+
     radial.abscissas <- radialAbscissas(p)
     extended.simplex.abscissas <- extendedSimplexAbscissas(p)
     n.extended.simplex <- ncol(extended.simplex.abscissas)
@@ -92,10 +95,12 @@ computeQuadratureValues <- function(p, n.rotations, seed, mean.vector, sd)
             q <- randortho(p)
             for (k in 1:n.extended.simplex)
             {
-                abscissas.vectors[[ind]] <- mean.vector + sd *
-                                            (radial.abscissas[i] *
-                                            (q %*%
-                                            extended.simplex.abscissas[, k]))
+                v <- mean.vector
+                v[nonzero.variation] <- mean.vector[nonzero.variation] +
+                                        sd.vector[nonzero.variation] *
+                                        (radial.abscissas[i] *
+                                       (q %*% extended.simplex.abscissas[, k]))
+                abscissas.vectors[[ind]] <- v
                 ind <- ind + 1
             }
         }
@@ -131,6 +136,14 @@ bayesianCriterion <- function(design, prior, n.questions,
                 ind <- ind + 1
             }
     result
+}
+
+bayesianError <- function(design, prior, n.questions,
+                          alternatives.per.question)
+{
+    K <- length(prior$mean)
+    exp(bayesianCriterion(design, prior, n.questions,
+                          alternatives.per.question)) ^ (-1 / K)
 }
 
 quadraturePartialInfoMatrices <- function(design, prior, n.questions, question,
@@ -206,48 +219,42 @@ monteCarloBayesianCriterion <- function(design, prior, n.questions,
     mean(criterions)
 }
 
+monteCarloBayesianError <- function(design, prior, n.questions,
+                                        alternatives.per.question, n.draws, seed)
+{
+    n.parameters <- nrow(prior)
+    means <- prior[, 1]
+    sds <- prior[, 2]
+    K <- nrow(prior)
+    set.seed(seed)
+    draws <- matrix(rnorm(n.draws * n.parameters) * sds + means,
+                    ncol = n.draws)
+
+    errors <- rep(NA, n.draws)
+    for (i in 1:n.draws)
+    {
+        errors[i] <- exp(dPCriterion(design, draws[, i], n.questions,
+                                     alternatives.per.question))^ (-1 / K)
+    }
+    errors
+}
+
 quadratureBayesianCriterion <- function(design, prior, n.questions,
                                         alternatives.per.question, n.rotations,
                                         seed)
 {
-    quadrature.values <- computeQuadratureValues(nrow(prior), n.rotations,
-                                                 seed, prior[, 1], prior[, 2])
+    quadrature.values <- computeQuadratureValues(prior[, 1], prior[, 2],
+                                                 n.rotations, seed)
     prior <- c(list(mean = prior[, 1]), quadrature.values)
     bayesianCriterion(design, prior, n.questions,
                       alternatives.per.question)
 }
 
-bayesianError <- function(design, prior, n.questions,
-                          alternatives.per.question)
-{
-    n.rotations <- prior$n.rotations
-    n.extended.simplex <- prior$n.extended.simplex
-    result <- prior$radial.weight.zero *
-        dPCriterion(design, prior$mean, n.questions,
-                    alternatives.per.question)
-    K <- length(prior$mean)
-    ind <- 1
-    for (i in 1:2)
-        for (j in 1:n.rotations)
-            for (k in 1:n.extended.simplex)
-            {
-                if (is.infinite(result))
-                    return(-Inf)
-                result <- result + prior$radial.weights[i] *
-                    prior$extended.simplex.weights[k] *
-                    exp(dPCriterion(design, prior$abscissas.vectors[[ind]],
-                            n.questions,
-                            alternatives.per.question)) ^ (-1 / K) / n.rotations
-                ind <- ind + 1
-            }
-    result
-}
-
 dBError <- function(design, prior, n.questions, alternatives.per.question,
                     n.rotations, seed)
 {
-    quadrature.values <- computeQuadratureValues(nrow(prior), n.rotations,
-                                                 seed, prior[, 1], prior[, 2])
+    quadrature.values <- computeQuadratureValues(prior[, 1], prior[, 2],
+                                                 n.rotations, seed)
     prior <- c(list(mean = prior[, 1]), quadrature.values)
     bayesianError(design, prior, n.questions, alternatives.per.question)
 }

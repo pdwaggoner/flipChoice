@@ -72,8 +72,10 @@ partialProfilesDesign <- function(levels.per.attribute, prior = NULL,
     {
         if (!is.vector(prior))
         {
-            quadrature.values <- computeQuadratureValues(nrow(prior), n.rotations,
-                                                        seed, prior[, 1], prior[, 2])
+            quadrature.values <- computeQuadratureValues(prior[, 1],
+                                                         prior[, 2],
+                                                         n.rotations,
+                                                         seed)
             prior <- c(list(mean = prior[, 1]), quadrature.values)
         }
         else if (all(prior == 0))
