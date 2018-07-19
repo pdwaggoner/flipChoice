@@ -17,10 +17,15 @@ processChoFile <- function(cho.file, attribute.levels.file,
     raw.num <- lapply(strsplit(raw.lines, " "), as.numeric)
     n.attributes <- raw.num[[1]][3]
     n.questions.common <- raw.num[[1]][4]
-    has.none.of.these <- raw.num[[1]][5] == 1
     n.alternatives <- raw.num[[3]][1]
-    if (has.none.of.these)
+    if (raw.num[[1]][5] == 1)
+    {
         n.alternatives <- n.alternatives + 1
+        is.none.alternative <- rep(FALSE, n.alternatives)
+        is.none.alternative[n.alternatives] <- TRUE
+    }
+    else
+        is.none.alternative <- rep(FALSE, n.alternatives)
 
     n.raw <- length(raw.num)
 
@@ -62,7 +67,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
                                  ncol = n.parameters)
             for (k in 1:n.alternatives)
             {
-                if (has.none.of.these && k == n.alternatives)
+                if (is.none.alternative[k])
                     question.X[k, ] <- fillXNoneOfThese(n.parameters,
                                                      n.attributes,
                                                      n.attribute.parameters)
@@ -133,7 +138,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
     {
         output <- addChoiceParameters(X, n.attributes, n.parameters,
                                       n.attribute.parameters, n.alternatives,
-                                      par.names, all.names, has.none.of.these)
+                                      par.names, all.names, is.none.alternative)
         X <- output$X
         n.attributes <- output$n.attributes
         n.parameters <- output$n.parameters
@@ -266,13 +271,13 @@ allNamesFromAttributes <- function(attribute.levels)
 
 addChoiceParameters <- function(X, n.attributes, n.parameters,
                                 n.attribute.parameters, n.alternatives,
-                                par.names, all.names, has.none.of.these)
+                                par.names, all.names, is.none.alternative)
 {
     X <- addChoiceParametersX(X)
     n.attributes <- n.attributes + 1
     n.parameters <- n.parameters + n.alternatives - 1
     n.attribute.parameters <- c(n.alternatives, n.attribute.parameters)
-    alt.labels <- createAlternativeLabels(n.alternatives, has.none.of.these)
+    alt.labels <- createAlternativeLabels(n.alternatives, is.none.alternative)
     par.names <- c(alt.labels[-1], par.names)
     all.names <- c(alt.labels, all.names)
     list(X = X, n.attributes = n.attributes, n.parameters = n.parameters,
@@ -293,11 +298,16 @@ addChoiceParametersX <- function(X)
     new.X
 }
 
-createAlternativeLabels <- function(n.alternatives, has.none.of.these)
+createAlternativeLabels <- function(n.alternatives, is.none.alternative)
 {
-    result <- paste0("Alternative: ", 1:n.alternatives)
-    if (has.none.of.these)
-        result[n.alternatives] <- "Alternative: none of these"
+    result <- character(n.alternatives)
+    for (i in 1:n.alternatives)
+    {
+        if (is.none.alternative[i])
+            result[i] <- paste0("Alternative: ", i, " (none of these)")
+        else
+            result[i] <- paste0("Alternative: ", i)
+    }
     result
 }
 

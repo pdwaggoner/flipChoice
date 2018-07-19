@@ -114,11 +114,19 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
     else
         stop("Insufficient choice data was supplied.")
 
-    # A "None of these" option is left out from the design
-    add.none.of.these <- n.alternatives == length(unique(design[, "Alternative"])) + 1
-    # A "None of these" option is included in the design
-    none.of.these.included <- any(rowSums(design.attributes) == 0)
-    has.none.of.these <- add.none.of.these || none.of.these.included
+    # A "None of these" option is left out from the design, assummed to be last
+    if (n.alternatives == length(unique(design[, "Alternative"])) + 1)
+    {
+        is.none.alternative <- rep(FALSE, n.alternatives)
+        is.none.alternative[n.alternatives] <- TRUE
+    }
+    else
+    {
+        # "None of these" options are included in the design
+        first.question.attr <- design.attributes[1:n.alternatives, 1]
+        is.none.alternative <- first.question.attr == 0 |
+                               is.na(first.question.attr)
+    }
 
     n.attribute.parameters <- unlist(lapply(attribute.levels, length)) - 1
     n.parameters <-  sum(n.attribute.parameters)
@@ -129,8 +137,8 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
                          n.attributes, n.parameters, include.choice.parameters)
     ordered.attributes <- orderedAttributes(input.prior.mean, n.attributes,
                                             n.parameters)
-    if (any(ordered.attributes) && has.none.of.these)
-        stop('Ordered attributes cannot be specified when the "None of these"',
+    if (any(ordered.attributes) && any(is.none.alternative))
+        stop('Ordered attributes cannot be specified when a "None of these"',
              ' alternative is present in the analysis.')
 
     n.rs <- sum(non.missing.table)
@@ -147,7 +155,7 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
                 ind <- which(design[, "Task"] == question.number)[1]
                 for (k in 1:n.alternatives)
                 {
-                    if (has.none.of.these && k == n.alternatives)
+                    if (is.none.alternative[k])
                         X[rs, k, ] <- fillXNoneOfThese(n.parameters,
                                                        n.attributes,
                                                        n.attribute.parameters)
@@ -159,8 +167,8 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
                                                       n.attribute.parameters,
                                                       ordered.attributes,
                                                       question.design)
-                        ind <- ind + 1
                     }
+                    ind <- ind + 1
                 }
                 rs <- rs + 1
             }
@@ -171,7 +179,8 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
     {
         output <- addChoiceParameters(X, n.attributes, n.parameters,
                                       n.attribute.parameters, n.alternatives,
-                                      par.names, all.names, has.none.of.these)
+                                      par.names, all.names,
+                                      is.none.alternative)
         X <- output$X
         n.attributes <- output$n.attributes
         n.parameters <- output$n.parameters

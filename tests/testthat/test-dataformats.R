@@ -47,6 +47,16 @@ test.design.with.prior <- ChoiceModelDesign(design.algorithm = "Partial profiles
                                  alternatives.per.question = 2,
                                  seed = 1)
 
+test.design.none <- ChoiceModelDesign(design.algorithm = "Partial profiles",
+                                            attribute.levels = attribute.levels,
+                                            prior = matrix(c(1, -2, 1, 3, 0, 1, 0.5, 1.5), ncol = 2),
+                                            n.questions = 10,
+                                            n.versions = 2,
+                                            alternatives.per.question = 2,
+                                            none.alternatives = 1,
+                                            none.positions = 2,
+                                            seed = 1)
+
 test_that("experiment question synthetic data", {
     exp.synthetic.prior <- structure(c("Alt", "a", "b", "c", "", "mean", "0", "0", "0",
                 "", "Weight", "a", "b", "c", "d", "mean", "0", "1", "2", "3",
@@ -124,6 +134,15 @@ test_that("design object synthetic data without choices", {
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              synthetic.priors = synthetic.priors,
+                             synthetic.sample.size = 100)
+    expect_error(print(result), NA)
+})
+
+test_that("design object none alternatives", {
+    result <- FitChoiceModel(design = test.design.none,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             synthetic.priors.from.design = TRUE,
                              synthetic.sample.size = 100)
     expect_error(print(result), NA)
 })
