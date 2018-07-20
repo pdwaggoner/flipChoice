@@ -6,7 +6,7 @@ PKG_LIBS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "Rcpp:::LdFlags()
 CXX_STD = CXX11
 
 SOURCES = $(wildcard stan_files/*.stan)
-OBJECTS = $(SOURCES:.stan=.o) flipChoice_init.o partialprofiles.o RcppExports.o
+OBJECTS = $(SOURCES:.stan=.o) flipChoice_init.o partialprofiles.o logitdensities.o RcppExports.o
 
 all: $(SHLIB)
 
@@ -19,5 +19,5 @@ clean:
 %.cc: %.stan
 				"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "source(file.path('..', 'tools', 'make_cc.R')); make_cc(commandArgs(TRUE))" $<
 
-				
+
 .phony: clean

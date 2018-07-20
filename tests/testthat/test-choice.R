@@ -27,6 +27,7 @@ test_that("HB cross validation", {
 test_that("HB filter", {
     sub <- rep(FALSE, nrow(eggs.data))
     sub[1:100] <- TRUE
+    attr(sub, "label") <- "first 100"
     result <- FitChoiceModel(experiment.data = eggs.data, hb.iterations = 10,
                              hb.chains = 1, subset = sub, hb.warnings = FALSE)
     expect_error(print(result), NA)

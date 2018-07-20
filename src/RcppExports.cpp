@@ -6,6 +6,62 @@
 
 using namespace Rcpp;
 
+// logSumExp
+double logSumExp(NumericVector x);
+RcppExport SEXP _flipChoice_logSumExp(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(logSumExp(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// logDensitiesChoice
+NumericVector logDensitiesChoice(NumericVector b, NumericMatrix X, NumericVector weights, int n_alternatives, int n_parameters);
+RcppExport SEXP _flipChoice_logDensitiesChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< int >::type n_alternatives(n_alternativesSEXP);
+    Rcpp::traits::input_parameter< int >::type n_parameters(n_parametersSEXP);
+    rcpp_result_gen = Rcpp::wrap(logDensitiesChoice(b, X, weights, n_alternatives, n_parameters));
+    return rcpp_result_gen;
+END_RCPP
+}
+// logDensityChoice
+double logDensityChoice(NumericVector b, NumericMatrix X, NumericVector weights, int n_alternatives, int n_parameters);
+RcppExport SEXP _flipChoice_logDensityChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< int >::type n_alternatives(n_alternativesSEXP);
+    Rcpp::traits::input_parameter< int >::type n_parameters(n_parametersSEXP);
+    rcpp_result_gen = Rcpp::wrap(logDensityChoice(b, X, weights, n_alternatives, n_parameters));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gradientChoice
+NumericVector gradientChoice(NumericVector b, NumericMatrix X, NumericVector weights, int n_alternatives, int n_parameters);
+RcppExport SEXP _flipChoice_gradientChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< int >::type n_alternatives(n_alternativesSEXP);
+    Rcpp::traits::input_parameter< int >::type n_parameters(n_parametersSEXP);
+    rcpp_result_gen = Rcpp::wrap(gradientChoice(b, X, weights, n_alternatives, n_parameters));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d0CriterionShortcut
 double d0CriterionShortcut(Eigen::MatrixXd& question_design, Eigen::MatrixXd& partial_info_matrix, int alternatives_per_question);
 RcppExport SEXP _flipChoice_d0CriterionShortcut(SEXP question_designSEXP, SEXP partial_info_matrixSEXP, SEXP alternatives_per_questionSEXP) {

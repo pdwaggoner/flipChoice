@@ -5,6 +5,10 @@
 
 #include <R_ext/Rdynload.h>
 
+SEXP _flipChoice_logSumExp(SEXP xSEXP);
+SEXP _flipChoice_logDensitiesChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP);
+SEXP _flipChoice_logDensityChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP);
+SEXP _flipChoice_gradientChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP);
 SEXP _flipChoice_d0CriterionShortcut(SEXP question_designSEXP, SEXP partial_info_matrixSEXP, SEXP alternatives_per_questionSEXP);
 SEXP _flipChoice_d0PartialInfoMatrix(SEXP coded_designSEXP, SEXP n_questionsSEXP, SEXP questionSEXP, SEXP alternatives_per_questionSEXP);
 SEXP _flipChoice_choiceProbabilities(SEXP question_designSEXP, SEXP priorSEXP);
@@ -15,6 +19,10 @@ SEXP _flipChoice_setLevelAllRows(SEXP question_designSEXP, SEXP attribute_indexS
 SEXP _flipChoice_getLevel(SEXP question_designSEXP, SEXP row_indexSEXP, SEXP attribute_indexSEXP, SEXP levels_per_attributeSEXP, SEXP start_indicesSEXP);
 
 R_CallMethodDef callMethods[]  = {
+  {"_flipChoice_logSumExp", (DL_FUNC) &_flipChoice_logSumExp, 1},
+  {"_flipChoice_logDensitiesChoice", (DL_FUNC) &_flipChoice_logDensitiesChoice, 5},
+  {"_flipChoice_logDensityChoice", (DL_FUNC) &_flipChoice_logDensityChoice, 5},
+  {"_flipChoice_gradientChoice", (DL_FUNC) &_flipChoice_gradientChoice, 5},
   {"_flipChoice_d0CriterionShortcut", (DL_FUNC) &_flipChoice_d0CriterionShortcut, 3},
   {"_flipChoice_d0PartialInfoMatrix", (DL_FUNC) &_flipChoice_d0PartialInfoMatrix, 4},
   {"_flipChoice_choiceProbabilities", (DL_FUNC) &_flipChoice_choiceProbabilities, 2},

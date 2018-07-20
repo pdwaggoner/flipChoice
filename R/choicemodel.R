@@ -38,6 +38,15 @@
 #' @param seed Random seed.
 #' @param tasks.left.out Number of questions to leave out for
 #'     cross-validation.
+#' @param algorithm Either "HB-Stan" for Hierarchical Bayes or "LCA" for
+#'     latent class analysis.
+#' @param lc.tolerance The tolerance used for defining convergence in
+#'     latent class analysis.
+#' @param initial.parameters Specify initial parameters intead of
+#'     starting at random in latent class analysis. The initial parameters
+#'     need to be supplied as list consisting of a matrix called
+#'     class.parameters whose columns are the parameters of the classes, and a
+#'     vector called class.sizes containing the class size parameters.
 #' @param normal.covariance The form of the covariance matrix for
 #'     Hierarchical Bayes. Can be 'Full, 'Spherical', 'Diagonal'.
 #' @param hb.iterations The number of iterations in Hierarchical
@@ -143,7 +152,10 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                            n.classes = 1,
                            subset = NULL, weights = NULL,
                            missing = "Use partial data", seed = 123,
-                           tasks.left.out = 0, normal.covariance = "Full",
+                           tasks.left.out = 0, algorithm = "HB-Stan",
+                           lc.tolerance = 0.0001,
+                           initial.parameters = NULL,
+                           normal.covariance = "Full",
                            hb.iterations = 500, hb.chains = 8,
                            hb.max.tree.depth = 10, hb.adapt.delta = 0.8,
                            hb.keep.samples = FALSE, hb.stanfit = TRUE,
@@ -152,7 +164,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                            include.choice.parameters = TRUE,
                            respondent.ids = NULL, ...)
 {
-    if (!is.null(weights))
+    if (algorithm == "HB-Stan" && !is.null(weights))
         stop("Weights are not able to be applied for Hierarchical Bayes.")
 
     if (any(hb.prior.sd <= 0))
@@ -206,12 +218,22 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     if (!is.null(dat$covariates))
         dat <- processCovariateData(dat, n.classes)
 
-    result <- hierarchicalBayesChoiceModel(dat, hb.iterations, hb.chains,
-                                           hb.max.tree.depth, hb.adapt.delta,
-                                           seed, hb.keep.samples, n.classes,
-                                           hb.stanfit, normal.covariance,
-                                           hb.warnings, hb.beta.draws.to.keep,
-                                           ...)
+    if (algorithm == "HB-Stan")
+    {
+        result <- hierarchicalBayesChoiceModel(dat, hb.iterations, hb.chains,
+                                               hb.max.tree.depth,
+                                               hb.adapt.delta,
+                                               seed, hb.keep.samples,
+                                               n.classes,
+                                               hb.stanfit, normal.covariance,
+                                               hb.warnings,
+                                               hb.beta.draws.to.keep, ...)
+    }
+    else
+    {
+        result <- latentClassChoiceModel(dat, n.classes, seed,
+                                         initial.parameters, lc.tolerance)
+    }
 
     end.time <- proc.time()
 
@@ -220,7 +242,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
         colnames(synthetic.resp.pars) <- colnames(result$reduced.respondent.parameters)
 
     result <- accuracyResults(dat, result, tasks.left.out)
-    result$algorithm <- "HB-Stan"
+    result$algorithm <- algorithm
     result$n.questions.left.out <- tasks.left.out
     result$n.classes <- n.classes
     result$subset <- subset
@@ -232,6 +254,8 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     result$n.alternatives <- dat$n.alternatives
     result$n.attributes <- dat$n.attributes
     result$n.parameters <- dat$n.parameters
+    result$n.total <- length(dat$subset)
+    result$parameter.names <- dat$par.names
     result$covariate.names <- if (is.null(cov.formula))
                                   NULL
                               else
@@ -421,10 +445,13 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
 #' @method print FitChoice
 print.FitChoice <- function(x, ...)
 {
-    title <- "Choice Model: Hierarchical Bayes"
+    title <- if (x$algorithm == "HB-Stan")
+        "Choice Model: Hierarchical Bayes"
+    else
+        "Choice Model: Latent Class Analysis"
 
     n.subset <- if (is.null(x$subset)) x$n.respondents else sum(x$subset)
-    footer <- SampleDescription(n.total = x$n.respondents, n.subset = n.subset,
+    footer <- SampleDescription(n.total = x$n.total, n.subset = n.subset,
                                 n.estimation = n.subset,
                                 subset.label = x$subset.description,
                                 weighted = !is.null(x$weights),
@@ -444,13 +471,18 @@ print.FitChoice <- function(x, ...)
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
     footer <- paste0(footer, "log-likelihood: ", FormatAsReal(x$log.likelihood, decimals = 2), "; ")
     footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 2), "; ")
-    if (x$class.match.fail)
-        footer <- paste0(footer, "parameter statistics not available; ")
-    else
-        footer <- paste0(footer,
-                         ParameterStatisticsInfo(x$parameter.statistics,
-                                     colnames(x$reduced.respondent.parameters),
-                                     x$n.classes))
+    if (!is.null(x$class.match.fail)) # HB-Stan only
+    {
+        if (x$class.match.fail)
+            footer <- paste0(footer, "parameter statistics not available; ")
+        else
+        {
+            info <- ParameterStatisticsInfo(x$parameter.statistics,
+                                    colnames(x$reduced.respondent.parameters),
+                                            x$n.classes)
+            footer <- paste0(footer, info)
+        }
+    }
     if (IsTestRServer())
         footer <- paste0(footer, "time taken to run analysis: [hidden for tests]; ")
     else

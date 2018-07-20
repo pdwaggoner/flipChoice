@@ -10,11 +10,13 @@ FitChoiceModel(design = NULL, experiment.data = NULL, cho.file = NULL,
   synthetic.priors = NULL, synthetic.priors.from.design = FALSE,
   synthetic.sample.size = 100, n.classes = 1, subset = NULL,
   weights = NULL, missing = "Use partial data", seed = 123,
-  tasks.left.out = 0, normal.covariance = "Full", hb.iterations = 500,
-  hb.chains = 8, hb.max.tree.depth = 10, hb.adapt.delta = 0.8,
-  hb.keep.samples = FALSE, hb.stanfit = TRUE, hb.prior.mean = 0,
-  hb.prior.sd = 5, hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
-  include.choice.parameters = TRUE, respondent.ids = NULL, ...)
+  tasks.left.out = 0, algorithm = "HB-Stan", lc.tolerance = 1e-04,
+  initial.parameters = NULL, normal.covariance = "Full",
+  hb.iterations = 500, hb.chains = 8, hb.max.tree.depth = 10,
+  hb.adapt.delta = 0.8, hb.keep.samples = FALSE, hb.stanfit = TRUE,
+  hb.prior.mean = 0, hb.prior.sd = 5, hb.warnings = TRUE,
+  hb.beta.draws.to.keep = 0, include.choice.parameters = TRUE,
+  respondent.ids = NULL, ...)
 }
 \arguments{
 \item{design}{A design object produced by ChoiceModelDesign}
@@ -71,6 +73,18 @@ observations to be used in the fitting process.}
 
 \item{tasks.left.out}{Number of questions to leave out for
 cross-validation.}
+
+\item{algorithm}{Either "HB-Stan" for Hierarchical Bayes or "LCA" for
+latent class analysis.}
+
+\item{lc.tolerance}{The tolerance used for defining convergence in
+latent class analysis.}
+
+\item{initial.parameters}{Specify initial parameters intead of
+starting at random in latent class analysis. The initial parameters
+need to be supplied as list consisting of a matrix called
+class.parameters whose columns are the parameters of the classes, and a
+vector called class.sizes containing the class size parameters.}
 
 \item{normal.covariance}{The form of the covariance matrix for
 Hierarchical Bayes. Can be 'Full, 'Spherical', 'Diagonal'.}
