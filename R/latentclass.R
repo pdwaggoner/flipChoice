@@ -183,7 +183,6 @@ logLikelihoodForHessian <- function(p, X, weights, ind.levels,
                                     n.parameters)
 {
     pars <- parameterVectorToList(p, n.classes, n.parameters)
-    counter <<- counter + 1
     logLikelihood(pars, X, weights, ind.levels,
                   n.classes, n.alternatives,
                   n.parameters)
@@ -268,6 +267,7 @@ respondentIndicies <- function(n.resp.questions)
     result
 }
 
+#' @importFrom stats optim
 choiceLogit <- function(X, weights, n.alternatives, n.parameters)
 {
     init.b <- seq(.01, .02, length.out = n.parameters)
@@ -506,6 +506,7 @@ computeRespParsLCA <- function(resp.post.probs, class.parameters,
     result
 }
 
+#' @importFrom stats pt
 parameterStatisticsLCA <- function(pars, X, ind.levels, weights,
                                    n.classes, n.alternatives, n.parameters,
                                    parameter.names, parameter.scales)
@@ -557,18 +558,36 @@ createCoefOutput <- function(pars, par.names, all.names)
     class.sizes <- pars$class.sizes
     n.classes <- length(pars$class.sizes)
     n.all.parameters <- length(all.names)
-    result <- matrix(0, nrow = n.all.parameters, ncol = n.classes)
-    ind <- 1
-    for (i in 1:n.all.parameters)
+
+    if (n.classes == 1)
     {
-        if (all.names[i] %in% par.names)
+        result <- rep(NA, n.all.parameters)
+        ind <- 1
+        for (i in 1:n.all.parameters)
         {
-            result[i, ] <- class.parameters[ind]
-            ind <- ind + 1
+            if (all.names[i] %in% par.names)
+            {
+                result[i] <- class.parameters[ind]
+                ind <- ind + 1
+            }
         }
+        rownames(result) <- all.names
     }
-    rownames(result) <- all.names
-    colnames(result) <- paste0("Class ", 1:n.classes, " (",
-                               FormatAsPercent(class.sizes, decimals = 1), ")")
+    else
+    {
+        result <- matrix(0, nrow = n.all.parameters, ncol = n.classes)
+        ind <- 1
+        for (i in 1:n.all.parameters)
+        {
+            if (all.names[i] %in% par.names)
+            {
+                result[i, ] <- class.parameters[ind, ]
+                ind <- ind + 1
+            }
+        }
+        rownames(result) <- all.names
+        colnames(result) <- paste0("Class ", 1:n.classes, " (",
+                                   FormatAsPercent(class.sizes, decimals = 1), ")")
+    }
     result
 }

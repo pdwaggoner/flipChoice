@@ -92,11 +92,12 @@
 #'     each respondent, excluding the constrained parameters.
 #'     \item \code{parameter.statistics} A matrix
 #'     containing parameter statistics such as effective sample size
-#'     and Rhat.
+#'     and Rhat (HB-Stan) or standard errors and p-values (LCA).
 #'     \item \code{stan.fit} The stanfit object from the
-#'     analysis.
+#'     analysis (only for the HB-Stan algorithm).
 #'     \item \code{beta.draws} A 3D array containing
-#'     sampling draws of beta for each respondent.
+#'     sampling draws of beta for each respondent (only for the HB-Stan
+#'      algorithm).
 #'     \item \code{parameter.names} Character vector of parameter names
 #'     for the mean parameters in the model.
 #'     \item \code{in.sample.accuracy} The in-sample prediction accuracy.
@@ -117,6 +118,7 @@
 #'     \item \code{time.taken} The time taken to run the analysis.
 #'     \item \code{log.likelihood} The log likelihood.
 #'     \item \code{bic} The Bayesian Information Criterion.}
+#'     \item \code{coef} A vector/matrix of parameter estimates (LCA only).
 #' @examples
 #' \dontrun{
 #' data(eggs, package = "flipChoice")
