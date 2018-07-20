@@ -426,3 +426,37 @@ test_that("jmp format with fixed covariates", {
     expect_equal(sum(grepl("egg.choice2", stat.names)),
                  sum(grepl("St. Dev", stat.names)))
 })
+
+test_that("Chocolate experiment choice model",
+{
+    data(chocolate)
+    data(chocolate.design)
+    choices <- chocolate[, grepl("^choice", colnames(chocolate))]
+    questions <- chocolate[, grepl("^task", colnames(chocolate))]
+    result <- FitChoiceModel(design = chocolate.design,
+                             choices = choices,
+                             questions = questions,
+                             cov.formula = ~gender, cov.data = chocolate,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             synthetic.priors.from.design = FALSE,
+                             synthetic.sample.size = 1000)
+    expect_error(print(result), NA)
+})
+
+test_that("Fast food experiment choice model",
+{
+    data(fast.food)
+    data(fast.food.design)
+    choices <- fast.food[, grepl("^choice", colnames(fast.food))]
+    questions <- fast.food[, grepl("^task", colnames(fast.food))]
+    result <- FitChoiceModel(design = fast.food.design,
+                             choices = choices,
+                             questions = questions,
+                             cov.formula = ~diabetes, cov.data = fast.food,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             synthetic.priors.from.design = FALSE,
+                             synthetic.sample.size = 1000)
+    expect_error(print(result), NA)
+})
