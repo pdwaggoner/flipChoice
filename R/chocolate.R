@@ -94,7 +94,7 @@
 #' \item \code{other.health.condition} - factor with two levels indicating if they had an additional
 #' health condtion that was not a nut allergy, high blood pressure, diabetes, a bad back, or high
 #' cholesterol
-#'\item \code{other.health.condition.write.in} - character; respondent-reported additional health
+#' \item \code{other.health.condition.write.in} - character; respondent-reported additional health
 #' condition that was not a nut allergy, high blood pressure, diabetes, a bad back, or high
 #' cholesterol
 #' }

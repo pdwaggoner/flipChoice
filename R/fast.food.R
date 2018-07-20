@@ -79,9 +79,7 @@
 #' \item \code{healty.opts.available}- factor with five levels indicating how important it is to
 #' the respondent that a fast food restaurant has healthy meal options
 #' \item \code{weight} - integer; respondent's self-reported weight in pounds
-#' \item \code{height.ft} - integer; respondent's self
-#' \item \code{height.inches}
-#' \item \code{health.q.other}
+#' \item \code{height} - integer; respondent's self-reported height in inches.
 #' \item \code{nut.allergy} - factor with two levels indicating if the respondent reported having
 #' a nut allergy
 #' \item \code{high.blood.pressure} - factor with two levels indicating if the respondent reported having
@@ -96,6 +94,9 @@
 #' report having any health conditions
 #' \item \code{other.health.condition} - factor with two levels indicating if they had an additional
 #' health condtion that was not a nut allergy, high blood pressure, diabetes, a bad back, or high
+#' cholesterol
+#' \item \code{other.health.condition.write.in} - character; respondent-reported additional health
+#' condition that was not a nut allergy, high blood pressure, diabetes, a bad back, or high
 #' cholesterol
 #' }
 #' @docType data
