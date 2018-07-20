@@ -1,0 +1,106 @@
+#' Data from a chocolate bar discrete choice experiment
+#'
+#' A dataset containing responses to a discrete choice experiment
+#' examining preferences for chocolate bars . 403 respondents were each
+#' asked twelve choice questions involving choosing between four fast food
+#' alternatives. The question asked each respondent for the choice
+#' questions was "Which of these 2 ounce chocolate bars would you choose to buy?".
+#' The experimental design is available as \code{\link{chocolate.design}}.
+#'
+#' \itemize{
+#' \item \code{version} - integer; version number of the design shown to the respondent
+#' \item \code{task1} - integer; task number of first question shown to the respondent
+#' \item \code{task2} - integer; task number of second question
+#' \item \code{task3} - integer; task number of third question
+#' \item \code{task4} - integer; task number of fourth question
+#' \item \code{task5} - integer; task number of fifth question
+#' \item \code{task6} - integer; task number of sixth question
+#' \item \code{choice1} - integer value from 1 to 4 indicating the respondent's choice
+#' for the first question
+#' \item \code{choice2} - integer value from 1 to 4 indicating the respondent's choice
+#' for the second question
+#' \item \code{choice3} - integer value from 1 to 4 indicating the respondent's choice
+#' for the third question
+#' \item \code{choice4} - integer value from 1 to 4 indicating the respondent's choice
+#' for the fourth question
+#' \item \code{choice5} - integer value from 1 to 4 indicating the respondent's choice
+#' for the fifth question
+#' \item \code{choice6} - integer value from 1 to 4 indicating the respondent's choice
+#' for the sixth question
+#' \item \code{dual.response.none1} - a factor with two levels indicating if the
+#' respondent answered yes or no to the dual response none question accompanying the
+#' first choice question
+#' \item \code{dual.response.none2} - a factor with two levels indicating if the
+#' respondent answered yes or no to the dual response none question accompanying the
+#' second choice question
+#' \item \code{dual.response.none3} - a factor with two levels indicating if the
+#' respondent answered yes or no to the dual response none question accompanying the
+#' third choice question
+#' \item \code{dual.response.none4} - a factor with two levels indicating if the
+#' respondent answered yes or no to the dual response none question accompanying the
+#' forth choice question
+#' \item \code{dual.response.none5} - a factor with two levels indicating if the
+#' respondent answered yes or no to the dual response none question accompanying the
+#' fifth choice question
+#' \item \code{dual.response.none6} - a factor with two levels indicating if the
+#' respondent answered yes or no to the dual response none question accompanying the
+#' sixth choice question
+#' \item \code{gender} - factor with two levels indicating respondent's gender
+#' \item \code{state} - factor with 46 levels indicating respondent's state of residence
+#' in the United States
+#' \item \code{age} - factor with seven levels giving the respondent's age
+#' \item \code{income} - factor with eight levels giving the respondent's income
+#' \item \code{ethnicity} - factor with six levels giving the responent's reported ethinicty
+#' \item \code{num.ppl.in.household} - factor with five levels giving the number of people
+#' currently residing in the respondent's household
+#' \item \code{price.under.20} - factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has meal options under $20
+#' \item \code{locally.owned}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant is locally owned
+#' \item \code{kids.menu}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has a kids menu
+#' \item \code{online.ordering}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has online ordering available
+#' \item \code{recylable.packaging}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has recylable packaging
+#' \item \code{delivery.under.30min}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant offers delivery in under 30 minutes
+#' \item \code{nutrition.info.available}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has nutrition information available
+#' \item \code{gluten.free.available}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has gluten-free food options
+#' \item \code{dessert.available}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has dessert options
+#' \item \code{vegan.available}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has vegan options
+#' \item \code{organic.available}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has organic food options
+#' \item \code{healty.opts.available}- factor with five levels indicating how important it is to
+#' the respondent that a fast food restaurant has healthy meal options
+#' \item \code{weight} - integer; respondent's self-reported weight in pounds
+#' \item \code{height} - integer; respondent's self-reported height in inches.
+#' \item \code{nut.allergy} - factor with two levels indicating if the respondent reported having
+#' a nut allergy
+#' \item \code{high.blood.pressure} - factor with two levels indicating if the respondent reported having
+#' high blood pressure
+#' \item \code{diabetes} - factor with two levels indicating if the respondent reported having
+#' diabetes
+#' \item \code{bad.back} - factor with two levels indicating if the respondent reported having
+#' a bad back
+#' \item \code{high.cholesterol} - factor with two levels indicating if the respondent reported having
+#' high cholesterol
+#' \item \code{no.health.condition} - factor with two levels indicating if the respondent did not
+#' report having any health conditions
+#' \item \code{other.health.condition} - factor with two levels indicating if they had an additional
+#' health condtion that was not a nut allergy, high blood pressure, diabetes, a bad back, or high
+#' cholesterol
+#'\item \code{other.health.condition.write.in} - character; respondent-reported additional health
+#' condition that was not a nut allergy, high blood pressure, diabetes, a bad back, or high
+#' cholesterol
+#' }
+#' @docType data
+#' @keywords datasets
+#' @name chocolate
+#' @usage data(chocolate)
+#' @format A data frame with 403 rows and 47 columns
+NULL
