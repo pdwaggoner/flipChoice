@@ -134,7 +134,8 @@ respondent IDs to use.}
 and \code{rstan::sampling}.}
 }
 \value{
-A list with the following components: \itemize{
+A list with the following components:
+\itemize{
     \item \code{respondent.parameters} A matrix containing the parameters
     of each respondent.
     \item \code{reduced.respondent.parameters} A matrix containing the
@@ -169,8 +170,9 @@ A list with the following components: \itemize{
     \item \code{n.parameters} The number of parameters in the analysis.
     \item \code{time.taken} The time taken to run the analysis.
     \item \code{log.likelihood} The log likelihood.
-    \item \code{bic} The Bayesian Information Criterion.}
+    \item \code{bic} The Bayesian Information Criterion.
     \item \code{coef} A vector/matrix of parameter estimates (LCA only).
+}
 }
 \description{
 Fit a choice-based conjoint model using methods such

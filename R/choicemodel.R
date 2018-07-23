@@ -82,7 +82,8 @@
 #'     respondent IDs to use.
 #' @param ... Additional parameters to pass on to \code{rstan::stan}
 #'     and \code{rstan::sampling}.
-#' @return A list with the following components: \itemize{
+#' @return A list with the following components:
+#' \itemize{
 #'     \item \code{respondent.parameters} A matrix containing the parameters
 #'     of each respondent.
 #'     \item \code{reduced.respondent.parameters} A matrix containing the
@@ -117,8 +118,9 @@
 #'     \item \code{n.parameters} The number of parameters in the analysis.
 #'     \item \code{time.taken} The time taken to run the analysis.
 #'     \item \code{log.likelihood} The log likelihood.
-#'     \item \code{bic} The Bayesian Information Criterion.}
+#'     \item \code{bic} The Bayesian Information Criterion.
 #'     \item \code{coef} A vector/matrix of parameter estimates (LCA only).
+#' }
 #' @examples
 #' \dontrun{
 #' data(eggs, package = "flipChoice")
