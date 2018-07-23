@@ -7,16 +7,17 @@
 FitChoiceModel(design = NULL, experiment.data = NULL, cho.file = NULL,
   design.file = NULL, attribute.levels.file = NULL, cov.formula = NULL,
   cov.data = NULL, choices = NULL, questions = NULL,
-  synthetic.priors = NULL, synthetic.priors.from.design = FALSE,
-  synthetic.sample.size = 100, n.classes = 1, subset = NULL,
-  weights = NULL, missing = "Use partial data", seed = 123,
-  tasks.left.out = 0, algorithm = "HB-Stan", lc.tolerance = 1e-04,
-  initial.parameters = NULL, normal.covariance = "Full",
-  hb.iterations = 500, hb.chains = 8, hb.max.tree.depth = 10,
-  hb.adapt.delta = 0.8, hb.keep.samples = FALSE, hb.stanfit = TRUE,
-  hb.prior.mean = 0, hb.prior.sd = 5, hb.warnings = TRUE,
-  hb.beta.draws.to.keep = 0, include.choice.parameters = TRUE,
-  respondent.ids = NULL, ...)
+  simulated.priors = NULL, simulated.priors.from.design = FALSE,
+  simulated.sample.size = 100, synthetic.priors = NULL,
+  synthetic.priors.from.design = NULL, synthetic.sample.size = NULL,
+  n.classes = 1, subset = NULL, weights = NULL,
+  missing = "Use partial data", seed = 123, tasks.left.out = 0,
+  algorithm = "HB-Stan", lc.tolerance = 1e-04, initial.parameters = NULL,
+  normal.covariance = "Full", hb.iterations = 500, hb.chains = 8,
+  hb.max.tree.depth = 10, hb.adapt.delta = 0.8, hb.keep.samples = FALSE,
+  hb.stanfit = TRUE, hb.prior.mean = 0, hb.prior.sd = 5,
+  hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
+  include.choice.parameters = TRUE, respondent.ids = NULL, ...)
 }
 \arguments{
 \item{design}{A design object produced by ChoiceModelDesign}
@@ -46,16 +47,23 @@ question.}
 \item{questions}{A data.frame of IDs of tasks presented to the
 respondents.}
 
-\item{synthetic.priors}{A 2-column matrix whose columns correspond to the
+\item{simulated.priors}{A 2-column matrix whose columns correspond to the
 mean and standard deviations of the parameters; or a character matrix
 with attribute levels and corresponding mean and sd columns after each
 attribute level column.}
 
-\item{synthetic.priors.from.design}{Whether synthetic priors from the design
+\item{simulated.priors.from.design}{Whether simulated priors from the design
 object are to be used.}
 
-\item{synthetic.sample.size}{The number of synthetic respondents to
+\item{simulated.sample.size}{The number of simulated respondents to
 generate.}
+
+\item{synthetic.priors}{Deprecated. see simulated.priors.}
+
+\item{synthetic.priors.from.design}{Deprecated. See
+simulated.priors.from.design.}
+
+\item{synthetic.sample.size}{Deprecated. See simulated.sample.size.}
 
 \item{n.classes}{The number of latent classes.}
 
@@ -140,8 +148,8 @@ A list with the following components:
     of each respondent.
     \item \code{reduced.respondent.parameters} A matrix containing the
     parameters of each respondent, excluding the constrained parameters.
-    \item \code{synthetic.respondent.parameters} If synthetic priors are
-    used, this is a matrix containing the synthetic parameters of
+    \item \code{simulated.respondent.parameters} If simulated priors are
+    used, this is a matrix containing the simulated parameters of
     each respondent, excluding the constrained parameters.
     \item \code{parameter.statistics} A matrix
     containing parameter statistics such as effective sample size

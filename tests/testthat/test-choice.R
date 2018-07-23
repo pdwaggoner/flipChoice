@@ -12,7 +12,7 @@ test_that("HB", {
     # If the number below needs to be increased due to additional outputs,
     # ensure that the output size does not get too big when there are multiple
     # classes and many iterations.
-    expect_true(as.numeric(object.size(result)) < 245000)
+    expect_true(as.numeric(object.size(result)) < 1245000)
     # Add the following option to expect_true to print out the size in Travis
     # info = print(as.numeric(object.size(result))))
 })
@@ -140,11 +140,25 @@ test_that("Multi-class HB with covariates", {
     TracePlots(result)
 })
 
-test_that("Synthetic data", {
+test_that("Simulated data", {
     data("eggs.cov", package = "flipChoice")
-    synthetic.priors <- matrix(c(rep(0, 13), rep(2, 13)), ncol = 2)
+    simulated.priors <- matrix(c(rep(0, 13), rep(2, 13)), ncol = 2)
     result <- FitChoiceModel(experiment.data = eggs.data, hb.iterations = 10,
                              hb.chains = 1, hb.warnings = FALSE,
-                             synthetic.priors = synthetic.priors)
+                             simulated.priors = simulated.priors)
+    expect_error(print(result), NA)
+})
+
+test_that("Simulated data no priors supplied", {
+    data("eggs.cov", package = "flipChoice")
+    simulated.priors <- structure(character(0), .Dim = c(0L, 0L))
+    expect_warning(result <- FitChoiceModel(experiment.data = eggs.data,
+                                              hb.iterations = 10,
+                                              hb.chains = 1,
+                                              hb.warnings = FALSE,
+                                        simulated.priors = simulated.priors),
+                   paste0("No prior for simulated data was entered. ",
+                          "The prior mean and standard deviations have ",
+                          "been assummed to be zero."))
     expect_error(print(result), NA)
 })

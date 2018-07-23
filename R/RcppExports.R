@@ -17,6 +17,14 @@ gradientChoice <- function(b, X, weights, n_alternatives, n_parameters) {
     .Call(`_flipChoice_gradientChoice`, b, X, weights, n_alternatives, n_parameters)
 }
 
+computeExpDiscriminants <- function(X, parameters, n_alternatives) {
+    .Call(`_flipChoice_computeExpDiscriminants`, X, parameters, n_alternatives)
+}
+
+computeShareDerivative <- function(X, exp_discriminants, parameter_index, n_parameters) {
+    .Call(`_flipChoice_computeShareDerivative`, X, exp_discriminants, parameter_index, n_parameters)
+}
+
 d0CriterionShortcut <- function(question_design, partial_info_matrix, alternatives_per_question) {
     .Call(`_flipChoice_d0CriterionShortcut`, question_design, partial_info_matrix, alternatives_per_question)
 }

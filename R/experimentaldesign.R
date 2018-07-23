@@ -76,12 +76,25 @@
 #'     \code{model.matrix} - the model matrix of dummy coded variables
 #'     for each alternative in every choice set.  \item
 #'     \code{balances.and.overlaps} a list with components \itemize{
-#'     \item\code{singles} a \code{list} of the counts of each level
-#'     per attribute.  \item\code{pairs} a \code{list} of the counts
-#'     of pairwise occurences of levels for each pair of attributes.
-#'     \item\code{overlaps} a \code{vector} of the percentage of
-#'     questions that include one or more duplicated level per
-#'     attribute.  } }
+#'         \item\code{overlaps} a \code{vector} of the percentage of
+#'         questions that include one or more duplicated level per
+#'         attribute.
+#'         \item \code{mean.version.balance} - A value between 0 and 1
+#'         indicating the average frequency balance of the versions,
+#'         where 1 is perfect balance (each level of each alternative
+#'         appears the same number of times) and 0 is the worst
+#'         possible balance.
+#'         \item \code{mean.version.pairwise.balance} - As per
+#'         \code{mean.version.balance}, except for pairwise frequencies.
+#'         \item \code{across.version.balance} - As per
+#'         \code{mean.version.balance}, except the value is calculated
+#'         by aggregating all versions together.
+#'         \item \code{across.version.pairwise.balance} - As per
+#'         \code{across.version.balance}, except for pairwise frequencies.
+#'         \item\code{singles} a \code{list} of the counts of each
+#'         level per attribute.
+#'         \item\code{pairs} a \code{list} of the counts of pairwise
+#'         occurences of levels for each pair of attributes.}}
 #'
 #' @details If \code{prior} is supplied and \code{design.algorithm ==
 #'     "Efficient"}, the number of coefficients must correspond
@@ -421,13 +434,18 @@ encodeProhibitions <- function(prohibitions, attribute.levels) {
     if (is.null(prohibitions) || length(prohibitions) == 0)
         return(data.frame())
 
-    prohibitions[prohibitions == ""] <- "All"
+    prohibitions[prohibitions %in% c("", "ALL", "all")] <- "All"
     prohibitions <- data.frame(prohibitions)
     if (nrow(prohibitions) == 0)
         return(prohibitions)
 
-    if (ncol(prohibitions) != length(attribute.levels))
-        stop("Each prohibition must include a level for each attribute (possibly including 'All').")
+    if (ncol(prohibitions) > length(attribute.levels))
+        stop(paste0("There should be ", length(attribute.levels), " columns of prohibitions (one per attribute) but ",
+                    ncol(prohibitions), " have been given."))
+    if (ncol(prohibitions) < length(attribute.levels))
+        prohibitions <- cbind(prohibitions, matrix("All",
+                                                   ncol = length(attribute.levels) - ncol(prohibitions),
+                                                   nrow = nrow(prohibitions)))
 
     for (i in 1:length(attribute.levels))
     {

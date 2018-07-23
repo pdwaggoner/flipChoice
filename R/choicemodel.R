@@ -19,14 +19,18 @@
 #'     question.
 #' @param questions A data.frame of IDs of tasks presented to the
 #'     respondents.
-#' @param synthetic.priors A 2-column matrix whose columns correspond to the
+#' @param simulated.priors A 2-column matrix whose columns correspond to the
 #'     mean and standard deviations of the parameters; or a character matrix
 #'     with attribute levels and corresponding mean and sd columns after each
 #'     attribute level column.
-#' @param synthetic.priors.from.design Whether synthetic priors from the design
+#' @param simulated.priors.from.design Whether simulated priors from the design
 #'     object are to be used.
-#' @param synthetic.sample.size The number of synthetic respondents to
+#' @param simulated.sample.size The number of simulated respondents to
 #'     generate.
+#' @param synthetic.priors Deprecated. see simulated.priors.
+#' @param synthetic.priors.from.design Deprecated. See
+#'     simulated.priors.from.design.
+#' @param synthetic.sample.size Deprecated. See simulated.sample.size.
 #' @param n.classes The number of latent classes.
 #' @param subset An optional vector specifying a subset of
 #'     observations to be used in the fitting process.
@@ -88,8 +92,8 @@
 #'     of each respondent.
 #'     \item \code{reduced.respondent.parameters} A matrix containing the
 #'     parameters of each respondent, excluding the constrained parameters.
-#'     \item \code{synthetic.respondent.parameters} If synthetic priors are
-#'     used, this is a matrix containing the synthetic parameters of
+#'     \item \code{simulated.respondent.parameters} If simulated priors are
+#'     used, this is a matrix containing the simulated parameters of
 #'     each respondent, excluding the constrained parameters.
 #'     \item \code{parameter.statistics} A matrix
 #'     containing parameter statistics such as effective sample size
@@ -150,9 +154,12 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                            attribute.levels.file = NULL,
                            cov.formula = NULL, cov.data = NULL,
                            choices = NULL, questions = NULL,
+                           simulated.priors = NULL,
+                           simulated.priors.from.design = FALSE,
+                           simulated.sample.size = 100,
                            synthetic.priors = NULL,
-                           synthetic.priors.from.design = FALSE,
-                           synthetic.sample.size = 100,
+                           synthetic.priors.from.design = NULL,
+                           synthetic.sample.size = NULL,
                            n.classes = 1,
                            subset = NULL, weights = NULL,
                            missing = "Use partial data", seed = 123,
@@ -174,18 +181,39 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     if (any(hb.prior.sd <= 0))
         stop("All prior standard deviations must be greater than 0.")
 
-    if (synthetic.priors.from.design)
+    if (!is.null(synthetic.priors))
+        simulated.priors <- synthetic.priors
+    if (!is.null(synthetic.priors.from.design))
+        simulated.priors.from.design <- synthetic.priors.from.design
+    if (!is.null(synthetic.sample.size))
+        simulated.sample.size <- synthetic.sample.size
+
+    if (simulated.priors.from.design)
     {
-        if (!is.null(design) && !is.null(design$prior))
-            synthetic.priors <- design$prior
+        if (!is.null(design))
+        {
+            if (!is.null(design$prior))
+                simulated.priors <- design$prior
+            else
+            {
+                simulated.priors <- 0 # mean = 0 and sd = 0
+                warning("The supplied design does not contain priors. The ",
+                        "prior mean and standard deviations have been ",
+                        "assummed to be zero.")
+            }
+        }
         else
-            stop("There is no prior in the design for use as a synthetic ",
-                 "prior.")
+            warning("Simulated data was not used as no design was supplied.")
+    }
+    if (!is.null(simulated.priors) && max(dim(simulated.priors)) == 0)
+    {
+        simulated.priors <- 0
+        warning("No prior for simulated data was entered. The prior mean and ",
+                "standard deviations have been assummed to be zero.")
     }
 
-    if (!is.null(synthetic.priors) && max(dim(synthetic.priors)) == 0)
-        stop("Generating synthetic choices has been selected but no priors ",
-             "have been specified.")
+    if (simulated.sample.size <= 0)
+        stop("The specified simulated sample size must greater than 0.")
 
     start.time <- proc.time()
 
@@ -194,28 +222,30 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     else
         NULL
 
-    dat <- if (!is.null(design) && (!is.null(synthetic.priors) ||
+    dat <- if (!is.null(design) && (!is.null(simulated.priors) ||
                                 (!is.null(choices) && !is.null(questions))))
         processDesignObject(design, choices, questions, subset, weights,
                             tasks.left.out, seed, hb.prior.mean, hb.prior.sd,
                             include.choice.parameters, missing, covariates,
-                            synthetic.priors, synthetic.sample.size)
+                            simulated.priors, simulated.sample.size)
     else if (!is.null(experiment.data))
         processExperimentData(experiment.data, subset, weights, tasks.left.out,
                               seed, hb.prior.mean, hb.prior.sd, missing,
-                              covariates, synthetic.priors)
+                              covariates, simulated.priors,
+                              simulated.sample.size)
     else if (!is.null(cho.file) && !is.null(attribute.levels.file))
         processChoFile(cho.file, attribute.levels.file,
                        subset, weights, tasks.left.out, seed,
                        hb.prior.mean, hb.prior.sd, include.choice.parameters,
-                       respondent.ids, missing, covariates, synthetic.priors)
-    else if (!is.null(design.file) && (!is.null(synthetic.priors) ||
+                       respondent.ids, missing, covariates, simulated.priors,
+                       simulated.sample.size)
+    else if (!is.null(design.file) && (!is.null(simulated.priors) ||
                                 (!is.null(choices) && !is.null(questions))))
         processDesignFile(design.file, attribute.levels.file, choices,
                           questions, subset, weights, tasks.left.out,
                           seed, hb.prior.mean, hb.prior.sd,
                           include.choice.parameters, missing, covariates,
-                          synthetic.priors, synthetic.sample.size)
+                          simulated.priors, simulated.sample.size)
     else
         stop("Insufficient data was supplied.")
 
@@ -241,11 +271,12 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
 
     end.time <- proc.time()
 
-    synthetic.resp.pars <- dat$synthetic.respondent.parameters
-    if (!is.null(synthetic.resp.pars))
-        colnames(synthetic.resp.pars) <- colnames(result$reduced.respondent.parameters)
+    simulated.resp.pars <- dat$simulated.respondent.parameters
+    if (!is.null(simulated.resp.pars))
+        colnames(simulated.resp.pars) <- colnames(result$reduced.respondent.parameters)
 
     result <- accuracyResults(dat, result, tasks.left.out)
+    result$processed.data <- dat
     result$algorithm <- algorithm
     result$n.questions.left.out <- tasks.left.out
     result$n.classes <- n.classes
@@ -264,8 +295,10 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                                   NULL
                               else
                                   colnames(dat$covariates)
-    result$synthetic.respondent.parameters <- synthetic.resp.pars
+    result$simulated.respondent.parameters <- simulated.resp.pars
+    result$synthetic.respondent.parameters <- simulated.resp.pars # deprecated
     result$time.taken <- (end.time - start.time)[3]
+    class(result) <- "FitChoice"
     result
 }
 
@@ -454,24 +487,7 @@ print.FitChoice <- function(x, ...)
     else
         "Choice Model: Latent Class Analysis"
 
-    n.subset <- if (is.null(x$subset)) x$n.respondents else sum(x$subset)
-    footer <- SampleDescription(n.total = x$n.total, n.subset = n.subset,
-                                n.estimation = n.subset,
-                                subset.label = x$subset.description,
-                                weighted = !is.null(x$weights),
-                                weight.label = x$weights.description,
-                                missing = FALSE)
-    footer <- paste0(footer, " ")
-
-    footer <- paste0(footer, "number of questions: ", x$n.questions, "; ")
-    if (x$n.questions.left.out > 0)
-    {
-        footer <- paste0(footer, "questions used in estimation: ", x$n.questions - x$n.questions.left.out, "; ")
-        footer <- paste0(footer, "questions left out: ", x$n.questions.left.out, "; ")
-    }
-    footer <- paste0(footer, "choices per question: ", x$n.alternatives, "; ")
-    footer <- paste0(footer, "number of attributes: ", x$n.attributes, "; ")
-    footer <- paste0(footer, "number of parameters: ", x$n.parameters, "; ")
+    footer <- choiceModelFooter(x)
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
     footer <- paste0(footer, "log-likelihood: ", FormatAsReal(x$log.likelihood, decimals = 2), "; ")
     footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 2), "; ")
@@ -493,12 +509,42 @@ print.FitChoice <- function(x, ...)
         footer <- paste0(footer, "time taken to run analysis: ",
                          FormatPeriod(x$time.taken), "; ")
 
-    subtitle <- if (!is.na(x$out.sample.accuracy))
-        paste0("Prediction accuracy (leave-", x$n.questions.left.out , "-out cross-validation): ",
-               FormatAsPercent(x$out.sample.accuracy, decimals = 1))
-    else
-        paste0("Prediction accuracy (in-sample): ",
-               FormatAsPercent(x$in.sample.accuracy, decimals = 1))
+    subtitle <- choiceModelSubtitle(x)
 
     RespondentParametersTable(x$respondent.parameters, title, subtitle, footer)
+}
+
+#' @importFrom flipFormat FormatAsPercent
+choiceModelSubtitle <- function(x)
+{
+    subtitle <- if (!is.na(x$out.sample.accuracy))
+        paste0("Prediction accuracy (leave-", x$n.questions.left.out , "-out cross-validation): ",
+            FormatAsPercent(x$out.sample.accuracy, decimals = 1))
+    else
+        paste0("Prediction accuracy (in-sample): ",
+            FormatAsPercent(x$in.sample.accuracy, decimals = 1))
+}
+
+#' @importFrom flipFormat SampleDescription
+choiceModelFooter <- function(x) {
+
+    n.subset <- if (is.null(x$subset)) x$n.respondents else sum(x$subset)
+    footer <- SampleDescription(n.total = x$n.total, n.subset = n.subset,
+                                n.estimation = n.subset,
+                                subset.label = x$subset.description,
+                                weighted = !is.null(x$weights),
+                                weight.label = x$weights.description,
+                                missing = FALSE)
+    footer <- paste0(footer, " ")
+
+    footer <- paste0(footer, "number of questions: ", x$n.questions, "; ")
+    if (x$n.questions.left.out > 0)
+    {
+        footer <- paste0(footer, "questions used in estimation: ", x$n.questions - x$n.questions.left.out, "; ")
+        footer <- paste0(footer, "questions left out: ", x$n.questions.left.out, "; ")
+    }
+    footer <- paste0(footer, "choices per question: ", x$n.alternatives, "; ")
+    footer <- paste0(footer, "number of attributes: ", x$n.attributes, "; ")
+    footer <- paste0(footer, "number of parameters: ", x$n.parameters, "; ")
+    return(footer)
 }

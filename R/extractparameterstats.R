@@ -1,14 +1,18 @@
-#' Extract Parameter Statistics from a Choice Model Fit Using Hierarchical Bayes
+#' Extract Parameter Statistics from a Choice Model Fit
 #'
-#' Takes a Hierarchical Bayes (Stan) output and produces sample
-#' statistics of the mean and standard deviation parameters for the
-#' distribution from which individual coefficients are sampled.
+#' If the Choice Model is from a Latent Class Analysis, a matrix of parameter
+#' estimates, standard errors, t-statistics and p-values is returned.
+#'
+#' If the Choice Model is from Hierarchical Bayes, this function produces a
+#' matrix sample statistics of the mean and standard deviation parameters for
+#' the distribution from which individual coefficients are sampled.
 #' @param fit An object of class \code{"FitChoice"} produced by a call
 #'     to \code{FitChoiceModel} with \code{algorithm = "HB-Stan"}.
-#' @return A matrix containing a summary of the parameter samples from
-#'     the MCMC results stored in \code{fit}, including mean, standard
-#'     error, effective sample size, and rhat for each mean and
-#'     standard deviation parameter.
+#' @return In the case of LCA, a matrix of parameter estimates, standard
+#'     errors, t-statistics and p-values. For HB, a matrix containing a summary
+#'     of the parameter samples from the MCMC results stored in \code{fit},
+#'     including mean, standard error, effective sample size, and rhat for each
+#'     mean and standard deviation parameter.
 #' @importFrom rstan extract monitor
 #' @family HB diagnostics
 #' @seealso \code{\link[rstan]{monitor}}, \url{https://www.displayr.com/convergence-hb-maxdiff/},
@@ -17,38 +21,52 @@
 #' @export
 ExtractParameterStats <- function(fit)
 {
-    checkValidFit(fit)
+    checkValidFit(fit, require.hb = FALSE)
 
-    is.multi.class <- fit$n.classes > 1
-
-    if (is.multi.class && fit$class.match.fail)
-        stop("Parameter statistics are not available as classes from ",
-             "different chains could not be matched.")
-
-    if (is.multi.class)
-    {
-        if ("class_weights" %in% fit$stan.fit@model_pars)
-            ex <- rstan::extract(fit$stan.fit,
-                                 pars = c('class_weights', 'theta', 'sigma'),
-                                 permuted = FALSE, inc_warmup = FALSE)
-        else
-            ex <- rstan::extract(fit$stan.fit,
-                                 pars = c('covariates_beta', 'theta', 'sigma'),
-                                 permuted = FALSE, inc_warmup = FALSE)
-    }
+    if (!is.null(fit$algorithm) && fit$algorithm == "LCA")
+        parameterStatisticsLCA(fit)
     else
-        ex <- rstan::extract(fit$stan.fit, pars = c('theta', 'sigma'),
-                             permuted = FALSE, inc_warmup = FALSE)
-    sample.stats <- suppressWarnings(rstan::monitor(ex, probs = c()))
-    rownames(sample.stats) <- makeLabels(fit, TRUE)
-    sample.stats
+    {
+        is.multi.class <- fit$n.classes > 1
+
+        if (is.multi.class && fit$class.match.fail)
+            stop("Parameter statistics are not available as classes from ",
+                 "different chains could not be matched.")
+
+        if (is.multi.class)
+        {
+            if ("class_weights" %in% fit$stan.fit@model_pars)
+                ex <- rstan::extract(fit$stan.fit,
+                                     pars = c('class_weights', 'theta', 'sigma'),
+                                     permuted = FALSE, inc_warmup = FALSE)
+            else
+                ex <- rstan::extract(fit$stan.fit,
+                                     pars = c('covariates_beta', 'theta', 'sigma'),
+                                     permuted = FALSE, inc_warmup = FALSE)
+        }
+        else
+            ex <- rstan::extract(fit$stan.fit, pars = c('theta', 'sigma'),
+                                 permuted = FALSE, inc_warmup = FALSE)
+        sample.stats <- suppressWarnings(rstan::monitor(ex, probs = c()))
+        rownames(sample.stats) <- makeLabels(fit, TRUE)
+        sample.stats
+    }
 }
 
-checkValidFit <- function(f)
+checkValidFit <- function(f, require.hb = TRUE)
 {
-    if (!inherits(f, "FitChoice") || is.null(f$stan.fit))
-        stop("The selected output was not a choice model output computed using ",
-             "Hierarchical Bayes (Stan). Please select such an output before running this script.")
+    if (require.hb)
+    {
+        if (!inherits(f, "FitChoice") || is.null(f$stan.fit))
+            stop("The selected output was not a choice model output computed ",
+                 "using Hierarchical Bayes (Stan). Please select such an ",
+                 "output before running this script.")
+    }
+    else if (!inherits(f, "FitChoice"))
+    {
+        stop("The selected output was not a choice model output. Please ",
+             "select such an output before running this script.")
+    }
 }
 
 makeLabels <- function(fit, add.weight.labels = FALSE)

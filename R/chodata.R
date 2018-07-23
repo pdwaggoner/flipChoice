@@ -3,8 +3,17 @@ processChoFile <- function(cho.file, attribute.levels.file,
                            subset, weights, n.questions.left.out, seed,
                            input.prior.mean, input.prior.sd,
                            include.choice.parameters, respondent.ids, missing,
-                           covariates, synthetic.priors)
+                           covariates, simulated.priors, simulated.sample.size)
 {
+    is.data.simulated <- !is.null(simulated.priors)
+    if (is.data.simulated)
+    {
+        simulatedDataWarnings(subset, weights, covariates)
+        subset <- NULL
+        weights <- NULL
+        covariates <- NULL
+    }
+
     if (missing == "Error if missing data" &&
         ((!is.null(subset) && any(is.na(subset))) ||
         (!is.null(weights) && any(is.na(weights)))) ||
@@ -34,6 +43,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
     n.parameters <-  sum(n.attribute.parameters)
     par.names <- parameterNamesFromAttributes(attribute.levels)
     all.names <- allNamesFromAttributes(attribute.levels)
+    attribute.names <- names(attribute.levels)
 
     checkPriorParameters(input.prior.mean, input.prior.sd, n.alternatives,
                          n.attributes, n.parameters, include.choice.parameters)
@@ -82,17 +92,25 @@ processChoFile <- function(cho.file, attribute.levels.file,
                 }
             }
             row.i <- row.i + 1 # choice row
-            question.Y <- raw.num[[row.i]][1]
-            if (question.Y > 0)
+            if (is.data.simulated)
             {
                 rs <- rs + 1
-                Y[rs] <- question.Y
                 X[rs, , ] <- question.X
             }
-            else if (missing == "Error if missing data")
-                MissingDataFail()
             else
-                respondent.has.missing[respondent.i] <- TRUE
+            {
+                question.Y <- raw.num[[row.i]][1]
+                if (question.Y > 0)
+                {
+                    rs <- rs + 1
+                    Y[rs] <- question.Y
+                    X[rs, , ] <- question.X
+                }
+                else if (missing == "Error if missing data")
+                    MissingDataFail()
+                else
+                    respondent.has.missing[respondent.i] <- TRUE
+            }
         }
         if (rs.initial < rs)
             file.respondent.indices[[respondent.i]] <- (rs.initial + 1):rs
@@ -145,6 +163,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
         n.attribute.parameters <- output$n.attribute.parameters
         par.names <- output$par.names
         all.names <- output$all.names
+        attribute.names <- c("Alternative", attribute.names)
     }
 
     checkNumberOfQuestionsLeftOut(max(sapply(respondent.indices, length)),
@@ -172,16 +191,26 @@ processChoFile <- function(cho.file, attribute.levels.file,
         covariates <- covariates[subset, ]
     n.respondents <- sum(subset)
 
-    if (!is.null(synthetic.priors))
+    if (is.data.simulated)
     {
-        output <- generateSyntheticChoices(X, respondent.indices,
-                                           synthetic.priors, seed,
-                                           n.alternatives)
+        n.respondents <- simulated.sample.size
+        subset <- rep(TRUE, n.respondents)
+        weights <- rep(1, n.respondents)
+        covariates <- NULL
+        sampled.output <- sampleFromX(X, respondent.indices,
+                                      n.respondents)
+        X <- sampled.output$X
+        respondent.indices <- sampled.output$respondent.indices
+        output <- generateSimulatedChoices(X, respondent.indices,
+                                           simulated.priors, seed,
+                                           n.alternatives,
+                                           n.attribute.parameters,
+                                           attribute.names)
         Y <- output$choices
-        synthetic.respondent.parameters <- output$respondent.parameters
+        simulated.respondent.parameters <- output$respondent.parameters
     }
     else
-        synthetic.respondent.parameters <- NULL
+        simulated.respondent.parameters <- NULL
 
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
                                        respondent.indices)
@@ -213,7 +242,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
          parameter.scales = rep(1, n.parameters),
          prior.mean = prior.mean,
          prior.sd = prior.sd,
-         synthetic.respondent.parameters = synthetic.respondent.parameters)
+         simulated.respondent.parameters = simulated.respondent.parameters)
 }
 
 processAttributeLevelsFile <- function(attribute.levels.file)
@@ -276,7 +305,7 @@ addChoiceParameters <- function(X, n.attributes, n.parameters,
     X <- addChoiceParametersX(X)
     n.attributes <- n.attributes + 1
     n.parameters <- n.parameters + n.alternatives - 1
-    n.attribute.parameters <- c(n.alternatives, n.attribute.parameters)
+    n.attribute.parameters <- c(n.alternatives - 1, n.attribute.parameters)
     alt.labels <- createAlternativeLabels(n.alternatives, is.none.alternative)
     par.names <- c(alt.labels[-1], par.names)
     all.names <- c(alt.labels, all.names)

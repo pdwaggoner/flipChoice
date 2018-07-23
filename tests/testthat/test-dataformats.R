@@ -57,18 +57,20 @@ test.design.none <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                                             none.positions = 2,
                                             seed = 1)
 
-test_that("experiment question synthetic data", {
-    exp.synthetic.prior <- structure(c("Alt", "a", "b", "c", "", "mean", "0", "0", "0",
+test_that("experiment question simulated data", {
+    exp.simulated.prior <- structure(c("Alt", "a", "b", "c", "", "mean", "0", "0", "0",
                 "", "Weight", "a", "b", "c", "d", "mean", "0", "1", "2", "3",
                 "sd", "0", "0.5", "1", "1.5", "Organic", "a", "b", "", "", "mean",
                 "0", "1", "", "", "Charity", "a", "b", "", "", "mean", "0", "1",
                 "", "", "Quality", "a", "b", "c", "", "Uniformity", "a", "b",
                 "", "", "Feed", "a", "b", "c", "", "Price", "a", "", "", "",
                 "mean", "-3", "", "", ""), .Dim = c(5L, 14L))
-    result <- FitChoiceModel(experiment.data = eggs.data, hb.iterations = 10,
-                             hb.chains = 1, hb.warnings = FALSE,
-                             hb.beta.draws.to.keep = 2,
-                             synthetic.priors = exp.synthetic.prior)
+    suppressWarnings(result <- FitChoiceModel(experiment.data = eggs.data,
+                                              hb.iterations = 10,
+                                              hb.chains = 1,
+                                              hb.warnings = FALSE,
+                                              hb.beta.draws.to.keep = 2,
+                                              simulated.priors = exp.simulated.prior))
     expect_error(print(result), NA)
 })
 
@@ -81,60 +83,107 @@ test_that("design object", {
     expect_error(print(result), NA)
 })
 
-test_that("design object synthetic data", {
-    synthetic.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
+test_that("design object simulated data", {
+    simulated.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
     result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
                              questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors = synthetic.priors,
-                             synthetic.sample.size = 1000)
+                             simulated.priors = simulated.priors,
+                             simulated.sample.size = 1000)
     expect_error(print(result), NA)
 })
 
-test_that("design object synthetic data without alternatives", {
-    synthetic.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
+test_that("design object simulated data without priors", {
+    simulated.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
+    expect_warning(result <- FitChoiceModel(design = test.design,
+                             choices = test.design.data$choices,
+                             questions = test.design.data$questions,
+                             hb.iterations = 10, hb.chains = 1,
+                             hb.warnings = FALSE,
+                             simulated.priors.from.design = TRUE,
+                             simulated.sample.size = 1000),
+        paste0("The supplied design does not contain priors. ",
+               "The prior mean and standard deviations have been assummed to be zero."))
+    expect_error(print(result), NA)
+})
+
+test_that("design object simulated data without alternatives", {
+    simulated.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
     result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
                              questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors = synthetic.priors[-1, ],
-                             synthetic.sample.size = 1000)
+                             simulated.priors = simulated.priors[-1, ], # leave out alternative prior
+                             simulated.sample.size = 1000)
     expect_error(print(result), NA)
 })
 
-test_that("design object synthetic data entered priors", {
-    result <- FitChoiceModel(design = test.design,
+test_that("design object simulated data entered priors", {
+    expect_warning(result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
                              questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors = test.design.data$synthetic.priors,
-                             synthetic.sample.size = 1000)
+                             simulated.priors = test.design.data$simulated.priors,
+                             simulated.sample.size = 1000),
+        paste0("Prior standard deviations were not supplied for one or more attributes. ",
+               "These standard deviations have been assummed to be 0."))
     expect_error(print(result), NA)
 })
 
-test_that("design object synthetic data priors from design", {
+test_that("design object simulated data partially entered priors", {
+    partial.priors <- test.design.data$simulated.priors[, -2:-3] # remove Att1
+    expect_warning(result <- FitChoiceModel(design = test.design,
+                                            choices = test.design.data$choices,
+                                            questions = test.design.data$questions,
+                                            hb.iterations = 10, hb.chains = 1,
+                                            hb.warnings = FALSE,
+                                            simulated.priors = partial.priors,
+                                            simulated.sample.size = 1000),
+                   paste0("The following attribute\\(s\\) were missing from ",
+                          "the priors and are assumed to have means and ",
+                          "standard deviations of 0: Att1"))
+    expect_error(print(result), NA)
+})
+
+test_that("design object simulated data incorrect entered priors", {
+    incorrect.priors <- test.design.data$simulated.priors
+    incorrect.priors[1, 2] <- "Att99"
+    expect_warning(result <- FitChoiceModel(design = test.design,
+                                            choices = test.design.data$choices,
+                                            questions = test.design.data$questions,
+                                            hb.iterations = 10, hb.chains = 1,
+                                            hb.warnings = FALSE,
+                                            simulated.priors = incorrect.priors,
+                                            simulated.sample.size = 1000),
+                   paste0("The following attribute\\(s\\) were supplied in ",
+                          "the priors but could not be matched to the ",
+                          "design: Att99"))
+    expect_error(print(result), NA)
+})
+
+test_that("design object simulated data priors from design", {
     result <- FitChoiceModel(design = test.design.with.prior,
                              choices = test.design.data$choices,
                              questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors.from.design = TRUE,
-                             synthetic.sample.size = 1000)
+                             simulated.priors.from.design = TRUE,
+                             simulated.sample.size = 1000)
     expect_error(print(result), NA)
 })
 
 
-test_that("design object synthetic data without choices", {
-    synthetic.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
+test_that("design object simulated data without choices", {
+    simulated.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
     result <- FitChoiceModel(design = test.design,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors = synthetic.priors,
-                             synthetic.sample.size = 100)
+                             simulated.priors = simulated.priors,
+                             simulated.sample.size = 100)
     expect_error(print(result), NA)
 })
 
@@ -142,8 +191,8 @@ test_that("design object none alternatives", {
     result <- FitChoiceModel(design = test.design.none,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors.from.design = TRUE,
-                             synthetic.sample.size = 100)
+                             simulated.priors.from.design = TRUE,
+                             simulated.sample.size = 100)
     expect_error(print(result), NA)
 })
 
@@ -165,14 +214,14 @@ test_that("cho none file", {
     expect_error(print(result), NA)
 })
 
-test_that("cho file synthetic data", {
-    synthetic.priors <- matrix(c(rep(0, 24), rep(2, 24)), ncol = 2)
+test_that("cho file simulated data", {
+    simulated.priors <- matrix(c(rep(0, 24), rep(2, 24)), ncol = 2)
     result <- FitChoiceModel(cho.file = cho.file,
                              attribute.levels.file = attribute.levels.file.cho,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              respondent.ids = respondent.ids,
-                             synthetic.priors = synthetic.priors)
+                             simulated.priors = simulated.priors)
     expect_error(print(result), NA)
 })
 
@@ -203,15 +252,15 @@ test_that("jmp format with labels", {
     expect_error(print(result), NA)
 })
 
-test_that("jmp format synthetic data", {
-    synthetic.priors <- matrix(c(rep(0, 16), rep(2, 16)), ncol = 2)
+test_that("jmp format simulated data", {
+    simulated.priors <- matrix(c(rep(0, 16), rep(2, 16)), ncol = 2)
     result <- FitChoiceModel(design.file = jmp.design.file,
                              attribute.levels.file = attribute.levels.file.jmp,
                              choices = choices.jmp,
                              questions = tasks.jmp,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors = synthetic.priors)
+                             simulated.priors = simulated.priors)
     expect_error(print(result), NA)
 })
 
@@ -224,7 +273,7 @@ test_that("Experiment missing data", {
                                  seed = 123, input.prior.mean = 0,
                                  input.prior.sd = 5,
                                  missing = "Error if missing data",
-                                 covariates = NULL, synthetic.priors = NULL),
+                                 covariates = NULL, simulated.priors = NULL),
                  paste0("The data contains missing values. ",
                         "Change the 'missing' option to run the analysis."))
 
@@ -234,7 +283,7 @@ test_that("Experiment missing data", {
                           seed = 123, input.prior.mean = 0,
                           input.prior.sd = 5,
                           missing = "Exclude cases with missing data",
-                          covariates = NULL, synthetic.priors = NULL)
+                          covariates = NULL, simulated.priors = NULL)
     expect_equal(dat$n.respondents, 379)
     expect_equal(dim(dat$X.in), c(3032, 3, 13))
     expect_equal(length(dat$Y.in), 3032)
@@ -251,7 +300,7 @@ test_that("Experiment missing data", {
                                  seed = 123, input.prior.mean = 0,
                                  input.prior.sd = 5,
                                  missing = "Use partial data",
-                                 covariates = NULL, synthetic.priors = NULL)
+                                 covariates = NULL, simulated.priors = NULL)
     expect_equal(dat$n.respondents, 380)
     expect_equal(dim(dat$X.in), c(3039, 3, 13))
     expect_equal(dat$X.in[1, 1:3, 1:5], structure(c(0, 1, 0, 0, 0,
@@ -268,7 +317,7 @@ test_that("Experiment missing data", {
                                  seed = 123, input.prior.mean = 0,
                                  input.prior.sd = 5,
                                  missing = "Use partial data",
-                                 covariates = NULL, synthetic.priors = NULL)
+                                 covariates = NULL, simulated.priors = NULL)
     expect_equal(dat$Y.in[1:14], c(3, 3, 1, 2, 1, 1, 3,
                                    3, 2, 2, 2, 2, 3, 3))
     expect_equal(dat$n.questions.left.in[1:5], c(6, 7, 7, 7, 7))
@@ -289,7 +338,8 @@ test_that("Design file missing data", {
                       seed = 123, input.prior.mean = 0, input.prior.sd = 5,
                       include.choice.parameters = TRUE,
                       missing = "Error if missing data",
-                      covariates = NULL, synthetic.priors = NULL),
+                      covariates = NULL, simulated.priors = NULL,
+                      simulated.sample.size = 100),
                  paste0("The data contains missing values. ",
                         "Change the 'missing' option to run the analysis."))
 
@@ -302,7 +352,8 @@ test_that("Design file missing data", {
                       seed = 123, input.prior.mean = 0, input.prior.sd = 5,
                       include.choice.parameters = TRUE,
                       missing = "Exclude cases with missing data",
-                      covariates = NULL, synthetic.priors = NULL)
+                      covariates = NULL, simulated.priors = NULL,
+                      simulated.sample.size = 100)
     expect_equal(dat$n.respondents, 378)
     expect_equal(dim(dat$X.in), c(3024, 3, 16))
     expect_equal(dat$X.in[1, 1:3, 1:5], structure(c(0, 1, 0, 0, 0,
@@ -320,7 +371,8 @@ test_that("Design file missing data", {
                              seed = 123, input.prior.mean = 0, input.prior.sd = 5,
                              include.choice.parameters = TRUE,
                              missing = "Use partial data",
-                             covariates = NULL, synthetic.priors = NULL)
+                             covariates = NULL, simulated.priors = NULL,
+                             simulated.sample.size = 100)
     expect_equal(dat$n.respondents, 380)
     expect_equal(dat$X.in[1, 1:3, 1:5], structure(c(0, 1, 0, 0, 0,
                                                     1, 0, 0, 1, 0,
@@ -339,7 +391,7 @@ test_that("CHO file missing data", {
                           include.choice.parameters = TRUE,
                           respondent.ids = respondent.ids,
                           missing = "Error if missing data",
-                          covariates = NULL, synthetic.priors = NULL),
+                          covariates = NULL, simulated.priors = NULL),
                  paste0("The data contains missing values. ",
                         "Change the 'missing' option to run the analysis."))
 
@@ -351,7 +403,7 @@ test_that("CHO file missing data", {
                           include.choice.parameters = TRUE,
                           respondent.ids = respondent.ids,
                           missing = "Exclude cases with missing data",
-                          covariates = NULL, synthetic.priors = NULL)
+                          covariates = NULL, simulated.priors = NULL)
     expect_equal(dat$n.respondents, 599)
     expect_equal(dim(dat$X.in), c(8984L, 4L, 24L))
     expect_equal(dat$X.in[1, , 1:8], structure(c(0, 1, 0, 0, 0, 0, 1, 0,
@@ -377,7 +429,7 @@ test_that("CHO file missing data", {
                           include.choice.parameters = TRUE,
                           respondent.ids = respondent.ids,
                           missing = "Use partial data",
-                          covariates = NULL, synthetic.priors = NULL)
+                          covariates = NULL, simulated.priors = NULL)
     expect_equal(dat$n.respondents, 600)
     expect_equal(dim(dat$X.in), c(8998L, 4L, 24L))
     expect_equal(dat$X.in[1, , 1:8], structure(c(0, 1, 0, 0, 0, 0, 1, 0,
@@ -439,8 +491,8 @@ test_that("Chocolate experiment choice model",
                              cov.formula = ~gender, cov.data = chocolate,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors.from.design = FALSE,
-                             synthetic.sample.size = 1000)
+                             simulated.priors.from.design = FALSE,
+                             simulated.sample.size = 1000)
     expect_error(print(result), NA)
 })
 
@@ -456,7 +508,7 @@ test_that("Fast food experiment choice model",
                              cov.formula = ~diabetes, cov.data = fast.food,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             synthetic.priors.from.design = FALSE,
-                             synthetic.sample.size = 1000)
+                             simulated.priors.from.design = FALSE,
+                             simulated.sample.size = 1000)
     expect_error(print(result), NA)
 })

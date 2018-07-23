@@ -2,7 +2,7 @@
 processExperimentData <- function(experiment.data, subset, weights,
                                   n.questions.left.out, seed, input.prior.mean,
                                   input.prior.sd, missing, covariates,
-                                  synthetic.priors)
+                                  simulated.priors, simulated.sample.size)
 {
     nms <- names(experiment.data)
     choice.name <- nms[1]
@@ -14,15 +14,26 @@ processExperimentData <- function(experiment.data, subset, weights,
         stop("The number of parameters in the Experiment question is invalid.")
     checkNumberOfQuestionsLeftOut(n.questions, n.questions.left.out)
 
+    is.data.simulated <- !is.null(simulated.priors)
+    if (is.data.simulated)
+    {
+        simulatedDataWarnings(subset, weights, covariates)
+        subset <- NULL
+        weights <- NULL
+        covariates <- NULL
+    }
+
     if (missing == "Error if missing data")
         errorIfMissingDataFoundExperiment(experiment.data, subset, weights,
-                                          covariates)
+                                          covariates, n.questions,
+                                          is.data.simulated)
 
     non.missing.table <- nonMissingTableForExperiment(experiment.data, subset,
                                                       weights, covariates,
                                                       n.questions,
                                                       n.alternatives,
-                                                      n.attributes, missing)
+                                                      n.attributes, missing,
+                                                      is.data.simulated)
     non.missing <- nonMissingRespondents(non.missing.table,
                                          n.questions.left.out, missing,
                                          n.questions)
@@ -61,6 +72,7 @@ processExperimentData <- function(experiment.data, subset, weights,
                                  n.alternatives, n.parameters,
                                  n.attribute.parameters, input.prior.mean,
                                  non.missing.table)
+    X <- x.list$X
     parameter.scales <- x.list$parameter.scales
     prior.mean <- processInputPrior(input.prior.mean, n.parameters,
                                     n.attributes, n.attribute.parameters,
@@ -71,18 +83,31 @@ processExperimentData <- function(experiment.data, subset, weights,
 
     respondent.indices <- constructRespondentIndices(non.missing.table)
 
-    if (!is.null(synthetic.priors))
+    if (is.data.simulated)
     {
-        output <- generateSyntheticChoices(x.list$X, respondent.indices,
-                                           synthetic.priors, seed,
-                                           n.alternatives, parameter.scales)
+        n.respondents <- simulated.sample.size
+        subset <- rep(TRUE, n.respondents)
+        weights <- rep(1, n.respondents)
+        covariates <- NULL
+        sampled.output <- sampleFromX(X, respondent.indices,
+                                      n.respondents)
+        X <- sampled.output$X
+        respondent.indices <- sampled.output$respondent.indices
+        attribute.names <- unique(names(attribute.data))
+        output <- generateSimulatedChoices(X, respondent.indices,
+                                           simulated.priors, seed,
+                                           n.alternatives,
+                                           n.attribute.parameters,
+                                           attribute.names,
+                                           parameter.scales)
         Y <- output$choices
-        synthetic.respondent.parameters <- output$respondent.parameters
+        simulated.respondent.parameters <- output$respondent.parameters
+
     }
     else
-        synthetic.respondent.parameters <- NULL
+        simulated.respondent.parameters <- NULL
 
-    split.data <- crossValidationSplit(x.list$X, Y, n.questions.left.out, seed,
+    split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
                                        respondent.indices)
 
     list(n.questions = n.questions,
@@ -108,7 +133,7 @@ processExperimentData <- function(experiment.data, subset, weights,
          parameter.scales = parameter.scales,
          prior.mean = prior.mean,
          prior.sd = prior.sd,
-         synthetic.respondent.parameters = synthetic.respondent.parameters)
+         simulated.respondent.parameters = simulated.respondent.parameters)
 }
 
 extractChoices <- function(experiment.data, non.missing.table)
@@ -429,8 +454,12 @@ getParameterMeanAndSD <- function(attribute.data, n.attributes, n.questions,
 
 #' @importFrom flipData MissingDataFail
 errorIfMissingDataFoundExperiment <- function(experiment.data, subset, weights,
-                                              covariates)
+                                              covariates, n.questions,
+                                              is.data.simulated)
 {
+    if (is.data.simulated)
+        experiment.data <- experiment.data[, -1:-n.questions]
+
     if (any(is.na(experiment.data)) ||
         (!is.null(subset) && any(is.na(subset))) ||
         (!is.null(weights) && any(is.na(weights))) ||
@@ -452,14 +481,16 @@ nonMissingRespondents <- function(non.missing.table, n.questions.left.out,
 
 nonMissingTableForExperiment <- function(experiment.data, subset, weights,
                                          covariates, n.questions,
-                                         n.alternatives,
-                                         n.attributes, missing)
+                                         n.alternatives, n.attributes, missing,
+                                         is.data.simulated)
 {
     result <- matrix(TRUE, nrow = nrow(experiment.data), ncol = n.questions)
     if (missing == "Use partial data")
     {
-        for (i in 1:n.questions)
-            result[, i] <- result[, i] & !is.na(experiment.data[[i]])
+        if (!is.data.simulated)
+            for (i in 1:n.questions)
+                result[, i] <- result[, i] & !is.na(experiment.data[[i]])
+
         for (i in 1:n.attributes)
         {
             for (j in 1:n.questions)
@@ -473,7 +504,11 @@ nonMissingTableForExperiment <- function(experiment.data, subset, weights,
         }
     }
     else
+    {
+        if (is.data.simulated)
+            experiment.data <- experiment.data[, -1:-n.questions]
         result <- result & !is.na(rowSums(sapply(experiment.data, as.numeric)))
+    }
 
     if (!is.null(subset))
         result <- result & !is.na(subset)

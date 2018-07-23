@@ -211,7 +211,9 @@ test_that("Parsing of pasted prior with some means and sd's missing",
     ##                          attribute.levels = pd, prior = NULL, n.questions = n.q,
     ##                          alternatives.per.question = apq, seed = seed,
     ##                          output = "Labeled design")
-    parsed <- parsePastedData(pd)
+    expect_warning(parsed <- parsePastedData(pd),
+        paste0("Prior standard deviations were not supplied for one or more attributes. ",
+                 "These standard deviations have been assummed to be 0."))
     expect_equal(names(parsed$lvls), vnames)
     expect_equal(parsed$lvls, c(3, 3, 2), check.attributes = FALSE)
     expect_equal(parsed$prior[, 1], c(1, 1, 0, 2, 0), check.attributes = FALSE)
@@ -238,10 +240,10 @@ test_that("Correct prior specification improves fit on sim data",
     n.q <- 10
     apq <- 4
 
-    out <- ChoiceModelDesign(design.algorithm = "Modfed",
+    suppressWarnings(out <- ChoiceModelDesign(design.algorithm = "Modfed",
                              attribute.levels = pd, prior = NULL, n.questions = n.q,
                              alternatives.per.question = apq, seed = seed,
-                             output = "Labeled design")
+                             output = "Labeled design"))
     set.seed(seed.resp.sim)
 
     true.coef <- c(price.mean[-1], time.mean[-1], type.mean[-1])
