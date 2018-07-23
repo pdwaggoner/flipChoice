@@ -81,7 +81,7 @@ for (i in 1:n.sims)
     assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRC,
                       "flipChoice")
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
-                                 questions = tasks, hb.iterations = n.iter,
+                                 questions = questions, hb.iterations = n.iter,
  #                                subset = subset,
                              cov.formula = frml, cov.data = fast.food,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
