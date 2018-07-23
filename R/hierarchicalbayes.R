@@ -63,8 +63,6 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
     n.hb.parameters <- numberOfHBParameters(stan.dat)
     result <- c(result, LogLikelihoodAndBIC(stan.fit, n.hb.parameters,
                                             stan.dat$R))
-
-    class(result) <- "FitChoice"
     result
 }
 

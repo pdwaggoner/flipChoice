@@ -79,7 +79,6 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
     result$parameter.statistics <- par.stats
     result$class.parameters <- pars$class.parameters
     result$coef <- createCoefOutput(pars, dat$par.names, dat$all.names)
-    class(result) <- "FitChoice"
     result
 }
 
@@ -322,7 +321,7 @@ RepeatWeights <- function(weights, respondent.indices)
     result
 }
 
-#' @title RespQuestionsToLevels
+#' @title RespondentQuestionsToLevels
 #' @description Maps respondent question indices to levels.
 #' @param ind.levels A list of question indices for each level.
 #' @return A vector of levels.
