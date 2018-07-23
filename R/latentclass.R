@@ -54,6 +54,11 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
     pars <- sorted$pars
     resp.post.probs <- sorted$resp.post.probs
 
+    par.stats <- parameterStatisticsLCA(pars, X, ind.levels, weights,
+                                        n.classes, n.alternatives,
+                                        n.parameters, dat$par.names,
+                                        dat$parameter.scales)
+
     # Descale class parameters
     pars$class.parameters <- pars$class.parameters / dat$parameter.scales
 
@@ -71,12 +76,10 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
                                                        pars$class.parameters,
                                                        dat$par.names,
                                                        dat$all.names)
-
+    result$parameter.statistics <- par.stats
     result$class.parameters <- pars$class.parameters
     result$coef <- createCoefOutput(pars, dat$par.names, dat$all.names)
-    result$lca.data <- list(pars = pars, X = X, ind.levels = ind.levels,
-                            weights = weights, parameter.names = dat$par.names,
-                            parameter.scales = dat$parameter.scales)
+    class(result) <- "FitChoice"
     result
 }
 
@@ -341,14 +344,8 @@ standardErrorsForLCA <- function(p, X, ind.levels, weights, n.classes,
                     weights = weights,
                     ind.levels = ind.levels, n.classes = n.classes,
                     n.alternatives = n.alternatives,
-                    n.parameters = n.parameters, h = 2e-9)
-    d <- diag(solve(-hess))
-    sqrt(d)
-
-    # output <- optim(p, logLikelihoodForHessian, hessian = TRUE, X = X, ind.levels = ind.levels,
-    #       weights = weights, n.classes = n.classes, n.alternatives = n.alternatives,
-    #                       n.parameters = n.parameters)
-    # h <- output$hessian
+                    n.parameters = n.parameters)
+    sqrt(diag(solve(-hess)))
 }
 
 gradientLCA <- function(pars, X, ind.levels, weights, n.alternatives)
@@ -509,31 +506,15 @@ computeRespParsLCA <- function(resp.post.probs, class.parameters,
     result
 }
 
-#' @title ParameterStatisticsLCA
-#' @description Produces a table of parameter statistics for LCA.
-#' @param obj A FitChoice object from running LCA.
-#' @return A matrix of size n.classes x n containing 1s and 0s where 1
-#'     indicates membership.
-#' @export
 #' @importFrom stats pt
-ParameterStatisticsLCA <- function(obj)
+parameterStatisticsLCA <- function(pars, X, ind.levels, weights,
+                                   n.classes, n.alternatives, n.parameters,
+                                   parameter.names, parameter.scales)
 {
-    if (is.null(obj$lca.data))
-        stop("An latent class analysis output is required.")
-
-    pars <- obj$lca.data$pars
-    X <- obj$lca.data$X
-    ind.levels <- obj$lca.data$ind.levels
-    weights <- obj$lca.data$weights
-    parameter.names <- obj$lca.data$parameter.names
-    parameter.scales <- obj$lca.data$parameter.scales
-    n.classes <- obj$n.classes
-    n.alternatives <- obj$n.alternatives
-    n.parameters <- obj$n.parameters
-
     p <- parameterListToVector(pars)
     std.errors <- standardErrorsForLCA(p, X, ind.levels, weights,
-                         n.classes, n.alternatives, n.parameters)
+                         n.classes, n.alternatives,
+                         n.parameters)
     t.stats <- p / std.errors
     p.values <- 2*pt(abs(t.stats), nrow(X) - length(p), lower.tail = FALSE)
     m <- matrix(NA, nrow = length(p), ncol = 4)
