@@ -2,7 +2,7 @@
 % Please edit documentation in R/latentclass.R
 \name{RespondentQuestionsToLevels}
 \alias{RespondentQuestionsToLevels}
-\title{RespondentQuestionsToLevels}
+\title{RespQuestionsToLevels}
 \usage{
 RespondentQuestionsToLevels(ind.levels)
 }
