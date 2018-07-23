@@ -19,12 +19,15 @@ library(rstan)
 data("fast.food", package = "flipChoice")
 data("fast.food.design", package = "flipChoice")
 
-choices <- fast.food[, grepl("^choice", colnames(fast.food))]
-questions <- fast.food[, grepl("^task", colnames(fast.food))]
-
 ## remove 3 respondents who didn't state gender
+## Need to subset here until DS-2057 completed
 ## fast.food <- fast.food[fast.food$gender != "Other / Prefer not to say", ]
 subset <- fast.food$gender != "Other / Prefer not to say"
+fast.food <- fast.food[subset, ]
+fast.food$gender <- droplevels(fast.food$gender)
+
+choices <- fast.food[, grepl("^choice", colnames(fast.food))]
+questions <- fast.food[, grepl("^task", colnames(fast.food))]
 
 ## frml <- ~age2+gender
 frml <- ~gender
@@ -63,9 +66,9 @@ for (i in 1:n.sims)
 {
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
     assignInNamespace("stanModel", orig.stanModel, "flipChoice")
-    result <- try(FitChoiceModel(experiment.data = fast.food.design, choices = choices,
+    result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
-                                 subset = subset,
+#                                 subset = subset,
                              cov.formula = frml, cov.data = fast.food,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
                              seed = i+sseed))
@@ -77,9 +80,9 @@ for (i in 1:n.sims)
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRC,
                       "flipChoice")
-    result <- try(FitChoiceModel(experiment.data = fast.food.design, choices = choices,
+    result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = tasks, hb.iterations = n.iter,
-                                 subset = subset,
+ #                                subset = subset,
                              cov.formula = frml, cov.data = fast.food,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
                              seed = i+sseed))
