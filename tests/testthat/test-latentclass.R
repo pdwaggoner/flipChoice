@@ -1,26 +1,28 @@
 context("Latent class analysis")
 
+tol <- 0.00001
+
 data(eggs, package = "flipChoice")
 
 test_that("LCA", {
     result <- FitChoiceModel(experiment.data = eggs.data, algorithm = "LCA")
-    expect_equal(result$log.likelihood, -2926.5237873149)
-    expect_equal(result$bic, 5930.26980091517)
-    expect_equal(result$parameter.statistics[1, 1], 0.072126523778819)
-    expect_equal(result$parameter.statistics[1, 2], 0.0476143774410454)
-    expect_equal(result$parameter.statistics[1, 3], 1.51480556199908)
-    expect_equal(result$parameter.statistics[1, 4], 0.129926058794661)
+    expect_true(abs(result$log.likelihood - (-2926.5237873149)) < tol)
+    expect_true(abs(result$bic - 5930.26980091517) < tol)
+    expect_true(abs(result$parameter.statistics[1, 1] - 0.072126523778819) < tol)
+    expect_true(abs(result$parameter.statistics[1, 2] - 0.0476143774410454) < tol)
+    expect_true(abs(result$parameter.statistics[1, 3] - 1.51480556199908) < tol)
+    expect_true(abs(result$parameter.statistics[1, 4] - 0.129926058794661) < tol)
 })
 
 test_that("LCA 2-classes", {
     result <- FitChoiceModel(experiment.data = eggs.data, algorithm = "LCA",
                              n.classes = 2)
-    expect_equal(result$log.likelihood, -2434.12103185236)
-    expect_equal(result$bic, 5028.62668752817)
-    expect_equal(result$parameter.statistics[2, 1], 0.172523477969344)
-    expect_equal(result$parameter.statistics[2, 2], 0.0775289153359638)
-    expect_equal(result$parameter.statistics[2, 3], 2.22527913903775)
-    expect_equal(result$parameter.statistics[2, 4], 0.0261362615204639)
+    expect_true(abs(result$log.likelihood - (-2434.12103185236)) < tol)
+    expect_true(abs(result$bic - 5028.62668752817) < tol)
+    expect_true(abs(result$parameter.statistics[2, 1] - 0.172523477969344) < tol)
+    expect_true(abs(result$parameter.statistics[2, 2] - 0.0775289153359638) < tol)
+    expect_true(abs(result$parameter.statistics[2, 3] - 2.22527913903775) < tol)
+    expect_true(abs(result$parameter.statistics[2, 4] - 0.0261362615204639) < tol)
 })
 
 test_that("LCA filtered", {
@@ -29,12 +31,12 @@ test_that("LCA filtered", {
     attr(subset, "label") <- "first 100"
     result <- FitChoiceModel(experiment.data = eggs.data, algorithm = "LCA",
                              subset = subset)
-    expect_equal(result$log.likelihood, -749.25502715472)
-    expect_equal(result$bic, 1558.37726672729)
-    expect_equal(result$parameter.statistics[1, 1], -0.0505552970194017)
-    expect_equal(result$parameter.statistics[1, 2], 0.0933462112015716)
-    expect_equal(result$parameter.statistics[1, 3], -0.54158916970109)
-    expect_equal(result$parameter.statistics[1, 4], 0.588254839013794)
+    expect_true(abs(result$log.likelihood - (-749.25502715472)) < tol)
+    expect_true(abs(result$bic - 1558.37726672729) < tol)
+    expect_true(abs(result$parameter.statistics[1, 1] - (-0.0505552970194017)) < tol)
+    expect_true(abs(result$parameter.statistics[1, 2] - 0.0933462112015716) < tol)
+    expect_true(abs(result$parameter.statistics[1, 3] - (-0.54158916970109)) < tol)
+    expect_true(abs(result$parameter.statistics[1, 4] - 0.588254839013794) < tol)
     expect_equal(dim(result$respondent.parameters), c(380L, 20L))
     expect_equal(dim(result$reduced.respondent.parameters), c(380L, 13L))
     expect_equal(length(result$prediction.accuracies), 380)
@@ -67,10 +69,10 @@ test_that("LCA filtered and weighted", {
     attr(weights, "label") <- "Age"
     result <- FitChoiceModel(experiment.data = eggs.data, algorithm = "LCA",
                              subset = subset, weights = weights)
-    expect_equal(result$log.likelihood, -613.885430765335)
-    expect_equal(result$bic, 1285.11048561294)
-    expect_equal(result$parameter.statistics[2, 1], -0.10873901320569)
-    expect_equal(result$parameter.statistics[2, 2], 0.103080168378728)
-    expect_equal(result$parameter.statistics[2, 3], -1.05489751245042)
-    expect_equal(result$parameter.statistics[2, 4], 0.291795935221641)
+    expect_true(abs(result$log.likelihood - (-613.885430765335)) < tol)
+    expect_true(abs(result$bic - 1285.11048561294) < tol)
+    expect_true(abs(result$parameter.statistics[1, 1] - (-0.10873901320569)) < tol)
+    expect_true(abs(result$parameter.statistics[1, 2] - 0.103080168378728) < tol)
+    expect_true(abs(result$parameter.statistics[1, 3] - (-1.05489751245042)) < tol)
+    expect_true(abs(result$parameter.statistics[1, 4] - (0.291795935221641)) < tol)
 })

@@ -516,7 +516,7 @@ parameterStatisticsLCA <- function(pars, X, ind.levels, weights,
                          n.classes, n.alternatives,
                          n.parameters)
     t.stats <- p / std.errors
-    p.values <- 2*pt(abs(t.stats), nrow(X) - length(p), lower = FALSE)
+    p.values <- 2*pt(abs(t.stats), nrow(X) - length(p), lower.tail = FALSE)
     m <- matrix(NA, nrow = length(p), ncol = 4)
     m[, 1] <- p
     m[, 2] <- std.errors
@@ -571,7 +571,7 @@ createCoefOutput <- function(pars, par.names, all.names)
                 ind <- ind + 1
             }
         }
-        rownames(result) <- all.names
+        names(result) <- all.names
     }
     else
     {
