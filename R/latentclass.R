@@ -319,7 +319,7 @@ RepeatWeights <- function(weights, respondent.indices)
     result
 }
 
-#' @title RespQuestionsToLevels
+#' @title RespondentQuestionsToLevels
 #' @description Maps respondent question indices to levels.
 #' @param ind.levels A list of question indices for each level.
 #' @return A vector of levels.
