@@ -17,7 +17,7 @@ test_that("LCA", {
 test_that("LCA 2-classes", {
     result <- FitChoiceModel(experiment.data = eggs.data, algorithm = "LCA",
                              n.classes = 2)
-    expect_true(abs(result$log.likelihood, -2434.12103185236) < tol)
+    expect_true(abs(result$log.likelihood - (-2434.12103185236)) < tol)
     expect_true(abs(result$bic - 5028.62668752817) < tol)
     expect_true(abs(result$parameter.statistics[2, 1] - 0.172523477969344) < tol)
     expect_true(abs(result$parameter.statistics[2, 2] - 0.0775289153359638) < tol)
