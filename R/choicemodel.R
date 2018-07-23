@@ -266,6 +266,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                                   colnames(dat$covariates)
     result$synthetic.respondent.parameters <- synthetic.resp.pars
     result$time.taken <- (end.time - start.time)[3]
+    class(result) <- "FitChoice"
     result
 }
 
