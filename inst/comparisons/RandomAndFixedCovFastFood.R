@@ -15,22 +15,28 @@ if (!is.rserver){
 }
 
 library(rstan)
+options(mc.cores = parallel::detectCores())
 
 data("fast.food", package = "flipChoice")
 data("fast.food.design", package = "flipChoice")
 
 ## remove 3 respondents who didn't state gender
 ## Need to subset here until DS-2057 completed
+
 ## fast.food <- fast.food[fast.food$gender != "Other / Prefer not to say", ]
-subset <- fast.food$gender != "Other / Prefer not to say"
+## subset <- fast.food$gender != "Other / Prefer not to say"
+## fast.food <- fast.food[subset, ]
+## fast.food$gender <- droplevels(fast.food$gender)
+
+subset <- fast.food$age != "Under 15 years"
 fast.food <- fast.food[subset, ]
-fast.food$gender <- droplevels(fast.food$gender)
+fast.food$age <- droplevels(fast.food$age)
 
 choices <- fast.food[, grepl("^choice", colnames(fast.food))]
 questions <- fast.food[, grepl("^task", colnames(fast.food))]
 
 ## frml <- ~age2+gender
-frml <- ~gender
+frml <- ~age+income+high.blood.pressure
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
@@ -54,12 +60,12 @@ GetStats <- function(res){
 }
 
 
-n.iter <- 750
+n.iter <- 500
 n.sims <- 10
 n.leave.out.q <- 6
-n.chains <- 1
-sseed <- 3
-comp.stats <- array(dim = c(n.sims, 2, 12))
+n.chains <- parallel::detectCores()/2  # 1
+sseed <- 33
+comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
 orig.stanModel <- flipChoice:::stanModel
 for (i in 1:n.sims)
@@ -69,13 +75,22 @@ for (i in 1:n.sims)
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
 #                                 subset = subset,
+#                             cov.formula = frml, cov.data = fast.food,
+                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
+                             seed = i+sseed))
+    if (!inherits(result, "try-error"))
+        comp.stats[i, 1, ] <- GetStats(result)
+
+    result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
+                                 questions = questions, hb.iterations = n.iter,
+#                                 subset = subset,
                              cov.formula = frml, cov.data = fast.food,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
                              seed = i+sseed))
     ## samps <- extract(result$stan.fit, pars = c("theta", "sigma"))
     ## samps <- do.call(cbind, samps)
     if (!inherits(result, "try-error"))
-        comp.stats[i, 1, ] <- GetStats(result)
+        comp.stats[i, 2, ] <- GetStats(result)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRC,
@@ -87,10 +102,10 @@ for (i in 1:n.sims)
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
                              seed = i+sseed))
     if (!inherits(result, "try-error"))
-        comp.stats[i, 2, ] <- GetStats(result)
+        comp.stats[i, 3, ] <- GetStats(result)
 
 }
-dimnames(comp.stats) <- list(NULL, c("Fixed", "Random"),
+dimnames(comp.stats) <- list(NULL, c("No Cov.", "Fixed", "Random"),
                              c("mean.rhat.theta", "mean.neff.theta",
                                "mean.neff.per.sec.theta", "mean.rhat.sigma", "mean.neff.sigma",
                                "mean.neff.per.sec.sigma", "max.rhat", "min.neff",
