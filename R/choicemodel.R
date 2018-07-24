@@ -246,6 +246,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
         colnames(synthetic.resp.pars) <- colnames(result$reduced.respondent.parameters)
 
     result <- accuracyResults(dat, result, tasks.left.out)
+    result$processed.data <- dat
     result$algorithm <- algorithm
     result$n.questions.left.out <- tasks.left.out
     result$n.classes <- n.classes
