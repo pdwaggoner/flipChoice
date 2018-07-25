@@ -4,13 +4,17 @@
 \alias{ChoiceEnsemble}
 \title{Create an ensemble of FitChoice models}
 \usage{
-ChoiceEnsemble(models, compare.only = FALSE)
+ChoiceEnsemble(models, compare.only = FALSE, output = "Comparison")
 }
 \arguments{
 \item{models}{A \code{list} of models, all of which are of class \code{FitChoice}.}
 
 \item{compare.only}{Logical; whether to just produce a table comparing the models or
 additionally combine them to make a new ensemble model.}
+
+\item{output}{If \code{compare.only} is \code{FALSE}, one of \code{"Comparison"} which
+produces a table comparing the models, or \code{"Ensemble"} which produces histograms
+of respondent coefficients (as for \code{\link{FitChoice}}).}
 }
 \description{
 Create an ensemble of FitChoice models
