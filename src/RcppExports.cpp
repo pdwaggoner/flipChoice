@@ -62,6 +62,33 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// computeExpDiscriminants
+NumericMatrix computeExpDiscriminants(NumericMatrix X, NumericVector parameters, int n_alternatives);
+RcppExport SEXP _flipChoice_computeExpDiscriminants(SEXP XSEXP, SEXP parametersSEXP, SEXP n_alternativesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type parameters(parametersSEXP);
+    Rcpp::traits::input_parameter< int >::type n_alternatives(n_alternativesSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeExpDiscriminants(X, parameters, n_alternatives));
+    return rcpp_result_gen;
+END_RCPP
+}
+// computeShareDerivative
+double computeShareDerivative(NumericMatrix X, NumericMatrix exp_discriminants, int parameter_index, int n_parameters);
+RcppExport SEXP _flipChoice_computeShareDerivative(SEXP XSEXP, SEXP exp_discriminantsSEXP, SEXP parameter_indexSEXP, SEXP n_parametersSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type exp_discriminants(exp_discriminantsSEXP);
+    Rcpp::traits::input_parameter< int >::type parameter_index(parameter_indexSEXP);
+    Rcpp::traits::input_parameter< int >::type n_parameters(n_parametersSEXP);
+    rcpp_result_gen = Rcpp::wrap(computeShareDerivative(X, exp_discriminants, parameter_index, n_parameters));
+    return rcpp_result_gen;
+END_RCPP
+}
 // d0CriterionShortcut
 double d0CriterionShortcut(Eigen::MatrixXd& question_design, Eigen::MatrixXd& partial_info_matrix, int alternatives_per_question);
 RcppExport SEXP _flipChoice_d0CriterionShortcut(SEXP question_designSEXP, SEXP partial_info_matrixSEXP, SEXP alternatives_per_questionSEXP) {

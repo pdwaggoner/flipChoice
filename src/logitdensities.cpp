@@ -84,3 +84,52 @@ NumericVector gradientChoice(NumericVector b, NumericMatrix X,
     }
     return result;
 }
+
+// [[Rcpp::export]]
+NumericMatrix computeExpDiscriminants(NumericMatrix X,
+                                      NumericVector parameters,
+                                      int n_alternatives)
+{
+    int n_parameters = parameters.size();
+    int n_questions = X.nrow();
+    NumericMatrix result(n_questions, n_alternatives);
+    for (int q = 0; q < n_questions; q++)
+    {
+        int ind = 0;
+        for (int j = 0; j < n_alternatives; j++)
+        {
+            double discriminant = 0;
+            for (int p = 0; p < n_parameters; p++)
+            {
+                discriminant += X(q, ind) * parameters[p];
+                ind++;
+            }
+            result(q, j) = exp(discriminant);
+        }
+    }
+    return result;
+}
+
+// [[Rcpp::export]]
+double computeShareDerivative(NumericMatrix X, NumericMatrix exp_discriminants,
+                              int parameter_index, int n_parameters)
+{
+    int n_questions = X.nrow();
+    int n_alternatives = exp_discriminants.ncol();
+    parameter_index--;
+    double result = 0;
+    for (int q = 0; q < n_questions; q++)
+    {
+        double sum_exp = 0;
+        double sum_x_exp = 0;
+        int ind = parameter_index;
+        for (int j = 0; j < n_alternatives; j++)
+        {
+            sum_exp += exp_discriminants(q, j);
+            sum_x_exp += X(q, ind) * exp_discriminants(q, j);
+            ind += n_parameters;
+        }
+        result += X(q, parameter_index) - sum_x_exp / sum_exp;
+    }
+    return result;
+}
