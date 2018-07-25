@@ -54,10 +54,9 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
     pars <- sorted$pars
     resp.post.probs <- sorted$resp.post.probs
 
-    par.stats <- parameterStatisticsLCA(pars, X, ind.levels, weights,
-                                        n.classes, n.alternatives,
-                                        n.parameters, dat$par.names,
-                                        dat$parameter.scales)
+    lca.data <- list(pars = pars, X = X, ind.levels = ind.levels,
+                     weights = weights, parameter.names = dat$par.names,
+                     parameter.scales = dat$parameter.scales)
 
     # Descale class parameters
     pars$class.parameters <- pars$class.parameters / dat$parameter.scales
@@ -76,14 +75,14 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
                                                        pars$class.parameters,
                                                        dat$par.names,
                                                        dat$all.names)
-    result$parameter.statistics <- par.stats
     result$class.parameters <- pars$class.parameters
     result$coef <- createCoefOutput(pars, dat$par.names, dat$all.names)
+    result$lca.data <- lca.data
     result
 }
 
 # Infer parameters given class memberships
-inferParameters <- function(class.memberships, X, weights,
+inferParameters <- function(class.memberships, X, repeated.weights,
                             resp.questions.to.levels,
                             n.alternatives, n.parameters)
 {
@@ -93,7 +92,7 @@ inferParameters <- function(class.memberships, X, weights,
     # Class parameters
     for (c in 1:n.classes)
     {
-        w <- class.memberships[resp.questions.to.levels, c] * weights
+        w <- class.memberships[resp.questions.to.levels, c] * repeated.weights
         solution <- choiceLogit(X, w, n.alternatives, n.parameters)
         p <- solution$par
         p[p > 100] = 100
@@ -154,13 +153,14 @@ posteriorProbabilities <- function(pars, X, ind.levels, n.classes,
 PosteriorProbsFromDensities <- function(log.densities, log.class.weights,
                                         n.levels, n.classes)
 {
+
     repsondents.log.densities <- vector("numeric", n.levels)
     for (l in 1:n.levels)
         repsondents.log.densities[l] <- logSumExp(log.class.weights +
                                                       log.densities[l, ])
-
-    exp(t(matrix(rep(log.class.weights, n.levels), n.classes)) + log.densities
+    res <- exp(t(matrix(rep(log.class.weights, n.levels), n.classes)) + log.densities
         - t(matrix(rep(repsondents.log.densities, each = n.classes), n.classes)))
+    res
 }
 
 logLikelihood <- function(pars, X, weights, ind.levels, n.classes,
@@ -177,14 +177,15 @@ logLikelihood <- function(pars, X, weights, ind.levels, n.classes,
     res
 }
 
-logLikelihoodForHessian <- function(p, X, weights, ind.levels,
+logLikelihoodForHessian <- function(p, X, ind.levels, weights,
                                     n.classes, n.alternatives,
                                     n.parameters)
 {
     pars <- parameterVectorToList(p, n.classes, n.parameters)
-    logLikelihood(pars, X, weights, ind.levels,
+    res <- logLikelihood(pars, X, weights, ind.levels,
                   n.classes, n.alternatives,
                   n.parameters)
+    res
 }
 
 parameterListToVector <- function(parameter.list)
@@ -339,128 +340,94 @@ RespondentQuestionsToLevels <- function(ind.levels)
 standardErrorsForLCA <- function(p, X, ind.levels, weights, n.classes,
                                  n.alternatives, n.parameters)
 {
-    hess <- hessian(logLikelihoodForHessian, p, X = X,
-                    weights = weights,
-                    ind.levels = ind.levels, n.classes = n.classes,
-                    n.alternatives = n.alternatives,
-                    n.parameters = n.parameters)
-    sqrt(diag(solve(-hess)))
+    output <- optim(p, logLikelihoodForHessian, gr = gradientLCA, X = X,
+                    ind.levels = ind.levels, weights = weights,
+                    n.classes = n.classes, n.alternatives = n.alternatives,
+                    n.parameters = n.parameters, method =  "BFGS",
+                    control = list(fnscale  = -1, maxit = 0, trace = 0),
+                    hessian = TRUE)
+    h <- output$hessian
+    sqrt(diag(solve(-h)))
 }
 
-gradientLCA <- function(pars, X, ind.levels, weights, n.alternatives)
+gradientLCA <- function(p, X, ind.levels, weights, n.classes, n.alternatives, n.parameters)
 {
+    pars <- parameterVectorToList(p, n.classes, n.parameters)
     class.parameters <- pars$class.parameters
     class.sizes <- pars$class.sizes
     n.parameters <- nrow(class.parameters)
     n.classes <- length(class.sizes)
     n.levels <- length(ind.levels)
+    parameter.ind <- n.classes:length(p)
 
-    result <- rep(0, n.parameters * n.classes)
-    exp.discriminants <- computeExpDiscriminants(class.parameters, X,
-                                                 ind.levels, n.classes,
-                                                 n.alternatives)
+    result <- rep(0, n.parameters * n.classes + n.classes - 1)
+
+    if (n.classes > 1)
+        size.pars <- log(class.sizes[2:n.classes] / class.sizes[1])
+
     for (i in 1:n.levels)
     {
         n.questions <- length(ind.levels[[i]])
-        inverse.density <- computeInverseDensity(exp.discriminants,
-                                                 class.sizes, i, n.questions)
-        n.questions <- length(ind.levels[[i]])
+        resp.X <- X[ind.levels[[i]], ]
+
+        product.densities <- rep(NA, n.classes)
+        gradient.inc <- rep(NA, n.classes * n.parameters)
+
         ind <- 1
+
         for (k in 1:n.classes)
         {
-            for (p in 1:n.parameters)
+            exp.discriminants <- computeExpDiscriminants(resp.X,
+                                                         class.parameters[, k],
+                                                         n.alternatives)
+
+            product.densities[k] <- computeProductDensity(exp.discriminants)
+
+            for (j in 1:n.parameters)
             {
-                prod.dens <- computeProductDensity(exp.discriminants, i, k,
-                                                   n.questions)
-                share.deriv <- computeShareDerivative(X[ind.levels[[i]], ],
-                                                  exp.discriminants, i, k, p,
-                                                  n.parameters)
-                result[ind] <- result[ind] + inverse.density * weights[i] *
-                               class.sizes[k] * prod.dens * share.deriv
+                share.deriv <- computeShareDerivative(resp.X,
+                                                exp.discriminants, j,
+                                                      n.parameters)
+                gradient.inc[ind] <- class.sizes[k] * product.densities[k] *
+                                     share.deriv
                 ind <- ind + 1
             }
         }
+
+        inverse.density <- computeInverseDensity(product.densities,
+                                                 class.sizes)
+        result[parameter.ind] <- result[parameter.ind] +
+                                 weights[i] * inverse.density * gradient.inc
+
+        # Class sizes
+        if (n.classes > 1)
+            for (k in 1:(n.classes - 1))
+                result[k] <- result[k] + inverse.density * weights[i] *
+                    computeSizeDerivative(product.densities, size.pars, k + 1)
     }
     result
 }
 
-computeExpDiscriminants <- function(class.parameters, X, ind.levels, n.classes,
-                                    n.alternatives)
+computeProductDensity <- function(exp.discriminants)
 {
-    n.levels <- length(ind.levels)
-    n.parameters <- nrow(class.parameters)
-    max.n.questions <- max(sapply(ind.levels, length))
-    result <- array(dim = c(n.levels, n.classes, max.n.questions, n.alternatives))
-    for (i in 1:n.levels)
-    {
-        n.questions <- length(ind.levels[[i]])
-        for (k in 1:n.classes)
-        {
-            for (q in 1:n.questions)
-            {
-                ind <- 1
-                for (j in 1:n.alternatives)
-                {
-                    discriminant <- 0
-                    for (p in 1:n.parameters)
-                    {
-                         discriminant <- discriminant +
-                                         X[ind.levels[[i]][q], ind] *
-                                         class.parameters[p, k]
-                         ind <- ind + 1
-                    }
-                    result[i, k, q, j] <- exp(discriminant)
-                }
-            }
-        }
-    }
-    result
+    prod(exp.discriminants[, 1] / rowSums(exp.discriminants))
 }
 
-computeProductDensity <- function(exp.discriminants, level.index,
-                                  class.index, n.questions)
+computeInverseDensity <- function(product.densities, class.sizes)
 {
-    result <- 1
-    for (q in 1:n.questions)
-        result <- result * exp.discriminants[level.index, class.index, q, 1] /
-                  sum(exp.discriminants[level.index, class.index, q, ])
-    result
+    1 / sum(class.sizes * product.densities)
 }
 
-computeInverseDensity <- function(exp.discriminants, class.sizes, level.index,
-                                  n.questions)
+computeSizeDerivative <- function(product.densities, size.pars, class.index)
 {
-    n.classes <- length(class.sizes)
-    result <- 0
-    for (k in 1:n.classes)
-        result <- result + class.sizes[k] *
-            computeProductDensity(exp.discriminants, level.index, k,
-                                  n.questions)
-    1 / result
-}
-
-computeShareDerivative <- function(X, exp.discriminants, level.index,
-                                   class.index, parameter.index, n.parameters)
-{
-    n.questions <- nrow(X)
-    n.alternatives <- dim(exp.discriminants)[4]
-    result <- 0
-    for (q in 1:n.questions)
-    {
-        sum.exp <- 0
-        sum.x.exp <- 0
-        ind <- parameter.index
-        for (j in 1:n.alternatives)
-        {
-            sum.exp <- sum.exp + exp.discriminants[level.index, class.index,
-                                                   q, j]
-            sum.x.exp <- sum.x.exp + X[q, ind] *
-                         exp.discriminants[level.index, class.index, q, j]
-            ind <- ind + n.parameters
-        }
-        result <- result + X[q, parameter.index] - sum.x.exp / sum.exp
-    }
-    result
+    exp.pars <- exp(c(0, size.pars))
+    sum.exp.pars <- sum(exp.pars)
+    n.classes <- length(exp.pars)
+    sgn <- rep(-1, n.classes)
+    sgn[class.index] <- 1
+    combined.densities <- sum(sgn * product.densities)
+    exp.pars[class.index] * (sum.exp.pars - exp.pars[class.index]) *
+        combined.densities / (sum.exp.pars ^ 2)
 }
 
 sortClasses <- function(pars, resp.post.probs)
@@ -505,15 +472,31 @@ computeRespParsLCA <- function(resp.post.probs, class.parameters,
     result
 }
 
+#' @title ParameterStatisticsLCA
+#' @description Produces a table of parameter statistics for LCA.
+#' @param obj A FitChoice object from running LCA.
+#' @return A matrix of size n.classes x n containing 1s and 0s where 1
+#'     indicates membership.
+#' @export
 #' @importFrom stats pt
-parameterStatisticsLCA <- function(pars, X, ind.levels, weights,
-                                   n.classes, n.alternatives, n.parameters,
-                                   parameter.names, parameter.scales)
+ParameterStatisticsLCA <- function(obj)
 {
+    if (is.null(obj$lca.data))
+        stop("A latent class analysis output is required.")
+
+    pars <- obj$lca.data$pars
+    X <- obj$lca.data$X
+    ind.levels <- obj$lca.data$ind.levels
+    weights <- obj$lca.data$weights
+    parameter.names <- obj$lca.data$parameter.names
+    parameter.scales <- obj$lca.data$parameter.scales
+    n.classes <- obj$n.classes
+    n.alternatives <- obj$n.alternatives
+    n.parameters <- obj$n.parameters
+
     p <- parameterListToVector(pars)
     std.errors <- standardErrorsForLCA(p, X, ind.levels, weights,
-                         n.classes, n.alternatives,
-                         n.parameters)
+                         n.classes, n.alternatives, n.parameters)
     t.stats <- p / std.errors
     p.values <- 2*pt(abs(t.stats), nrow(X) - length(p), lower.tail = FALSE)
     m <- matrix(NA, nrow = length(p), ncol = 4)
