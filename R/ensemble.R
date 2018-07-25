@@ -3,10 +3,14 @@
 #' @param models A \code{list} of models, all of which are of class \code{FitChoice}.
 #' @param compare.only Logical; whether to just produce a table comparing the models or
 #' additionally combine them to make a new ensemble model.
+#' @param output If \code{compare.only} is \code{FALSE}, one of \code{"Comparison"} which
+#'     produces a table comparing the models, or \code{"Ensemble"} which produces histograms
+#'     of respondent coefficients (as for \code{\link{FitChoice}}).
 #' @importFrom flipFormat Labels
 #' @export
 ChoiceEnsemble <- function(models,
-                     compare.only = FALSE) {
+                           compare.only = FALSE,
+                           output = "Comparison") {
 
     n.models <- length(models)
     if (n.models <= 1)
@@ -28,13 +32,17 @@ ChoiceEnsemble <- function(models,
         result$n.respondents <- models[[1]]$n.respondents
         result$weights <- models[[1]]$weights
         result$weights.description <- models[[1]]$weights.description
-        result$effective.sample.size <- models[[1]]$effective.sample.size
         result$n.questions <- models[[1]]$n.questions
-        result$n.alternatives.per.task <- models[[1]]$n.alternatives.per.task
+        result$n.alternatives <- models[[1]]$n.alternatives
+        result$n.attributes <- models[[1]]$n.attributes
+        result$n.parameters <- models[[1]]$n.parameters
 
         params <- lapply(models, function(x) x$respondent.parameters)
         ensemble.paramaters <- Reduce("+", params) / n.models
         result$respondent.parameters <- ensemble.paramaters
+        reduced.params <- lapply(models, function(x) x$reduced.respondent.parameters)
+        reduced.ensemble.paramaters <- Reduce("+", reduced.params) / n.models
+        result$reduced.respondent.parameters <- reduced.ensemble.paramaters
 
         accuracy <- accuracyResults(dat, result, dat$n.questions.left.out)
         result$prediction.accuracies <- accuracy$prediction.accuracies
@@ -50,18 +58,27 @@ ChoiceEnsemble <- function(models,
 
     # extract mutual statistics
     comparison <- data.frame(matrix(nrow = 0, ncol = length(statistics)))
-
     for (model in models)
         comparison <- rbind(comparison, model[statistics], stringsAsFactors = FALSE)
+    rownames(comparison) <- paste("Model", seq(nrow(comparison)))
+
+    if (!compare.only)
+    {
+        comparison <- rbind(comparison, rep(NA, ncol(comparison)), stringsAsFactors = FALSE)
+        comparison$in.sample.accuracy[n.models + 1] <- result$in.sample.accuracy
+        comparison$out.sample.accuracy[n.models + 1] <- result$out.sample.accuracy
+        comparison$algorithm[n.models + 1] <- "Ensemble"
+        rownames(comparison)[n.models + 1] <- "Ensemble"
+    }
 
     colnames(comparison) <- statistic.names
-    rownames(comparison) <- paste("Model", seq(nrow(comparison)))
     if (all(is.na(comparison$`Out-sample accuracy`)))
         comparison$`Out-sample accuracy` <- NULL
 
     result$comparison <- comparison
     result$ensemble <- !compare.only
     result$n.models <- n.models
+    result$output <- output
     class(result) <- c("ChoiceEnsemble", class(result))
     return(result)
 }
@@ -89,19 +106,21 @@ extractCommonData <- function(models, underlying.class) {
 #' @export
 print.ChoiceEnsemble <- function(x, ...) {
 
-    if (x$ensemble)
+    if (x$output == "Ensemble")
     {
         title <- paste0("Choice Modeling : Ensemble of ", x$n.models, " models")
 
-        subtitle <- footer <- ""
-        # TODO subtitle and footer
+        subtitle <- choiceModelSubtitle(x)
+        footer <- choiceModelFooter(x)
         RespondentParametersTable(x$respondent.parameters, title, subtitle, footer)
     }
     else
     {
+        title <- paste("Comparison of", x$n.models, "Choice models")
+        if (x$ensemble)
+            title <- paste0(title, " and Ensemble")
         tbl <- ComparisonTable(x$comparison,
-                               order.values = FALSE,
-                               title = paste("Comparison of", nrow(x$comparison), " Choice models"))
+                               title = title)
         tbl
     }
 }

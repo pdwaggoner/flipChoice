@@ -456,24 +456,7 @@ print.FitChoice <- function(x, ...)
     else
         "Choice Model: Latent Class Analysis"
 
-    n.subset <- if (is.null(x$subset)) x$n.respondents else sum(x$subset)
-    footer <- SampleDescription(n.total = x$n.total, n.subset = n.subset,
-                                n.estimation = n.subset,
-                                subset.label = x$subset.description,
-                                weighted = !is.null(x$weights),
-                                weight.label = x$weights.description,
-                                missing = FALSE)
-    footer <- paste0(footer, " ")
-
-    footer <- paste0(footer, "number of questions: ", x$n.questions, "; ")
-    if (x$n.questions.left.out > 0)
-    {
-        footer <- paste0(footer, "questions used in estimation: ", x$n.questions - x$n.questions.left.out, "; ")
-        footer <- paste0(footer, "questions left out: ", x$n.questions.left.out, "; ")
-    }
-    footer <- paste0(footer, "choices per question: ", x$n.alternatives, "; ")
-    footer <- paste0(footer, "number of attributes: ", x$n.attributes, "; ")
-    footer <- paste0(footer, "number of parameters: ", x$n.parameters, "; ")
+    footer <- choiceModelFooter(x)
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
     footer <- paste0(footer, "log-likelihood: ", FormatAsReal(x$log.likelihood, decimals = 2), "; ")
     footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 2), "; ")
@@ -495,12 +478,42 @@ print.FitChoice <- function(x, ...)
         footer <- paste0(footer, "time taken to run analysis: ",
                          FormatPeriod(x$time.taken), "; ")
 
-    subtitle <- if (!is.na(x$out.sample.accuracy))
-        paste0("Prediction accuracy (leave-", x$n.questions.left.out , "-out cross-validation): ",
-               FormatAsPercent(x$out.sample.accuracy, decimals = 1))
-    else
-        paste0("Prediction accuracy (in-sample): ",
-               FormatAsPercent(x$in.sample.accuracy, decimals = 1))
+    subtitle <- choiceModelSubtitle(x)
 
     RespondentParametersTable(x$respondent.parameters, title, subtitle, footer)
+}
+
+#' @importFrom flipFormat FormatAsPercent
+choiceModelSubtitle <- function(x)
+{
+    subtitle <- if (!is.na(x$out.sample.accuracy))
+        paste0("Prediction accuracy (leave-", x$n.questions.left.out , "-out cross-validation): ",
+            FormatAsPercent(x$out.sample.accuracy, decimals = 1))
+    else
+        paste0("Prediction accuracy (in-sample): ",
+            FormatAsPercent(x$in.sample.accuracy, decimals = 1))
+}
+
+#' @importFrom flipFormat SampleDescription
+choiceModelFooter <- function(x) {
+
+    n.subset <- if (is.null(x$subset)) x$n.respondents else sum(x$subset)
+    footer <- SampleDescription(n.total = x$n.total, n.subset = n.subset,
+                                n.estimation = n.subset,
+                                subset.label = x$subset.description,
+                                weighted = !is.null(x$weights),
+                                weight.label = x$weights.description,
+                                missing = FALSE)
+    footer <- paste0(footer, " ")
+
+    footer <- paste0(footer, "number of questions: ", x$n.questions, "; ")
+    if (x$n.questions.left.out > 0)
+    {
+        footer <- paste0(footer, "questions used in estimation: ", x$n.questions - x$n.questions.left.out, "; ")
+        footer <- paste0(footer, "questions left out: ", x$n.questions.left.out, "; ")
+    }
+    footer <- paste0(footer, "choices per question: ", x$n.alternatives, "; ")
+    footer <- paste0(footer, "number of attributes: ", x$n.attributes, "; ")
+    footer <- paste0(footer, "number of parameters: ", x$n.parameters, "; ")
+    return(footer)
 }
