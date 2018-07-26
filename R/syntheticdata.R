@@ -39,7 +39,9 @@ processSyntheticPriors <- function(synthetic.priors, n.parameters,
                         "synthetic priors.")
     n.pars.without.alts <- n.parameters - n.alternatives + 1
     prior.zeros <- rep(0, n.alternatives - 1)
-    if (is.matrix(synthetic.priors) && is.character(synthetic.priors))
+
+    if (is.matrix(synthetic.priors) &&
+        is.character(synthetic.priors)) # Pasted data
     {
         parsed.data <- parsePastedData(synthetic.priors, n.sim = 10,
                                        coding = "D")
@@ -65,7 +67,7 @@ processSyntheticPriors <- function(synthetic.priors, n.parameters,
     else if (is.matrix(synthetic.priors) && is.numeric(synthetic.priors) &&
              ncol(synthetic.priors) == 2 &&
              (nrow(synthetic.priors) == n.parameters ||
-              nrow(synthetic.priors) == n.pars.without.alts))
+              nrow(synthetic.priors) == n.pars.without.alts)) # 2-column matrix
     {
         if (nrow(synthetic.priors) == n.parameters)
         {
@@ -77,6 +79,11 @@ processSyntheticPriors <- function(synthetic.priors, n.parameters,
             prior.mean <- c(prior.zeros, synthetic.priors[, 1])
             prior.sd <- c(prior.zeros, synthetic.priors[, 2])
         }
+    }
+    else if (synthetic.priors == 0) # assume mean and sd to be zero
+    {
+        prior.mean <- rep(0, n.parameters)
+        prior.sd <- rep(0, n.parameters)
     }
     else
         stop(error.msg)
