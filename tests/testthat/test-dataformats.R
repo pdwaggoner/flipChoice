@@ -65,10 +65,12 @@ test_that("experiment question synthetic data", {
                 "", "", "Quality", "a", "b", "c", "", "Uniformity", "a", "b",
                 "", "", "Feed", "a", "b", "c", "", "Price", "a", "", "", "",
                 "mean", "-3", "", "", ""), .Dim = c(5L, 14L))
-    result <- FitChoiceModel(experiment.data = eggs.data, hb.iterations = 10,
-                             hb.chains = 1, hb.warnings = FALSE,
-                             hb.beta.draws.to.keep = 2,
-                             synthetic.priors = exp.synthetic.prior)
+    suppressWarnings(result <- FitChoiceModel(experiment.data = eggs.data,
+                                              hb.iterations = 10,
+                                              hb.chains = 1,
+                                              hb.warnings = FALSE,
+                                              hb.beta.draws.to.keep = 2,
+                                      synthetic.priors = exp.synthetic.prior))
     expect_error(print(result), NA)
 })
 
@@ -95,13 +97,15 @@ test_that("design object synthetic data", {
 
 test_that("design object synthetic data without priors", {
     synthetic.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
-    result <- FitChoiceModel(design = test.design,
+    expect_warning(result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
                              questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              synthetic.priors.from.design = TRUE,
-                             synthetic.sample.size = 1000)
+                             synthetic.sample.size = 1000),
+        paste0("The supplied design does not contain priors. ",
+               "The prior mean and standard deviations have been assummed to be zero."))
     expect_error(print(result), NA)
 })
 
@@ -118,13 +122,15 @@ test_that("design object synthetic data without alternatives", {
 })
 
 test_that("design object synthetic data entered priors", {
-    result <- FitChoiceModel(design = test.design,
+    expect_warning(result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
                              questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              synthetic.priors = test.design.data$synthetic.priors,
-                             synthetic.sample.size = 1000)
+                             synthetic.sample.size = 1000),
+        paste0("Prior standard deviations were not supplied for one or more attributes. ",
+               "These standard deviations have been assummed to be 0."))
     expect_error(print(result), NA)
 })
 
