@@ -176,14 +176,25 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
 
     if (synthetic.priors.from.design)
     {
-        if (!is.null(design) && !is.null(design$prior))
-            synthetic.priors <- design$prior
+        if (!is.null(design))
+        {
+            if (!is.null(design$prior))
+                synthetic.priors <- design$prior
+            else
+            {
+                synthetic.priors <- 0 # mean = 0 and sd = 0
+                warning("The supplied design does not contain priors. The ",
+                        "prior mean and standard deviations have been ",
+                        "assummed to be zero.")
+            }
+        }
         else
-            stop("There is no prior in the design for use as a synthetic ",
-                 "prior.")
+            warning("Synthetic priors were not used from the design as no ",
+                    "design was supplied.")
     }
 
-    if (!is.null(synthetic.priors) && max(dim(synthetic.priors)) == 0)
+    if (!is.null(synthetic.priors) && synthetic.priors != 0 &&
+        max(dim(synthetic.priors)) == 0)
         stop("Generating synthetic choices has been selected but no priors ",
              "have been specified.")
 
