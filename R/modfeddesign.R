@@ -329,13 +329,16 @@ parsePastedData <- function(paste.data, n.sim = 10, coding = "D")
     else
         sd.list <- NULL
 
-    n.parameters <- sum(max(n.lvls - 1, 1))
-    if (n.sd < n.parameters)
-        warning("Prior standard deviations were not supplied for one or more ",
-                "attributes. These standard deviations will default to 0.")
+    n.parameters <- sum(pmax(n.lvls - 1, 1))
 
     if (n.means > 0 || n.sd > 0)
+    {
         prior <- constrainedPrior(n.lvls, means.list, sd.list, coding, n.sim)
+        if (n.sd < length(n.lvls))
+            warning("Prior standard deviations were not supplied for one or ",
+                    "more attributes. These standard deviations have been ",
+                    "assummed to be 0.")
+    }
     else
         prior <- numeric(n.parameters)
 
