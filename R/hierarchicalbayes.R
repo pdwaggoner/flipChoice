@@ -8,6 +8,9 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
                                          show.stan.warnings = TRUE,
                                          beta.draws.to.keep = 0, ...)
 {
+    if (n.iterations <= 0)
+        stop("The specified number of iterations must greater than 0.")
+
     # allows Stan chains to run in parallel on multiprocessor machines
     options(mc.cores = parallel::detectCores())
 

@@ -32,6 +32,9 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
                           input.prior.sd, include.choice.parameters, missing,
                           covariates, synthetic.priors, synthetic.sample.size)
 {
+    if (synthetic.sample.size <= 0)
+        stop("The specified synthetic sample size must greater than 0.")
+
     checkDesignColNames(design)
 
     design.attributes <- design[, !colnames(design) %in% .non.attr.col.names]
