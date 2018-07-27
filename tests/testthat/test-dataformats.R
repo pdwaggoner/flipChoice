@@ -307,7 +307,8 @@ test_that("Design file missing data", {
                       seed = 123, input.prior.mean = 0, input.prior.sd = 5,
                       include.choice.parameters = TRUE,
                       missing = "Error if missing data",
-                      covariates = NULL, synthetic.priors = NULL),
+                      covariates = NULL, synthetic.priors = NULL,
+                      synthetic.sample.size = 100),
                  paste0("The data contains missing values. ",
                         "Change the 'missing' option to run the analysis."))
 
@@ -320,7 +321,8 @@ test_that("Design file missing data", {
                       seed = 123, input.prior.mean = 0, input.prior.sd = 5,
                       include.choice.parameters = TRUE,
                       missing = "Exclude cases with missing data",
-                      covariates = NULL, synthetic.priors = NULL)
+                      covariates = NULL, synthetic.priors = NULL,
+                      synthetic.sample.size = 100)
     expect_equal(dat$n.respondents, 378)
     expect_equal(dim(dat$X.in), c(3024, 3, 16))
     expect_equal(dat$X.in[1, 1:3, 1:5], structure(c(0, 1, 0, 0, 0,
@@ -338,7 +340,8 @@ test_that("Design file missing data", {
                              seed = 123, input.prior.mean = 0, input.prior.sd = 5,
                              include.choice.parameters = TRUE,
                              missing = "Use partial data",
-                             covariates = NULL, synthetic.priors = NULL)
+                             covariates = NULL, synthetic.priors = NULL,
+                             synthetic.sample.size = 100)
     expect_equal(dat$n.respondents, 380)
     expect_equal(dat$X.in[1, 1:3, 1:5], structure(c(0, 1, 0, 0, 0,
                                                     1, 0, 0, 1, 0,
