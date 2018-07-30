@@ -1,12 +1,12 @@
 #' @importFrom stats rmultinom
-generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
+generateSimulatedChoices <- function(X, respondent.indices, simulated.priors,
                                      seed, n.alternatives,
                                      parameter.scales = NULL)
 {
     set.seed(seed)
     n.respondents <- length(respondent.indices)
     n.parameters <- dim(X)[3]
-    prior <- processSyntheticPriors(synthetic.priors, n.parameters,
+    prior <- processSimulatedPriors(simulated.priors, n.parameters,
                                     n.alternatives)
     respondent.parameters <- t(matrix(rnorm(n.respondents * n.parameters,
                                             prior$mean, prior$sd),
@@ -30,20 +30,20 @@ generateSyntheticChoices <- function(X, respondent.indices, synthetic.priors,
          respondent.parameters = respondent.parameters)
 }
 
-processSyntheticPriors <- function(synthetic.priors, n.parameters,
+processSimulatedPriors <- function(simulated.priors, n.parameters,
                                    n.alternatives)
 {
-    error.msg <- paste0("The format of the priors for generating synthetic ",
+    error.msg <- paste0("The format of the priors for generating simulated ",
                         "choices does not match the supplied data. Please ",
                         "refer to the documentation on how to format the",
-                        "synthetic priors.")
+                        "simulated priors.")
     n.pars.without.alts <- n.parameters - n.alternatives + 1
     prior.zeros <- rep(0, n.alternatives - 1)
 
-    if (is.matrix(synthetic.priors) &&
-        is.character(synthetic.priors)) # Pasted data
+    if (is.matrix(simulated.priors) &&
+        is.character(simulated.priors)) # Pasted data
     {
-        parsed.data <- parsePastedData(synthetic.priors, n.sim = 10,
+        parsed.data <- parsePastedData(simulated.priors, n.sim = 10,
                                        coding = "D")
         prior <- parsed.data[["prior"]]
         if (!is.matrix(prior) ||
@@ -64,23 +64,23 @@ processSyntheticPriors <- function(synthetic.priors, n.parameters,
             }
         }
     }
-    else if (is.matrix(synthetic.priors) && is.numeric(synthetic.priors) &&
-             ncol(synthetic.priors) == 2 &&
-             (nrow(synthetic.priors) == n.parameters ||
-              nrow(synthetic.priors) == n.pars.without.alts)) # 2-column matrix
+    else if (is.matrix(simulated.priors) && is.numeric(simulated.priors) &&
+             ncol(simulated.priors) == 2 &&
+             (nrow(simulated.priors) == n.parameters ||
+              nrow(simulated.priors) == n.pars.without.alts)) # 2-column matrix
     {
-        if (nrow(synthetic.priors) == n.parameters)
+        if (nrow(simulated.priors) == n.parameters)
         {
-            prior.mean <- synthetic.priors[, 1]
-            prior.sd <- synthetic.priors[, 2]
+            prior.mean <- simulated.priors[, 1]
+            prior.sd <- simulated.priors[, 2]
         }
         else # let alternative parameters have priors of zero
         {
-            prior.mean <- c(prior.zeros, synthetic.priors[, 1])
-            prior.sd <- c(prior.zeros, synthetic.priors[, 2])
+            prior.mean <- c(prior.zeros, simulated.priors[, 1])
+            prior.sd <- c(prior.zeros, simulated.priors[, 2])
         }
     }
-    else if (synthetic.priors == 0) # assume mean and sd to be zero
+    else if (simulated.priors == 0) # assume mean and sd to be zero
     {
         prior.mean <- rep(0, n.parameters)
         prior.sd <- rep(0, n.parameters)

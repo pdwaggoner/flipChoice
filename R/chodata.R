@@ -3,7 +3,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
                            subset, weights, n.questions.left.out, seed,
                            input.prior.mean, input.prior.sd,
                            include.choice.parameters, respondent.ids, missing,
-                           covariates, synthetic.priors)
+                           covariates, simulated.priors)
 {
     if (missing == "Error if missing data" &&
         ((!is.null(subset) && any(is.na(subset))) ||
@@ -172,16 +172,16 @@ processChoFile <- function(cho.file, attribute.levels.file,
         covariates <- covariates[subset, ]
     n.respondents <- sum(subset)
 
-    if (!is.null(synthetic.priors))
+    if (!is.null(simulated.priors))
     {
-        output <- generateSyntheticChoices(X, respondent.indices,
-                                           synthetic.priors, seed,
+        output <- generateSimulatedChoices(X, respondent.indices,
+                                           simulated.priors, seed,
                                            n.alternatives)
         Y <- output$choices
-        synthetic.respondent.parameters <- output$respondent.parameters
+        simulated.respondent.parameters <- output$respondent.parameters
     }
     else
-        synthetic.respondent.parameters <- NULL
+        simulated.respondent.parameters <- NULL
 
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
                                        respondent.indices)
@@ -213,7 +213,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
          parameter.scales = rep(1, n.parameters),
          prior.mean = prior.mean,
          prior.sd = prior.sd,
-         synthetic.respondent.parameters = synthetic.respondent.parameters)
+         simulated.respondent.parameters = simulated.respondent.parameters)
 }
 
 processAttributeLevelsFile <- function(attribute.levels.file)

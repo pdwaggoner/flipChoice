@@ -3,19 +3,19 @@
 \docType{data}
 \name{test.design.data}
 \alias{test.design.data}
-\title{Choices, questions and synthetic priors corresponding to test.design
+\title{Choices, questions and simulated priors corresponding to test.design
 in test-dataformats.R.}
 \format{Contains a list with the following items:
 \itemize{
     \item choices: matrix of respondent choices
     \item questions: matrix of question indices for each respondent
-    \item synthetic.priors: priors in a character matrix obtained from a spreadsheet
+    \item simulated.priors: priors in a character matrix obtained from a spreadsheet
 }}
 \usage{
 data(test.design.data)
 }
 \description{
-Choices, questions and synthetic priors corresponding to test.design
+Choices, questions and simulated priors corresponding to test.design
 in test-dataformats.R.
 }
 \keyword{datasets}
