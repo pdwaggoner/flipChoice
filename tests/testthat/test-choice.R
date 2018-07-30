@@ -140,11 +140,11 @@ test_that("Multi-class HB with covariates", {
     TracePlots(result)
 })
 
-test_that("Synthetic data", {
+test_that("Simulated data", {
     data("eggs.cov", package = "flipChoice")
-    synthetic.priors <- matrix(c(rep(0, 13), rep(2, 13)), ncol = 2)
+    simulated.priors <- matrix(c(rep(0, 13), rep(2, 13)), ncol = 2)
     result <- FitChoiceModel(experiment.data = eggs.data, hb.iterations = 10,
                              hb.chains = 1, hb.warnings = FALSE,
-                             synthetic.priors = synthetic.priors)
+                             simulated.priors = simulated.priors)
     expect_error(print(result), NA)
 })

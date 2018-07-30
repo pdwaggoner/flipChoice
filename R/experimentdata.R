@@ -2,7 +2,7 @@
 processExperimentData <- function(experiment.data, subset, weights,
                                   n.questions.left.out, seed, input.prior.mean,
                                   input.prior.sd, missing, covariates,
-                                  synthetic.priors)
+                                  simulated.priors)
 {
     nms <- names(experiment.data)
     choice.name <- nms[1]
@@ -71,16 +71,16 @@ processExperimentData <- function(experiment.data, subset, weights,
 
     respondent.indices <- constructRespondentIndices(non.missing.table)
 
-    if (!is.null(synthetic.priors))
+    if (!is.null(simulated.priors))
     {
-        output <- generateSyntheticChoices(x.list$X, respondent.indices,
-                                           synthetic.priors, seed,
+        output <- generateSimulatedChoices(x.list$X, respondent.indices,
+                                           simulated.priors, seed,
                                            n.alternatives, parameter.scales)
         Y <- output$choices
-        synthetic.respondent.parameters <- output$respondent.parameters
+        simulated.respondent.parameters <- output$respondent.parameters
     }
     else
-        synthetic.respondent.parameters <- NULL
+        simulated.respondent.parameters <- NULL
 
     split.data <- crossValidationSplit(x.list$X, Y, n.questions.left.out, seed,
                                        respondent.indices)
@@ -108,7 +108,7 @@ processExperimentData <- function(experiment.data, subset, weights,
          parameter.scales = parameter.scales,
          prior.mean = prior.mean,
          prior.sd = prior.sd,
-         synthetic.respondent.parameters = synthetic.respondent.parameters)
+         simulated.respondent.parameters = simulated.respondent.parameters)
 }
 
 extractChoices <- function(experiment.data, non.missing.table)

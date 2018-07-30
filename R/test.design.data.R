@@ -1,4 +1,4 @@
-#' Choices, questions and synthetic priors corresponding to test.design
+#' Choices, questions and simulated priors corresponding to test.design
 #' in test-dataformats.R.
 #'
 #' @docType data
@@ -9,6 +9,6 @@
 #' \itemize{
 #'     \item choices: matrix of respondent choices
 #'     \item questions: matrix of question indices for each respondent
-#'     \item synthetic.priors: priors in a character matrix obtained from a spreadsheet
+#'     \item simulated.priors: priors in a character matrix obtained from a spreadsheet
 #' }
 NULL

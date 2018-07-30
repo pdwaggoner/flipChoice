@@ -2,38 +2,38 @@ processDesignObject <- function(design.object, choices, questions, subset,
                                 weights, n.questions.left.out, seed,
                                 input.prior.mean, input.prior.sd,
                                 include.choice.parameters, missing,
-                                covariates, synthetic.priors,
-                                synthetic.sample.size)
+                                covariates, simulated.priors,
+                                simulated.sample.size)
 {
     processDesign(design.object$design.with.none,
                   design.object$attribute.levels,
                   choices, questions, subset, weights, n.questions.left.out,
                   seed, input.prior.mean, input.prior.sd,
                   include.choice.parameters, missing, covariates,
-                  synthetic.priors, synthetic.sample.size)
+                  simulated.priors, simulated.sample.size)
 }
 
 processDesignFile <- function(design.file, attribute.levels.file, choices,
                               questions, subset, weights, n.questions.left.out,
                               seed, input.prior.mean, input.prior.sd,
                               include.choice.parameters, missing, covariates,
-                              synthetic.priors, synthetic.sample.size)
+                              simulated.priors, simulated.sample.size)
 {
     output <- readDesignFile(design.file, attribute.levels.file)
     processDesign(output$design, output$attribute.levels, choices, questions,
                   subset, weights, n.questions.left.out, seed,
                   input.prior.mean, input.prior.sd, include.choice.parameters,
-                  missing, covariates, synthetic.priors, synthetic.sample.size)
+                  missing, covariates, simulated.priors, simulated.sample.size)
 }
 
 #' @importFrom flipData CleanSubset NoData
 processDesign <- function(design, attribute.levels, choices, questions, subset,
                           weights, n.questions.left.out, seed, input.prior.mean,
                           input.prior.sd, include.choice.parameters, missing,
-                          covariates, synthetic.priors, synthetic.sample.size)
+                          covariates, simulated.priors, simulated.sample.size)
 {
-    if (synthetic.sample.size <= 0)
-        stop("The specified synthetic sample size must greater than 0.")
+    if (simulated.sample.size <= 0)
+        stop("The specified simulated sample size must greater than 0.")
 
     checkDesignColNames(design)
 
@@ -87,12 +87,12 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
         if (!is.null(covariates))
             covariates <- covariates[subset, ]
     }
-    else if (!is.null(synthetic.priors))
+    else if (!is.null(simulated.priors))
     {
         n.alternatives <- max(design[, "Alternative"])
-        questions <- generateSyntheticTasks(synthetic.sample.size, design,
+        questions <- generateSimulatedTasks(simulated.sample.size, design,
                                             seed)
-        n.respondents <- synthetic.sample.size
+        n.respondents <- simulated.sample.size
         non.missing.table <- matrix(TRUE, nrow = n.respondents,
                                     ncol = n.questions)
         if (!is.null(subset))
@@ -194,18 +194,18 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
 
     respondent.indices <- constructRespondentIndices(non.missing.table)
 
-    if (!is.null(synthetic.priors))
+    if (!is.null(simulated.priors))
     {
-        output <- generateSyntheticChoices(X, respondent.indices,
-                                           synthetic.priors, seed,
+        output <- generateSimulatedChoices(X, respondent.indices,
+                                           simulated.priors, seed,
                                            n.alternatives)
         Y <- output$choices
-        synthetic.respondent.parameters <- output$respondent.parameters
+        simulated.respondent.parameters <- output$respondent.parameters
     }
     else
     {
         Y <- c(t(as.matrix(choices)))[c(t(non.missing.table))]
-        synthetic.respondent.parameters <- NULL
+        simulated.respondent.parameters <- NULL
     }
 
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
@@ -238,7 +238,7 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
          parameter.scales = rep(1, n.parameters),
          prior.mean = prior.mean,
          prior.sd = prior.sd,
-         synthetic.respondent.parameters = synthetic.respondent.parameters)
+         simulated.respondent.parameters = simulated.respondent.parameters)
 }
 
 readDesignFile <- function(design.file, attribute.levels.file)
@@ -298,18 +298,18 @@ readDesignFile <- function(design.file, attribute.levels.file)
     list(design = design, attribute.levels = attribute.levels)
 }
 
-generateSyntheticTasks <- function(synthetic.sample.size, design, seed)
+generateSimulatedTasks <- function(simulated.sample.size, design, seed)
 {
     design.versions <- design[, "Version"]
     design.tasks <- design[, "Task"]
     n.versions <- max(design.versions)
     n.questions <- max(design[, "Question"])
     set.seed(seed)
-    versions <- sample(n.versions, synthetic.sample.size, replace = TRUE)
+    versions <- sample(n.versions, simulated.sample.size, replace = TRUE)
 
-    result <- matrix(NA, nrow = synthetic.sample.size, ncol = n.questions)
+    result <- matrix(NA, nrow = simulated.sample.size, ncol = n.questions)
 
-    for (i in 1:synthetic.sample.size)
+    for (i in 1:simulated.sample.size)
     {
         ind <- design.versions == versions[i]
         result[i, ] <- unique(design.tasks[ind])
