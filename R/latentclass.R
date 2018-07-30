@@ -53,6 +53,7 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
     sorted <- sortClasses(pars, resp.post.probs)
     pars <- sorted$pars
     resp.post.probs <- sorted$resp.post.probs
+    colnames(resp.post.probs) <- paste0('Class ', 1:n.classes)
 
     lca.data <- list(pars = pars, X = X, ind.levels = ind.levels,
                      weights = weights, parameter.names = dat$par.names,
@@ -572,4 +573,23 @@ createCoefOutput <- function(pars, par.names, all.names)
                                    FormatAsPercent(class.sizes, decimals = 1), ")")
     }
     result
+}
+
+#' @title Memberships
+#' @description Produces a vector of respondent class memberships based on
+#'     the maximum posterior probability.
+#' @param obj A FitChoice object from running LCA.
+#' @return A vector containing respondent class memberships.
+#' @export
+Memberships <- function(obj)
+{
+    pp <- obj$posterior.probabilities
+    .fun <- function(x)
+    {
+        if (any(is.na(x)))
+            NA
+        else
+            match(max(x), x)[1]
+    }
+    apply(pp, 1, .fun)
 }
