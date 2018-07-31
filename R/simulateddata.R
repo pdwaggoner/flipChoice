@@ -1,13 +1,16 @@
 #' @importFrom stats rmultinom
 generateSimulatedChoices <- function(X, respondent.indices, simulated.priors,
                                      seed, n.alternatives,
+                                     n.attribute.parameters,
+                                     attribute.names,
                                      parameter.scales = NULL)
 {
     set.seed(seed)
     n.respondents <- length(respondent.indices)
     n.parameters <- dim(X)[3]
     prior <- processSimulatedPriors(simulated.priors, n.parameters,
-                                    n.alternatives)
+                                    n.alternatives, n.attribute.parameters,
+                                    attribute.names)
     respondent.parameters <- t(matrix(rnorm(n.respondents * n.parameters,
                                             prior$mean, prior$sd),
                                       nrow = n.parameters))
@@ -31,7 +34,8 @@ generateSimulatedChoices <- function(X, respondent.indices, simulated.priors,
 }
 
 processSimulatedPriors <- function(simulated.priors, n.parameters,
-                                   n.alternatives)
+                                   n.alternatives, n.attribute.parameters,
+                                   attribute.names)
 {
     error.msg <- paste0("The format of the priors for generating simulated ",
                         "choices does not match the supplied data. Please ",
@@ -45,24 +49,10 @@ processSimulatedPriors <- function(simulated.priors, n.parameters,
     {
         parsed.data <- parsePastedData(simulated.priors, n.sim = 10,
                                        coding = "D")
-        prior <- parsed.data[["prior"]]
-        if (!is.matrix(prior) ||
-            (nrow(prior) != n.parameters &&
-             nrow(prior) != n.pars.without.alts))
-            stop(error.msg)
-        else
-        {
-            if (nrow(prior) == n.parameters)
-            {
-                prior.mean <- prior[, 1]
-                prior.sd <- prior[, 2]
-            }
-            else # let alternative parameters have priors of zero
-            {
-                prior.mean <- c(prior.zeros, prior[, 1])
-                prior.sd <- c(prior.zeros, prior[, 2])
-            }
-        }
+        prior <- fillInPriors(parsed.data, n.attribute.parameters,
+                              attribute.names, n.parameters)
+        prior.mean <- prior[, 1]
+        prior.sd <- prior[, 2]
     }
     else if (is.matrix(simulated.priors) && is.numeric(simulated.priors) &&
              ncol(simulated.priors) == 2 &&
@@ -89,4 +79,69 @@ processSimulatedPriors <- function(simulated.priors, n.parameters,
         stop(error.msg)
 
     list(mean = prior.mean, sd = prior.sd)
+}
+
+fillInPriors <- function(pasted.data, n.attribute.parameters, attribute.names,
+                         n.parameters)
+{
+    pasted.priors <- pasted.data$prior
+    attribute.list <- pasted.data$attribute.list
+    n.prior.attributes <- length(attribute.list)
+
+    if (is.vector(pasted.priors))
+        pasted.priors <- cbind(pasted.priors, rep(0, length(pasted.priors)))
+
+    attr.ind <- attributeIndicies(n.attribute.parameters)
+    prior.ind <- priorAttributeIndices(attribute.list)
+    prior.attr.names <- names(attribute.list)
+
+    result <- matrix(0, nrow = n.parameters, ncol = 2)
+    for (i in 1:n.prior.attributes)
+    {
+        ind <- which(prior.attr.names[i] == attribute.names)
+        if (length(ind) == 1)
+            result[attr.ind[[ind]], ] <- pasted.priors[prior.ind[[i]], ]
+    }
+
+    unused.prior.names <- setdiff(prior.attr.names, attribute.names)
+    if (length(unused.prior.names) > 0)
+        warning("The following attribute(s) were supplied in the priors but ",
+                "could not be matched to the design: ",
+                paste0(unused.prior.names, collapse = ", "))
+
+    missing.attr.names <- setdiff(attribute.names, prior.attr.names)
+    if (length(missing.attr.names) > 0)
+        warning("The following attribute(s) were missing from the priors and ",
+                "are assumed to have means and standard deviations of 0: ",
+                paste0(missing.attr.names, collapse = ", "))
+    result
+}
+
+attributeIndicies <- function(n.attribute.parameters)
+{
+    n.attributes <- length(n.attribute.parameters)
+    end.ind <- 0
+    result <- list()
+    for (i in 1:n.attributes)
+    {
+        start.ind <- end.ind + 1
+        end.ind <- end.ind + n.attribute.parameters[i]
+        result[[i]] <- start.ind:end.ind
+    }
+    result
+}
+
+priorAttributeIndices <- function(attribute.list)
+{
+    n.prior.attr <- length(attribute.list)
+    n.prior.attr.parameters <- pmax(sapply(attribute.list, length) - 1, 1)
+    result <- list()
+    end.ind <- 0
+    for (i in 1:n.prior.attr)
+    {
+        start.ind <- end.ind + 1
+        end.ind <- end.ind + n.prior.attr.parameters[i]
+        result[[i]] <- start.ind:end.ind
+    }
+    result
 }

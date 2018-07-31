@@ -116,7 +116,7 @@ test_that("design object simulated data without alternatives", {
                              questions = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
-                             simulated.priors = simulated.priors[-1, ],
+                             simulated.priors = simulated.priors[-1, ], # leave out alternative prior
                              simulated.sample.size = 1000)
     expect_error(print(result), NA)
 })
@@ -131,6 +131,37 @@ test_that("design object simulated data entered priors", {
                              simulated.sample.size = 1000),
         paste0("Prior standard deviations were not supplied for one or more attributes. ",
                "These standard deviations have been assummed to be 0."))
+    expect_error(print(result), NA)
+})
+
+test_that("design object simulated data partially entered priors", {
+    partial.priors <- test.design.data$simulated.priors[, -2:-3] # remove Att1
+    expect_warning(result <- FitChoiceModel(design = test.design,
+                                            choices = test.design.data$choices,
+                                            questions = test.design.data$questions,
+                                            hb.iterations = 10, hb.chains = 1,
+                                            hb.warnings = FALSE,
+                                            simulated.priors = partial.priors,
+                                            simulated.sample.size = 1000),
+                   paste0("The following attribute\\(s\\) were missing from ",
+                          "the priors and are assumed to have means and ",
+                          "standard deviations of 0: Att1"))
+    expect_error(print(result), NA)
+})
+
+test_that("design object simulated data incorrect entered priors", {
+    incorrect.priors <- test.design.data$simulated.priors
+    incorrect.priors[1, 2] <- "Att99"
+    expect_warning(result <- FitChoiceModel(design = test.design,
+                                            choices = test.design.data$choices,
+                                            questions = test.design.data$questions,
+                                            hb.iterations = 10, hb.chains = 1,
+                                            hb.warnings = FALSE,
+                                            simulated.priors = incorrect.priors,
+                                            simulated.sample.size = 1000),
+                   paste0("The following attribute\\(s\\) were supplied in ",
+                          "the priors but could not be matched to the ",
+                          "design: Att99"))
     expect_error(print(result), NA)
 })
 
