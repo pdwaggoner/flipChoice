@@ -238,42 +238,12 @@ removeEmptyCells <- function(mat)
 
 #' @importFrom stats rnorm
 #' @noRd
-parsePastedPrior <- function(prior, candidates, n.sim = 10)
-{
-    n.par <- ncol(candidates)
-    if (is.null(prior) || length(prior) == 0L)
-        return(numeric(n.par))
-
-    prior <- removeEmptyCells(prior)
-    prior <- matrix(suppressWarnings(as.numeric(prior)),
-                    nrow = nrow(prior), ncol = ncol(prior))
-    if (any(is.na(prior)))
-        stop("The entered data for the prior must contain only numeric values.")
-
-    if (nrow(prior) != n.par)
-        stop("The entered data for the prior must contain the same number of rows as there are parameters",
-             " in the design specified by the entered attributes. I.e. there must be exactly ", sQuote(n.par), " rows.")
-    if (ncol(prior) == 1L)
-        return(drop(prior))
-    else if (ncol(prior) == 2L)
-    {
-        if (any(prior[, 2L] <= 0))
-            stop("All prior variances must be positive.")
-        return(matrix(rnorm(n.par*n.sim, prior[, 1], sqrt(prior[, 2])),
-                      n.sim, n.par, byrow = TRUE))
-    }else
-        stop("The entered data for the prior must have either one or two columns.")
-}
-
-#' @importFrom stats rnorm
-#' @noRd
 parsePastedData <- function(paste.data, n.sim = 10, coding = "D")
 {
     ## if (is.null(prior) || length(prior) == 0L)
     ##     return(numeric(n.par))
 
     paste.data <- removeEmptyCells(paste.data)
-    n.attr <- ncol(paste.data)
     cnames <- paste.data[1, ]
     mean.idx <- grep("^mean$", cnames, ignore.case = TRUE)
     sd.idx <- grep("^sd$", cnames, ignore.case = TRUE)
