@@ -135,6 +135,7 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
     n.parameters <-  sum(n.attribute.parameters)
     par.names <- parameterNamesFromAttributes(attribute.levels)
     all.names <- allNamesFromAttributes(attribute.levels)
+    attribute.names <- names(attribute.levels)
 
     checkPriorParameters(input.prior.mean, input.prior.sd, n.alternatives,
                          n.attributes, n.parameters, include.choice.parameters)
@@ -190,15 +191,19 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
         n.attribute.parameters <- output$n.attribute.parameters
         par.names <- output$par.names
         all.names <- output$all.names
+        attribute.names <- c("Alternative", attribute.names)
     }
 
     respondent.indices <- constructRespondentIndices(non.missing.table)
 
     if (!is.null(simulated.priors))
     {
+
         output <- generateSimulatedChoices(X, respondent.indices,
                                            simulated.priors, seed,
-                                           n.alternatives)
+                                           n.alternatives,
+                                           n.attribute.parameters,
+                                           attribute.names)
         Y <- output$choices
         simulated.respondent.parameters <- output$respondent.parameters
     }

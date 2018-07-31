@@ -34,6 +34,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
     n.parameters <-  sum(n.attribute.parameters)
     par.names <- parameterNamesFromAttributes(attribute.levels)
     all.names <- allNamesFromAttributes(attribute.levels)
+    attribute.names <- names(attribute.levels)
 
     checkPriorParameters(input.prior.mean, input.prior.sd, n.alternatives,
                          n.attributes, n.parameters, include.choice.parameters)
@@ -145,6 +146,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
         n.attribute.parameters <- output$n.attribute.parameters
         par.names <- output$par.names
         all.names <- output$all.names
+        attribute.names <- c("Alternative", attribute.names)
     }
 
     checkNumberOfQuestionsLeftOut(max(sapply(respondent.indices, length)),
@@ -176,7 +178,9 @@ processChoFile <- function(cho.file, attribute.levels.file,
     {
         output <- generateSimulatedChoices(X, respondent.indices,
                                            simulated.priors, seed,
-                                           n.alternatives)
+                                           n.alternatives,
+                                           n.attribute.parameters,
+                                           attribute.names)
         Y <- output$choices
         simulated.respondent.parameters <- output$respondent.parameters
     }
@@ -276,7 +280,7 @@ addChoiceParameters <- function(X, n.attributes, n.parameters,
     X <- addChoiceParametersX(X)
     n.attributes <- n.attributes + 1
     n.parameters <- n.parameters + n.alternatives - 1
-    n.attribute.parameters <- c(n.alternatives, n.attribute.parameters)
+    n.attribute.parameters <- c(n.alternatives - 1, n.attribute.parameters)
     alt.labels <- createAlternativeLabels(n.alternatives, is.none.alternative)
     par.names <- c(alt.labels[-1], par.names)
     all.names <- c(alt.labels, all.names)

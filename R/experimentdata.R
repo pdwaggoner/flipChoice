@@ -73,9 +73,13 @@ processExperimentData <- function(experiment.data, subset, weights,
 
     if (!is.null(simulated.priors))
     {
+        attribute.names <- unique(names(attribute.data))
         output <- generateSimulatedChoices(x.list$X, respondent.indices,
                                            simulated.priors, seed,
-                                           n.alternatives, parameter.scales)
+                                           n.alternatives,
+                                           n.attribute.parameters,
+                                           attribute.names,
+                                           parameter.scales)
         Y <- output$choices
         simulated.respondent.parameters <- output$respondent.parameters
     }

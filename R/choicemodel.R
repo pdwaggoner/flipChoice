@@ -203,14 +203,12 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
             }
         }
         else
-            warning("Simulated priors were not used from the design as no ",
-                    "design was supplied.")
+            warning("Simulated data was not used as no design was supplied.")
     }
-
     if (!is.null(simulated.priors) && simulated.priors != 0 &&
         max(dim(simulated.priors)) == 0)
-        stop("Generating simulated choices has been selected but no priors ",
-             "have been specified.")
+        warning("No prior for simulated data was entered. The prior mean and ",
+                "standard deviations have been assummed to be zero.")
 
     start.time <- proc.time()
 
