@@ -171,6 +171,16 @@ createStanData <- function(dat, n.classes, normal.covariance)
     else if (normal.covariance == "Spherical")
         stan.dat$U <- 1
 
+    if (length(dat$covariates))
+    {
+        stan.dat$V_fc <- dat$V_fc
+        stan.dat$Xmat <- dat$Xmat
+        stan.dat$V_rc <- dat$V_rc
+        stan.dat$Zmat <- dat$Zmat
+        stan.dat$rc_dims <- dat$rc_dims
+        stan.dat$total_rc <- dat$total_rc
+    }
+
     stan.dat
 }
 

@@ -190,7 +190,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     start.time <- proc.time()
 
     covariates <- if (!is.null(cov.formula))
-        model.matrix.default(cov.formula, cov.data)
+        matrix(1, nrow = nrow(cov.data))  # model.matrix.default(cov.formula, cov.data)
     else
         NULL
 
@@ -220,7 +220,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
         stop("Insufficient data was supplied.")
 
     if (!is.null(dat$covariates))
-        dat <- processCovariateData(dat, n.classes)
+        dat <- processCovariateData(dat, n.classes, cov.formula, cov.data)
 
     if (algorithm == "HB-Stan")
     {

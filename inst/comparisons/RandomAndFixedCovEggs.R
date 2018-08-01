@@ -20,7 +20,8 @@ data("eggs", package = "flipChoice")
 data("eggs.cov", package = "flipChoice")
 
 ## frml <- ~age2+gender
-frml <- ~egg.choice2
+## frml <- ~egg.choice2
+frml <- ~(1|egg.choice2)
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
@@ -66,7 +67,7 @@ for (i in 1:n.sims)
         comp.stats[i, 1, ] <- GetStats(result)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
-    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRC,
+    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
                       "flipChoice")
     result <- try(FitChoiceModel(experiment.data = eggs.data, hb.iterations = n.iter,
                              cov.formula = frml, cov.data = eggs.cov,

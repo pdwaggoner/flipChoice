@@ -2,20 +2,39 @@
 #' (it is assummed that it contains covariates)
 #' @param dat list formed from input data describing the choice
 #'     model design, responses and other data
+#' @importFrom stats model.frame
+#' @importFrom lme4 mkReTrms subbars findbars
 #' @noRd
-processCovariateData <- function(dat, n.classes)
+processCovariateData <- function(dat, n.classes, cov.formula, cov.data)
 {
     covariates <- dat$covariates
-    dat$n.covariates <- ncol(covariates)
+    dat$n.covariates <- NCOL(covariates)
+    dat$V_fc <- 1
+    dat$Xmat <- matrix(1, nrow = nrow(cov.data), ncol = 1)
+    bar.f <- findbars(cov.formula)
+    mf <- model.frame(subbars(cov.formula), data = cov.data)
+    rt <- mkReTrms(bar.f,mf)
+
+    dat$V_rc <- length(rt$Ztlist)
+    dat$Zmat <- t(as.matrix(rt$Zt))
+    if (dat$V_rc == 1L)
+        dat$rc_dims <- array(nrow(rt$Ztlist[[1]]), dim = 1)
+    else
+        dat$rc_dims <- vapply(rt$Ztlist, nrow, 0L)
+
+    dat$total_rc <- sum(dat$rc_dims)
 
     if (n.classes == 1) # fixed covariates
     {
-        g <- expand.grid(colnames(covariates), dat$par.names, stringsAsFactors = FALSE)
+        ## cnames <- colnames(covariates)
+        cnames <- colnames(dat$Zmat)
+        g <- expand.grid(cnames, dat$par.names, stringsAsFactors = FALSE)
         dat$par.names <- paste(g$Var1, g$Var2, sep = "__")
-        g <- expand.grid(colnames(covariates), dat$all.names, stringsAsFactors = FALSE)
+        g <- expand.grid(cnames, dat$all.names, stringsAsFactors = FALSE)
         dat$all.names <- paste(g$Var1, g$Var2, sep = "__")
     }
-    dat$covariates <- ScaleNumericCovariates(covariates)
+    ## dat$covariates <- ScaleNumericCovariates(covariates)
+    dat$covariates <- as.matrix(dat$covariates)
     dat
 }
 
