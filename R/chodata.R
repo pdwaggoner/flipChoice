@@ -3,8 +3,17 @@ processChoFile <- function(cho.file, attribute.levels.file,
                            subset, weights, n.questions.left.out, seed,
                            input.prior.mean, input.prior.sd,
                            include.choice.parameters, respondent.ids, missing,
-                           covariates, simulated.priors)
+                           covariates, simulated.priors, simulated.sample.size)
 {
+    is.data.simulated <- !is.null(simulated.priors)
+    if (is.data.simulated)
+    {
+        simulatedDataWarnings(subset, weights, covariates)
+        subset <- NULL
+        weights <- NULL
+        covariates <- NULL
+    }
+
     if (missing == "Error if missing data" &&
         ((!is.null(subset) && any(is.na(subset))) ||
         (!is.null(weights) && any(is.na(weights)))) ||
@@ -83,17 +92,25 @@ processChoFile <- function(cho.file, attribute.levels.file,
                 }
             }
             row.i <- row.i + 1 # choice row
-            question.Y <- raw.num[[row.i]][1]
-            if (question.Y > 0)
+            if (is.data.simulated)
             {
                 rs <- rs + 1
-                Y[rs] <- question.Y
                 X[rs, , ] <- question.X
             }
-            else if (missing == "Error if missing data")
-                MissingDataFail()
             else
-                respondent.has.missing[respondent.i] <- TRUE
+            {
+                question.Y <- raw.num[[row.i]][1]
+                if (question.Y > 0)
+                {
+                    rs <- rs + 1
+                    Y[rs] <- question.Y
+                    X[rs, , ] <- question.X
+                }
+                else if (missing == "Error if missing data")
+                    MissingDataFail()
+                else
+                    respondent.has.missing[respondent.i] <- TRUE
+            }
         }
         if (rs.initial < rs)
             file.respondent.indices[[respondent.i]] <- (rs.initial + 1):rs
@@ -174,8 +191,16 @@ processChoFile <- function(cho.file, attribute.levels.file,
         covariates <- covariates[subset, ]
     n.respondents <- sum(subset)
 
-    if (!is.null(simulated.priors))
+    if (is.data.simulated)
     {
+        n.respondents <- simulated.sample.size
+        subset <- rep(TRUE, n.respondents)
+        weights <- rep(1, n.respondents)
+        covariates <- NULL
+        sampled.output <- sampleFromX(X, respondent.indices,
+                                      n.respondents)
+        X <- sampled.output$X
+        respondent.indices <- sampled.output$respondent.indices
         output <- generateSimulatedChoices(X, respondent.indices,
                                            simulated.priors, seed,
                                            n.alternatives,

@@ -210,6 +210,9 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
         warning("No prior for simulated data was entered. The prior mean and ",
                 "standard deviations have been assummed to be zero.")
 
+    if (simulated.sample.size <= 0)
+        stop("The specified simulated sample size must greater than 0.")
+
     start.time <- proc.time()
 
     covariates <- if (!is.null(cov.formula))
@@ -226,12 +229,14 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     else if (!is.null(experiment.data))
         processExperimentData(experiment.data, subset, weights, tasks.left.out,
                               seed, hb.prior.mean, hb.prior.sd, missing,
-                              covariates, simulated.priors)
+                              covariates, simulated.priors,
+                              simulated.sample.size)
     else if (!is.null(cho.file) && !is.null(attribute.levels.file))
         processChoFile(cho.file, attribute.levels.file,
                        subset, weights, tasks.left.out, seed,
                        hb.prior.mean, hb.prior.sd, include.choice.parameters,
-                       respondent.ids, missing, covariates, simulated.priors)
+                       respondent.ids, missing, covariates, simulated.priors,
+                       simulated.sample.size)
     else if (!is.null(design.file) && (!is.null(simulated.priors) ||
                                 (!is.null(choices) && !is.null(questions))))
         processDesignFile(design.file, attribute.levels.file, choices,
