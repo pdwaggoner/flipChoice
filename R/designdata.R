@@ -32,9 +32,6 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
                           input.prior.sd, include.choice.parameters, missing,
                           covariates, simulated.priors, simulated.sample.size)
 {
-    if (simulated.sample.size <= 0)
-        stop("The specified simulated sample size must greater than 0.")
-
     checkDesignColNames(design)
 
     design.attributes <- design[, !colnames(design) %in% .non.attr.col.names]
@@ -95,24 +92,10 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
         n.respondents <- simulated.sample.size
         non.missing.table <- matrix(TRUE, nrow = n.respondents,
                                     ncol = n.questions)
-        if (!is.null(subset))
-        {
-            warning("Filters have been ignored as respondent choices and ",
-                    "tasks were not supplied.")
-        }
+        simulatedDataWarnings(subset, weights, covariates)
         subset <- rep(TRUE, n.respondents)
-        if (!is.null(weights))
-        {
-            warning("Weights have been ignored as respondent choices and ",
-                    "tasks were not supplied.")
-        }
         weights <- rep(1, n.respondents)
-        if (!is.null(covariates))
-        {
-            warning("Covariates have been ignored as respondent choices and ",
-                    "tasks were not supplied.")
-            covariates <- NULL
-        }
+        covariates <- NULL
     }
     else
         stop("Insufficient choice data was supplied.")
@@ -427,4 +410,17 @@ getNumberOfAlternatives <- function(choices)
         sum(!is.na(unique(first.choices.column)))
     else
         length(levels(first.choices.column))
+}
+
+simulatedDataWarnings <- function(subset, weights, covariates)
+{
+    if (!is.null(subset))
+        warning("Filters have been ignored as simulated data has been ",
+                "generated.")
+    if (!is.null(weights))
+        warning("Weights have been ignored as simulated data has been",
+                "generated.")
+    if (!is.null(covariates))
+        warning("Covariates have been ignored as simulated data has been",
+                "generated.")
 }

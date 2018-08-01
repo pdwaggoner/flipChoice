@@ -145,3 +145,19 @@ priorAttributeIndices <- function(attribute.list)
     }
     result
 }
+
+sampleFromX <- function(X, respondent.indices, sample.size)
+{
+    n.respondents <- length(respondent.indices)
+    sample.ind <- sample(n.respondents, sample.size, replace = TRUE)
+    sample.X <- X[unlist(respondent.indices[sample.ind]), , ]
+    sample.respondent.indices <- list()
+    end.ind <- 0
+    for (i in 1:sample.size)
+    {
+        start.ind <- end.ind + 1
+        end.ind <- end.ind + length(respondent.indices[[sample.ind[i]]])
+        sample.respondent.indices[[i]] <- start.ind:end.ind
+    }
+    list(X = sample.X, respondent.indices = sample.respondent.indices)
+}
