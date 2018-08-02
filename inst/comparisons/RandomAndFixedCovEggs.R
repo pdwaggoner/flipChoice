@@ -1,3 +1,4 @@
+#!/usr/bin/Rscript
 
 ## Note if seeing errors from the 2nd call to FitChoiceModel when trying to use mulitple chains such as:
 ## Error in error.handler(e) :
@@ -11,9 +12,11 @@ if (!is.rserver){
     save.dir <- "../../Documents/Features/ChoiceModelCovariates/"
 }else{
     save.dir <- "./"
+    .libPaths("/usr/lib/opencpu/library")   
     library(flipChoice)
 }
 
+options(mc.cores = parallel::detectCores())
 library(rstan)
 
 data("eggs", package = "flipChoice")
@@ -45,12 +48,12 @@ GetStats <- function(res){
 }
 
 
-n.iter <- 750
+n.iter <- 500
 n.sims <- 10
 n.leave.out.q <- 1
-n.chains <- 1
-sseed <- 222
-comp.stats <- array(dim = c(n.sims, 2, 12))
+n.chains <- 4
+sseed <- 2222
+comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
 orig.stanModel <- flipChoice:::stanModel
 for (i in 1:n.sims)
@@ -58,13 +61,18 @@ for (i in 1:n.sims)
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
     assignInNamespace("stanModel", orig.stanModel, "flipChoice")
     result <- try(FitChoiceModel(experiment.data = eggs.data, hb.iterations = n.iter,
+    hb.chains = n.chains, tasks.left.out = n.leave.out.q, seed = i +sseed))
+    if (!inherits(result, "try-error"))
+        comp.stats[i, 1, ] <- GetStats(result)
+
+    result <- try(FitChoiceModel(experiment.data = eggs.data, hb.iterations = n.iter,
                              cov.formula = frml, cov.data = eggs.cov,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
                              seed = i+sseed))
     ## samps <- extract(result$stan.fit, pars = c("theta", "sigma"))
     ## samps <- do.call(cbind, samps)
     if (!inherits(result, "try-error"))
-        comp.stats[i, 1, ] <- GetStats(result)
+        comp.stats[i, 2, ] <- GetStats(result)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
@@ -74,7 +82,7 @@ for (i in 1:n.sims)
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
                              seed = i+sseed))
     if (!inherits(result, "try-error"))
-        comp.stats[i, 2, ] <- GetStats(result)
+        comp.stats[i, 3, ] <- GetStats(result)
 
 }
 dimnames(comp.stats) <- list(NULL, c("Fixed", "Random"),
@@ -83,5 +91,5 @@ dimnames(comp.stats) <- list(NULL, c("Fixed", "Random"),
                                "mean.neff.per.sec.sigma", "max.rhat", "min.neff",
                                "min.neff.per.sec", "in.acc", "out.acc", "time"))
 saveRDS(comp.stats, paste0(save.dir, "eggs",
-        n.iter, "sims", n.chains, "chainsCovar_", paste(all.vars(frml), collapse = "_"), "Random.rds"))
+        n.iter, "sims", n.chains, "chainsCovar_", paste(all.vars(frml), collapse = "_"), "RandomNew.rds"))
 colMeans(comp.stats, dim = 1)
