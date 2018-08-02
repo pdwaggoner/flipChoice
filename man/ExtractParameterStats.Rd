@@ -2,7 +2,7 @@
 % Please edit documentation in R/extractparameterstats.R
 \name{ExtractParameterStats}
 \alias{ExtractParameterStats}
-\title{Extract Parameter Statistics from a Choice Model Fit Using Hierarchical Bayes}
+\title{Extract Parameter Statistics from a Choice Model Fit}
 \usage{
 ExtractParameterStats(fit)
 }
@@ -11,15 +11,20 @@ ExtractParameterStats(fit)
 to \code{FitChoiceModel} with \code{algorithm = "HB-Stan"}.}
 }
 \value{
-A matrix containing a summary of the parameter samples from
-    the MCMC results stored in \code{fit}, including mean, standard
-    error, effective sample size, and rhat for each mean and
-    standard deviation parameter.
+In the case of LCA, a matrix of parameter estimates, standard
+    errors, t-statistics and p-values. For HB, a matrix containing a summary
+    of the parameter samples from the MCMC results stored in \code{fit},
+    including mean, standard error, effective sample size, and rhat for each
+    mean and standard deviation parameter.
 }
 \description{
-Takes a Hierarchical Bayes (Stan) output and produces sample
-statistics of the mean and standard deviation parameters for the
-distribution from which individual coefficients are sampled.
+If the Choice Model is from a Latent Class Analysis, a matrix of parameter
+estimates, standard errors, t-statistics and p-values is returned.
+}
+\details{
+If the Choice Model is from Hierarchical Bayes, this function produces a
+matrix sample statistics of the mean and standard deviation parameters for
+the distribution from which individual coefficients are sampled.
 }
 \seealso{
 \code{\link[rstan]{monitor}}, \url{https://www.displayr.com/convergence-hb-maxdiff/},
