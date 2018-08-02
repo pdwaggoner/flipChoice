@@ -473,14 +473,13 @@ computeRespParsLCA <- function(resp.post.probs, class.parameters,
     result
 }
 
-#' @title ParameterStatisticsLCA
+#' @title parameterStatisticsLCA
 #' @description Produces a table of parameter statistics for LCA.
 #' @param obj A FitChoice object from running LCA.
 #' @return A matrix of size n.classes x n containing 1s and 0s where 1
 #'     indicates membership.
-#' @export
 #' @importFrom stats pt
-ParameterStatisticsLCA <- function(obj)
+parameterStatisticsLCA <- function(obj)
 {
     if (is.null(obj$lca.data))
         stop("A latent class analysis output is required.")
@@ -592,4 +591,19 @@ Memberships <- function(obj)
             match(max(x), x)[1]
     }
     apply(pp, 1, .fun)
+}
+
+#' @title ExtractClassParameters
+#' @description Produces a matrix of parameters from LCA.
+#' @param obj A FitChoice object from running LCA.
+#' @return A matrix of parameters where each column corresponds to a class.
+#'     If there is only one class, this is a vector of parameters.
+#' @export
+ExtractClassParameters <- function(obj)
+{
+    if (is.null(obj$lca.data))
+        stop("The selected output was not from a Latent Class Analysis ",
+             "Choice Model. Please select such an output before running this ",
+             "script.")
+    obj$coef
 }
