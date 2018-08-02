@@ -148,3 +148,17 @@ test_that("Simulated data", {
                              simulated.priors = simulated.priors)
     expect_error(print(result), NA)
 })
+
+test_that("Simulated data no priors supplied", {
+    data("eggs.cov", package = "flipChoice")
+    simulated.priors <- structure(character(0), .Dim = c(0L, 0L))
+    expect_warning(result <- FitChoiceModel(experiment.data = eggs.data,
+                                              hb.iterations = 10,
+                                              hb.chains = 1,
+                                              hb.warnings = FALSE,
+                                        simulated.priors = simulated.priors),
+                   paste0("No prior for simulated data was entered. ",
+                          "The prior mean and standard deviations have ",
+                          "been assummed to be zero."))
+    expect_error(print(result), NA)
+})

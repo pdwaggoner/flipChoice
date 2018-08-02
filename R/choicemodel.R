@@ -205,10 +205,12 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
         else
             warning("Simulated data was not used as no design was supplied.")
     }
-    if (!is.null(simulated.priors) && simulated.priors != 0 &&
-        max(dim(simulated.priors)) == 0)
+    if (!is.null(simulated.priors) && max(dim(simulated.priors)) == 0)
+    {
+        simulated.priors <- 0
         warning("No prior for simulated data was entered. The prior mean and ",
                 "standard deviations have been assummed to be zero.")
+    }
 
     if (simulated.sample.size <= 0)
         stop("The specified simulated sample size must greater than 0.")

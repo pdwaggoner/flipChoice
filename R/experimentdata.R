@@ -25,7 +25,8 @@ processExperimentData <- function(experiment.data, subset, weights,
 
     if (missing == "Error if missing data")
         errorIfMissingDataFoundExperiment(experiment.data, subset, weights,
-                                          covariates, is.data.simulated)
+                                          covariates, n.questions,
+                                          is.data.simulated)
 
     non.missing.table <- nonMissingTableForExperiment(experiment.data, subset,
                                                       weights, covariates,
