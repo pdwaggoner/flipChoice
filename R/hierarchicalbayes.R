@@ -89,7 +89,7 @@ RunStanSampling <- function(stan.dat, n.iterations, n.chains,
                             max.tree.depth, adapt.delta,
                             seed, stan.model, keep.beta, ...)
 {
-    pars <- stanParameters(stan.dat, keep.beta)
+    pars <- stanParameters(stan.dat, keep.beta, stan.model)
     init <- initialParameterValues(stan.dat)
 
     sampling(stan.model, data = stan.dat, chains = n.chains,
@@ -99,22 +99,25 @@ RunStanSampling <- function(stan.dat, n.iterations, n.chains,
                        init = init, ...)
 }
 
-stanParameters <- function(stan.dat, keep.beta)
+stanParameters <- function(stan.dat, keep.beta, stan.model)
 {
     full.covariance <- is.null(stan.dat$U)
     multiple.classes <- !is.null(stan.dat$P)
     has.covariates <- !is.null(stan.dat$covariates)
 
     pars <- c("theta", "sigma", "log_likelihood")
-    if (keep.beta)
-        pars <- c(pars, "beta")
+
     if (multiple.classes)
     {
         if (has.covariates)
             pars <- c(pars, "covariates_beta")
         else
             pars <- c(pars, "class_weights")
-    }
+    }else if (stan.model@model_name == "choicemodelRCdiag")
+        pars <- c("resp_fixed_coef", "resp_rand_eff", "sigma", "sig_rc", "sig_fc")
+    if (keep.beta)
+        pars <- c(pars, "beta")
+
     pars
 }
 
@@ -420,7 +423,10 @@ onStanWarning <- function(warn)
 GetParameterStatistics <- function(stan.fit, parameter.names, n.classes,
                                    sigma.parameter.names = parameter.names)
 {
-    pars <- c('theta', 'sigma')
+    if ("theta" %in% stan.fit@model_pars)
+        pars <- c('theta', 'sigma')
+    else
+        pars <- c("resp_fixed_coef", "resp_rand_eff", "sig_fc", "sig_rc", "sigma")
 
     ex <- extract(stan.fit, pars = pars, permuted = FALSE,
                          inc_warmup = FALSE)
@@ -431,7 +437,7 @@ GetParameterStatistics <- function(stan.fit, parameter.names, n.classes,
     if (n.classes > 1)
         lbls <- paste0(lbls, rep(paste0(', Class ', 1:n.classes),
                                  2 * length(parameter.names)))
-    row.names(result) <- lbls
+##    row.names(result) <- lbls
     result
 }
 

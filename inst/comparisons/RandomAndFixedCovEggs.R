@@ -25,12 +25,12 @@ frml <- ~(1|egg.choice2)
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
-    samps <- samps[, , grepl("theta", dimnames(samps)[[3]]), drop = FALSE]
+    samps <- samps[, , grepl("theta|resp_fixed_coef|resp_rand_eff", dimnames(samps)[[3]]), drop = FALSE]
     chain.stats <- monitor(samps, warmup = 0, probs = .5, print = FALSE)
     rhats.t <- chain.stats[, "Rhat"]
     neffs.t <- chain.stats[, "n_eff"]
     samps <- as.array(res$stan.fit)
-    samps <- samps[, , grepl("sigma", dimnames(samps)[[3]]), drop = FALSE]
+    samps <- samps[, , grepl("^sig(ma|_fc|_rc)", dimnames(samps)[[3]]), drop = FALSE]
     chain.stats <- monitor(samps, warmup = 0, probs = .5, print = FALSE)
     rhats.s <- chain.stats[, "Rhat"]
     neffs.s <- chain.stats[, "n_eff"]
