@@ -55,7 +55,8 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
     resp.post.probs <- sorted$resp.post.probs
     colnames(resp.post.probs) <- paste0('Class ', 1:n.classes)
 
-    lca.data <- list(pars = pars, X = X, ind.levels = ind.levels,
+    lca.data <- list(pars = pars, compressed.X = compressNumericMatrix(X),
+                     dim.X = dim(X), ind.levels = ind.levels,
                      weights = weights, parameter.names = dat$par.names,
                      parameter.scales = dat$parameter.scales)
 
@@ -485,7 +486,7 @@ parameterStatisticsLCA <- function(obj)
         stop("A latent class analysis output is required.")
 
     pars <- obj$lca.data$pars
-    X <- obj$lca.data$X
+    X <- decompressNumericMatrix(obj$lca.data$X, dim = obj$lca.data$dim.X)
     ind.levels <- obj$lca.data$ind.levels
     weights <- obj$lca.data$weights
     parameter.names <- obj$lca.data$parameter.names
@@ -606,4 +607,16 @@ ExtractClassParameters <- function(obj)
              "Choice Model. Please select such an output before running this ",
              "script.")
     obj$coef
+}
+
+compressNumericMatrix <- function(mat)
+{
+    memCompress(as.character(mat), type = "gzip")
+}
+
+decompressNumericMatrix <- function(compressed.mat, dim)
+{
+    char.vector <- strsplit(memDecompress(compressed.mat, type = "gzip",
+                                          asChar = TRUE), "\n")[[1]]
+    matrix(as.numeric(char.vector), nrow = dim[1], ncol = dim[2])
 }
