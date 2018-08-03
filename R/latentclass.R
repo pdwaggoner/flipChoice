@@ -486,7 +486,8 @@ parameterStatisticsLCA <- function(obj)
         stop("A latent class analysis output is required.")
 
     pars <- obj$lca.data$pars
-    X <- decompressNumericMatrix(obj$lca.data$X, dim = obj$lca.data$dim.X)
+    X <- decompressNumericMatrix(obj$lca.data$compressed.X,
+                                 dim = obj$lca.data$dim.X)
     ind.levels <- obj$lca.data$ind.levels
     weights <- obj$lca.data$weights
     parameter.names <- obj$lca.data$parameter.names
