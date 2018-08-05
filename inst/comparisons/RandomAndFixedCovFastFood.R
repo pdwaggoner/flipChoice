@@ -5,12 +5,14 @@
 ## then you need to update the installed package (the error comes from multiple versions of the
 ## package being installed
 ## http://discourse.mc-stan.org/t/building-r-package-that-uses-stan-running-multiple-chains-error/2485
-is.rserver <- flipChoice::IsRServer()
+is.rserver <- is.rserver <- Sys.info()[["nodename"]] == "reusdev" || grepl("^reustest.*", node.name) ||
+                  grepl("^reusprod.*", node.name)
 if (!is.rserver){
     devtools::load_all("~/flip/flipChoice")
     save.dir <- "../../Documents/Features/ChoiceModelCovariates/"
 }else{
     save.dir <- "./"
+    .libPaths("/usr/")
     library(flipChoice)
 }
 
@@ -28,24 +30,27 @@ data("fast.food.design", package = "flipChoice")
 ## fast.food <- fast.food[subset, ]
 ## fast.food$gender <- droplevels(fast.food$gender)
 
-subset <- fast.food$age != "Under 15 years"
-fast.food <- fast.food[subset, ]
-fast.food$age <- droplevels(fast.food$age)
+## subset <- fast.food$age != "Under 15 years"
+## fast.food <- fast.food[subset, ]
+## fast.food$age <- droplevels(fast.food$age)
+levels(fast.food$age) <- c("Under 35", "Under 35", "35 to 54 years", "35 to 54 years",
+                           "55 years and over", "55 years and over", "Under 35")
 
 choices <- fast.food[, grepl("^choice", colnames(fast.food))]
 questions <- fast.food[, grepl("^task", colnames(fast.food))]
 
 ## frml <- ~age2+gender
-frml <- ~age+income+high.blood.pressure
+frml <- ~(1|age)  # +income+high.blood.pressure
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
-    samps <- samps[, , grepl("theta", dimnames(samps)[[3]]), drop = FALSE]
+    samps <- samps[, , grepl("theta|resp_fixed_coef|resp_rand_eff", dimnames(samps)[[3]]),
+                   drop = FALSE]
     chain.stats <- monitor(samps, warmup = 0, probs = .5, print = FALSE)
     rhats.t <- chain.stats[, "Rhat"]
     neffs.t <- chain.stats[, "n_eff"]
     samps <- as.array(res$stan.fit)
-    samps <- samps[, , grepl("sigma", dimnames(samps)[[3]]), drop = FALSE]
+    samps <- samps[, , grepl("^sig(ma|_fc|_rc)", dimnames(samps)[[3]]), drop = FALSE]
     chain.stats <- monitor(samps, warmup = 0, probs = .5, print = FALSE)
     rhats.s <- chain.stats[, "Rhat"]
     neffs.s <- chain.stats[, "n_eff"]
@@ -59,12 +64,11 @@ GetStats <- function(res){
              out.acc = res$out.sample.accuracy, time = res$time.take)
 }
 
-
 n.iter <- 500
 n.sims <- 10
-n.leave.out.q <- 6
+n.leave.out.q <- 2
 n.chains <- parallel::detectCores()/2  # 1
-sseed <- 33
+sseed <- 3334
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
 orig.stanModel <- flipChoice:::stanModel
@@ -93,7 +97,7 @@ for (i in 1:n.sims)
         comp.stats[i, 2, ] <- GetStats(result)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
-    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRC,
+    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
                       "flipChoice")
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
@@ -111,5 +115,6 @@ dimnames(comp.stats) <- list(NULL, c("No Cov.", "Fixed", "Random"),
                                "mean.neff.per.sec.sigma", "max.rhat", "min.neff",
                                "min.neff.per.sec", "in.acc", "out.acc", "time"))
 saveRDS(comp.stats, paste0(save.dir, "fastfood",
-        n.iter, "sims", n.chains, "chainsCovar_", paste(all.vars(frml), collapse = "_"), "Random.rds"))
+                           n.iter, "sims", n.chains, "chainsCovar_", paste(all.vars(frml), collapse = "_"), "RandomDiag",
+                           Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)

@@ -6,13 +6,14 @@
 ## then you need to update the installed package (the error comes from multiple versions of the
 ## package being installed
 ## http://discourse.mc-stan.org/t/building-r-package-that-uses-stan-running-multiple-chains-error/2485
-is.rserver <- flipChoice::IsRServer()
+is.rserver <- Sys.info()[["nodename"]] == "reusdev" || grepl("^reustest.*", node.name) ||
+                  grepl("^reusprod.*", node.name)
 if (!is.rserver){
     devtools::load_all("~/flip/flipChoice")
     save.dir <- "../../Documents/Features/ChoiceModelCovariates/"
 }else{
     save.dir <- "./"
-    .libPaths("/usr/lib/opencpu/library")   
+    .libPaths("/usr/lib/opencpu/library")
     library(flipChoice)
 }
 
@@ -47,12 +48,12 @@ GetStats <- function(res){
              out.acc = res$out.sample.accuracy, time = res$time.take)
 }
 
+n.iter <- 750
+n.sims <- 25
+n.leave.out.q <- 6
+n.chains <- 2
+sseed <- 22217
 
-n.iter <- 500
-n.sims <- 10
-n.leave.out.q <- 1
-n.chains <- 4
-sseed <- 2222
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
 orig.stanModel <- flipChoice:::stanModel
@@ -61,7 +62,7 @@ for (i in 1:n.sims)
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
     assignInNamespace("stanModel", orig.stanModel, "flipChoice")
     result <- try(FitChoiceModel(experiment.data = eggs.data, hb.iterations = n.iter,
-    hb.chains = n.chains, tasks.left.out = n.leave.out.q, seed = i +sseed))
+                  hb.chains = n.chains, tasks.left.out = n.leave.out.q, seed = i +sseed))
     if (!inherits(result, "try-error"))
         comp.stats[i, 1, ] <- GetStats(result)
 
@@ -85,11 +86,13 @@ for (i in 1:n.sims)
         comp.stats[i, 3, ] <- GetStats(result)
 
 }
-dimnames(comp.stats) <- list(NULL, c("Fixed", "Random"),
+dimnames(comp.stats) <- list(NULL, c("NoCov", "Fixed", "Random"),
                              c("mean.rhat.theta", "mean.neff.theta",
                                "mean.neff.per.sec.theta", "mean.rhat.sigma", "mean.neff.sigma",
                                "mean.neff.per.sec.sigma", "max.rhat", "min.neff",
                                "min.neff.per.sec", "in.acc", "out.acc", "time"))
 saveRDS(comp.stats, paste0(save.dir, "eggs",
-        n.iter, "sims", n.chains, "chainsCovar_", paste(all.vars(frml), collapse = "_"), "RandomNew.rds"))
+                           n.iter, "sims", n.leave.out.q, "QLeftOutCovar_",
+                           paste(all.vars(frml), collapse = "_"),
+                           "RandomDiag", Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)
