@@ -71,8 +71,8 @@ GetStats <- function(res){
 }
 
 n.iter <- 500
-n.sims <- 10
-n.leave.out.q <- 2
+n.sims <- 15
+n.leave.out.q <- 10
 n.chains <- parallel::detectCores()/2  # 1
 sseed <- 3334
 comp.stats <- array(dim = c(n.sims, 3, 12))
@@ -121,6 +121,7 @@ dimnames(comp.stats) <- list(NULL, c("No Cov.", "Fixed", "Random"),
                                "mean.neff.per.sec.sigma", "max.rhat", "min.neff",
                                "min.neff.per.sec", "in.acc", "out.acc", "time"))
 saveRDS(comp.stats, paste0(save.dir, "fastfood",
-                           n.iter, "sims", n.chains, "chainsCovar_", paste(all.vars(frml), collapse = "_"), "RandomDiag",
-                           Sys.Date(), ".rds"))
+                           n.iter, "sims", n.leave.out.q, "QLeftOutCovar_",
+                           paste(all.vars(frml), collapse = "_"),
+                           "RandomDiag", Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)
