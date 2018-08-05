@@ -5,14 +5,15 @@
 ## then you need to update the installed package (the error comes from multiple versions of the
 ## package being installed
 ## http://discourse.mc-stan.org/t/building-r-package-that-uses-stan-running-multiple-chains-error/2485
-is.rserver <- is.rserver <- Sys.info()[["nodename"]] == "reusdev" || grepl("^reustest.*", node.name) ||
+node.name <- Sys.info()[["nodename"]]
+is.rserver <- node.name == "reusdev" || grepl("^reustest.*", node.name) ||
                   grepl("^reusprod.*", node.name)
 if (!is.rserver){
     devtools::load_all("~/flip/flipChoice")
     save.dir <- "../../Documents/Features/ChoiceModelCovariates/"
 }else{
     save.dir <- "./"
-    .libPaths("/usr/")
+    .libPaths("/usr/lib/opencpu/library")
     library(flipChoice)
 }
 
