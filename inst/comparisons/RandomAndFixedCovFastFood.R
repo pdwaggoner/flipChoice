@@ -33,15 +33,21 @@ data("fast.food.design", package = "flipChoice")
 ## subset <- fast.food$age != "Under 15 years"
 ## fast.food <- fast.food[subset, ]
 ## fast.food$age <- droplevels(fast.food$age)
-levels(fast.food$age) <- c("Under 35", "Under 35", "35 to 54 years", "35 to 54 years",
-                           "55 years and over", "55 years and over", "Under 35")
+
+## levels(fast.food$age) <- c("Under 35", "Under 35", "35 to 54 years", "35 to 54 years",
+##                            "55 years and over", "55 years and over", "Under 35")
+levels(fast.food$age) <- c("Under 45", "Under 45", "Under 45", "45 years and over",
+                           "45 years and over", "45 years and over", "Under 45")
+levels(fast.food$ethnicity) <- c("Non-white", "Non-white", "Non-white", "Non-white",
+                                 "Non-white", "White")
+
 
 choices <- fast.food[, grepl("^choice", colnames(fast.food))]
 questions <- fast.food[, grepl("^task", colnames(fast.food))]
 
 ## frml <- ~age2+gender
-frml <- ~(1|age)  # +income+high.blood.pressure
-
+## frml <- ~(1|age)  # +income+high.blood.pressure
+frml <- ~(1|age) + (1|ethnicity)
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
     samps <- samps[, , grepl("theta|resp_fixed_coef|resp_rand_eff", dimnames(samps)[[3]]),
