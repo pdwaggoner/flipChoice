@@ -108,6 +108,8 @@ cholesterol
 \item \code{other.health.condition.write.in} - character; respondent-reported additional health
 condition that was not a nut allergy, high blood pressure, diabetes, a bad back, or high
 cholesterol
+\item \code{region} = factor; region of the U.S where the respondent resides (levels South,
+West, Northeast, Midwest; and one respondent resides outside of the U.S.)
 }
 }
 \keyword{datasets}
