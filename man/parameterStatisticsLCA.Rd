@@ -10,8 +10,8 @@ parameterStatisticsLCA(obj)
 \item{obj}{A FitChoice object from running LCA.}
 }
 \value{
-A matrix of size n.classes x n containing 1s and 0s where 1
-    indicates membership.
+A table of parameter statistics (coefficients, standard errors,
+    t-statistics and p-values).
 }
 \description{
 Produces a table of parameter statistics for LCA.

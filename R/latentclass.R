@@ -477,8 +477,8 @@ computeRespParsLCA <- function(resp.post.probs, class.parameters,
 #' @title parameterStatisticsLCA
 #' @description Produces a table of parameter statistics for LCA.
 #' @param obj A FitChoice object from running LCA.
-#' @return A matrix of size n.classes x n containing 1s and 0s where 1
-#'     indicates membership.
+#' @return A table of parameter statistics (coefficients, standard errors,
+#'     t-statistics and p-values).
 #' @importFrom stats pt
 parameterStatisticsLCA <- function(obj)
 {
