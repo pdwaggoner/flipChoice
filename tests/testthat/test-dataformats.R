@@ -130,7 +130,7 @@ test_that("design object simulated data entered priors", {
                              simulated.priors = test.design.data$simulated.priors,
                              simulated.sample.size = 1000),
         paste0("Prior standard deviations were not supplied for one or more attributes. ",
-               "These standard deviations have been assummed to be 0."))
+               "Their standard deviations have been assummed to be 0."))
     expect_error(print(result), NA)
 })
 

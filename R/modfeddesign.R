@@ -306,7 +306,7 @@ parsePastedData <- function(paste.data, n.sim = 10, coding = "D")
         prior <- constrainedPrior(n.lvls, means.list, sd.list, coding, n.sim)
         if (n.sd < length(n.lvls))
             warning("Prior standard deviations were not supplied for one or ",
-                    "more attributes. These standard deviations have been ",
+                    "more attributes. Their standard deviations have been ",
                     "assummed to be 0.")
     }
     else

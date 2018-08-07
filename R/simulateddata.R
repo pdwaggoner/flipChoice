@@ -44,36 +44,78 @@ processSimulatedPriors <- function(simulated.priors, n.parameters,
     n.pars.without.alts <- n.parameters - n.alternatives + 1
     prior.zeros <- rep(0, n.alternatives - 1)
 
-    if (is.matrix(simulated.priors) &&
-        is.character(simulated.priors)) # Pasted data
+    if (is.vector(simulated.priors))
     {
-        parsed.data <- parsePastedData(simulated.priors, n.sim = 10,
-                                       coding = "D")
-        prior <- fillInPriors(parsed.data, n.attribute.parameters,
-                              attribute.names, n.parameters)
-        prior.mean <- prior[, 1]
-        prior.sd <- prior[, 2]
-    }
-    else if (is.matrix(simulated.priors) && is.numeric(simulated.priors) &&
-             ncol(simulated.priors) == 2 &&
-             (nrow(simulated.priors) == n.parameters ||
-              nrow(simulated.priors) == n.pars.without.alts)) # 2-column matrix
-    {
-        if (nrow(simulated.priors) == n.parameters)
+        if (length(simulated.priors) == 1 && simulated.priors == 0) # no priors in design
         {
-            prior.mean <- simulated.priors[, 1]
-            prior.sd <- simulated.priors[, 2]
+            prior.mean <- rep(0, n.parameters)
+            prior.sd <- rep(0, n.parameters)
+            warning("The supplied design does not contain priors. The ",
+                    "prior mean and standard deviations have been ",
+                    "assummed to be zero.")
         }
-        else # let alternative parameters have priors of zero
+        else if (all(simulated.priors == 0) &&
+                 (length(simulated.priors) == n.parameters ||
+                  length(simulated.priors) == n.pars.without.alts)) # vector of 0s
         {
-            prior.mean <- c(prior.zeros, simulated.priors[, 1])
-            prior.sd <- c(prior.zeros, simulated.priors[, 2])
+            prior.mean <- rep(0, n.parameters)
+            prior.sd <- rep(0, n.parameters)
+            warning("The prior mean and standard deviations have been ",
+                    "assummed to be zero.")
         }
+        else if (length(simulated.priors) == n.parameters)
+        {
+            prior.mean <- simulated.priors
+            prior.sd <- rep(0, n.parameters)
+            warning("The prior standard deviations have been ",
+                    "assummed to be zero.")
+        }
+        else if (length(simulated.priors) == n.pars.without.alts)
+        {
+            prior.mean <- c(prior.zeros, simulated.priors)
+            prior.sd <- rep(0, n.parameters)
+            warning("The prior standard deviations have been ",
+                    "assummed to be zero.")
+        }
+        else
+            stop(error.msg)
     }
-    else if (simulated.priors == 0) # assume mean and sd to be zero
+    else if (is.matrix(simulated.priors))
     {
-        prior.mean <- rep(0, n.parameters)
-        prior.sd <- rep(0, n.parameters)
+        if (max(dim(simulated.priors)) == 0) # no entered prior
+        {
+            warning("No prior for simulated data was entered. ",
+                    "The prior mean and standard deviations have been ",
+                    "assummed to be zero.")
+            prior.mean <- rep(0, n.parameters)
+            prior.sd <- rep(0, n.parameters)
+        }
+        else if (is.character(simulated.priors)) # Pasted data
+        {
+            parsed.data <- parsePastedData(simulated.priors, n.sim = 10,
+                                          coding = "D")
+            prior <- fillInPriors(parsed.data, n.attribute.parameters,
+                                 attribute.names, n.parameters)
+            prior.mean <- prior[, 1]
+            prior.sd <- prior[, 2]
+        }
+        else if (is.numeric(simulated.priors) && ncol(simulated.priors) == 2)
+        {
+            if (nrow(simulated.priors) == n.parameters)
+            {
+                prior.mean <- simulated.priors[, 1]
+                prior.sd <- simulated.priors[, 2]
+            }
+            else if (nrow(simulated.priors) == n.pars.without.alts)
+            {
+                prior.mean <- c(prior.zeros, simulated.priors[, 1])
+                prior.sd <- c(prior.zeros, simulated.priors[, 2])
+            }
+            else
+                stop(error.msg)
+        }
+        else
+            stop(error.msg)
     }
     else
         stop(error.msg)
@@ -146,8 +188,9 @@ priorAttributeIndices <- function(attribute.list)
     result
 }
 
-sampleFromX <- function(X, respondent.indices, sample.size)
+sampleFromX <- function(X, respondent.indices, sample.size, seed)
 {
+    set.seed(seed)
     n.respondents <- length(respondent.indices)
     sample.ind <- sample(n.respondents, sample.size, replace = TRUE)
     sample.X <- X[unlist(respondent.indices[sample.ind]), , ]

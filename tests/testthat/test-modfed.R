@@ -213,7 +213,7 @@ test_that("Parsing of pasted prior with some means and sd's missing",
     ##                          output = "Labeled design")
     expect_warning(parsed <- parsePastedData(pd),
         paste0("Prior standard deviations were not supplied for one or more attributes. ",
-                 "These standard deviations have been assummed to be 0."))
+                 "Their standard deviations have been assummed to be 0."))
     expect_equal(names(parsed$lvls), vnames)
     expect_equal(parsed$lvls, c(3, 3, 2), check.attributes = FALSE)
     expect_equal(parsed$prior[, 1], c(1, 1, 0, 2, 0), check.attributes = FALSE)

@@ -90,7 +90,7 @@ processExperimentData <- function(experiment.data, subset, weights,
         weights <- rep(1, n.respondents)
         covariates <- NULL
         sampled.output <- sampleFromX(X, respondent.indices,
-                                      n.respondents)
+                                      n.respondents, seed)
         X <- sampled.output$X
         respondent.indices <- sampled.output$respondent.indices
         attribute.names <- unique(names(attribute.data))

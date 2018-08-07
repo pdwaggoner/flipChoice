@@ -198,7 +198,7 @@ processChoFile <- function(cho.file, attribute.levels.file,
         weights <- rep(1, n.respondents)
         covariates <- NULL
         sampled.output <- sampleFromX(X, respondent.indices,
-                                      n.respondents)
+                                      n.respondents, seed)
         X <- sampled.output$X
         respondent.indices <- sampled.output$respondent.indices
         output <- generateSimulatedChoices(X, respondent.indices,
