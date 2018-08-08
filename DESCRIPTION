@@ -1,4 +1,4 @@
-Package: flipChoice
+Package: flipChoiceMWM
 Type: Package
 Title: Choice-based Conjoint experiment analysis
 Version: 1.3.0
