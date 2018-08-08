@@ -343,21 +343,29 @@ fillXNoneOfThese <- function(n.parameters, n.attributes, n.attribute.parameters)
 # Reads Excel file given local path or URL
 #' @importFrom readxl read_excel
 #' @importFrom httr GET write_disk
+#' @importFrom flipU InterceptExceptions
 readExcelFile <- function(file.path)
 {
-    ext <- if (grepl("\\.xls$", file.path))
-        ".xls"
-    else if (grepl("\\.xlsx$", file.path))
+    excel.file.error <- function(unused)
+    {
+        stop("An Excel .xls or .xlsx file is required.")
+    }
+
+    ext <- if (grepl("\\.xlsx", file.path))
         ".xlsx"
+    else if (grepl("\\.xls", file.path))
+        ".xls"
     else
-        stop("File name does not end in .xls or .xlsx")
+        excel.file.error(NULL)
 
     if (file.exists(file.path)) # local
-        read_excel(file.path)
+        InterceptExceptions(read_excel(file.path),
+                            error.handler = excel.file.error)
     else # URL
     {
         GET(file.path, write_disk(temp.file <- tempfile(fileext = ext)))
-        read_excel(temp.file)
+        InterceptExceptions(read_excel(temp.file),
+                            error.handler = excel.file.error)
     }
 }
 
