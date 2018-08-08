@@ -80,7 +80,8 @@ enumeratedDesign <- function(levels.per.attribute, n.questions, alternatives.per
                 min.level.counts <- sapply(singles, min)
                 min.levels <- mapply(function(x, y, z) {z[x == y]}, singles, min.level.counts, level.sequences, SIMPLIFY = FALSE)
 
-                # if balanced, augment the least frequent levels with already used levels in this question
+                # if balanced overlap, augment the least frequent levels with already used levels in this question
+                # otherwise it is highly unlikely that levels will be reused, resulting in minimal overlap
                 if (balanced)
                 {
                     used.levels <- lapply(qn.counts, function(x) {which(x != 0)})

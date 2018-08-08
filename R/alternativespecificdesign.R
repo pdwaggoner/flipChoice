@@ -60,7 +60,7 @@ alternativeSpecificDesign <- function(design.algorithm = "Alternative specific -
 
     # Recalculate d.error with version blocking
     versions.col <- as.factor(rep(seq(n.versions), each = n.questions))
-    d.error <- fedDesign(cbind(design, versions.col), nrow(design))$D
+    d.error <- 1 / fedDesign(cbind(design, versions.col), nrow(design))$D
 
     # Standardize format with ChoiceModelDesign
     design <- splitAlternativesByRow(design, alternatives.per.question, n.attributes.per.alternative)
@@ -70,7 +70,7 @@ alternativeSpecificDesign <- function(design.algorithm = "Alternative specific -
                     Alternative = rep(seq(alternatives.per.question), length.out = nrow(design)),
                     design)
 
-    result <- list(design = data.matrix(design), d.error = 1 / d.error)
+    result <- list(design = data.matrix(design), d.error = d.error)
 
     return(result)
 }
