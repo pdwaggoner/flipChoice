@@ -50,9 +50,9 @@ GetStats <- function(res){
 }
 
 n.iter <- 750
-n.sims <- 25
-n.leave.out.q <- 6
-n.chains <- 2
+n.sims <- 3
+n.leave.out.q <- 7
+n.chains <- parallel::detectCores()
 sseed <- 22217
 
 comp.stats <- array(dim = c(n.sims, 3, 12))

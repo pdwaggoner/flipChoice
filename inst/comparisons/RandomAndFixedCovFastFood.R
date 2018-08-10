@@ -18,7 +18,7 @@ if (!is.rserver){
 }
 
 library(rstan)
-options(mc.cores = parallel::detectCores()/2)
+options(mc.cores = parallel::detectCores())
 
 data("fast.food", package = "flipChoice")
 data("fast.food.design", package = "flipChoice")
@@ -150,9 +150,9 @@ GetStats <- function(res){
 }
 
 n.iter <- 750
-n.sims <- 15
-n.leave.out.q <- 10
-n.chains <- parallel::detectCores()/2  # 1
+n.sims <- 3
+n.leave.out.q <- 11
+n.chains <- parallel::detectCores()  # 1
 sseed <- 33134
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
