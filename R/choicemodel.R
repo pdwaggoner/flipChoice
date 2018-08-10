@@ -147,6 +147,7 @@
 #' }
 #' @importFrom flipFormat Labels
 #' @importFrom stats model.matrix.default
+#' @importFrom lme4 nobars
 #' @export
 #'
 FitChoiceModel <- function(design = NULL, experiment.data = NULL,
@@ -218,7 +219,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     start.time <- proc.time()
 
     covariates <- if (!is.null(cov.formula))
-        matrix(1, nrow = nrow(cov.data))  # model.matrix.default(cov.formula, cov.data)
+        model.matrix(lme4::nobars(cov.formula), cov.data)  # model.matrix.default(cov.formula, cov.data)
     else
         NULL
 

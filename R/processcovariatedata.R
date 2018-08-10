@@ -3,26 +3,35 @@
 #' @param dat list formed from input data describing the choice
 #'     model design, responses and other data
 #' @importFrom stats model.frame
-#' @importFrom lme4 mkReTrms subbars findbars
+#' @importFrom lme4 mkReTrms subbars findbars nobars
 #' @noRd
 processCovariateData <- function(dat, n.classes, cov.formula, cov.data)
 {
     covariates <- dat$covariates
     dat$n.covariates <- NCOL(covariates)
-    dat$V_fc <- 1
-    dat$Xmat <- matrix(1, nrow = nrow(cov.data), ncol = 1)
+    dat$Xmat <- model.matrix(lme4::nobars(cov.formula), cov.data)
+    dat$V_fc <- ncol(dat$Xmat)
     bar.f <- findbars(cov.formula)
-    mf <- model.frame(subbars(cov.formula), data = cov.data)
-    rt <- mkReTrms(bar.f,mf)
+    if (!is.null(bar.f))
+    {
+        mf <- model.frame(subbars(cov.formula), data = cov.data)
+        rt <- mkReTrms(bar.f,mf)
 
-    dat$V_rc <- length(rt$Ztlist)
-    dat$Zmat <- t(as.matrix(rt$Zt))
-    if (dat$V_rc == 1L)
-        dat$rc_dims <- array(nrow(rt$Ztlist[[1]]), dim = 1)
-    else
-        dat$rc_dims <- vapply(rt$Ztlist, nrow, 0L)
+        dat$V_rc <- length(rt$Ztlist)
+        dat$Zmat <- t(as.matrix(rt$Zt))
+        if (dat$V_rc == 1L)
+            dat$rc_dims <- array(nrow(rt$Ztlist[[1]]), dim = 1)
+        else
+            dat$rc_dims <- vapply(rt$Ztlist, nrow, 0L)
 
-    dat$total_rc <- sum(dat$rc_dims)
+        dat$total_rc <- sum(dat$rc_dims)
+    }else
+    {
+        dat$total_rc <- 0L
+        dat$V_rc <- 0L
+        dat$Zmat <- matrix(nrow = nrow(dat$covariates), ncol = 0L)
+        dat$rc_dims <- integer(0)
+    }
 
     if (n.classes == 1) # fixed covariates
     {
@@ -33,7 +42,8 @@ processCovariateData <- function(dat, n.classes, cov.formula, cov.data)
         g <- expand.grid(cnames, dat$all.names, stringsAsFactors = FALSE)
         dat$all.names <- paste(g$Var1, g$Var2, sep = "__")
     }
-    ## dat$covariates <- ScaleNumericCovariates(covariates)
+    dat$covariates <- ScaleNumericCovariates(covariates)
+    dat$Xmat <- ScaleNumericCovariates(dat$Xmat)
     dat$covariates <- as.matrix(dat$covariates)
     dat
 }
