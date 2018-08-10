@@ -58,6 +58,8 @@ sseed <- 22217
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
 orig.stanModel <- flipChoice:::stanModel
+pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
+                    width = NA, style = 3)
 for (i in 1:n.sims)
 {
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
@@ -66,6 +68,7 @@ for (i in 1:n.sims)
                   hb.chains = n.chains, tasks.left.out = n.leave.out.q, seed = i +sseed))
     if (!inherits(result, "try-error"))
         comp.stats[i, 1, ] <- GetStats(result)
+    utils::setTxtProgressBar(pb, 3*(i-1)+1)
 
     result <- try(FitChoiceModel(experiment.data = eggs.data, hb.iterations = n.iter,
                              cov.formula = frml, cov.data = eggs.cov,
@@ -75,6 +78,7 @@ for (i in 1:n.sims)
     ## samps <- do.call(cbind, samps)
     if (!inherits(result, "try-error"))
         comp.stats[i, 2, ] <- GetStats(result)
+    utils::setTxtProgressBar(pb, 3*(i-1)+2)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
@@ -85,7 +89,8 @@ for (i in 1:n.sims)
                              seed = i+sseed))
     if (!inherits(result, "try-error"))
         comp.stats[i, 3, ] <- GetStats(result)
-
+    utils::setTxtProgressBar(pb, 3*i)
+    flush.console()
 }
 dimnames(comp.stats) <- list(NULL, c("NoCov", "Fixed", "Random"),
                              c("mean.rhat.theta", "mean.neff.theta",
@@ -93,7 +98,7 @@ dimnames(comp.stats) <- list(NULL, c("NoCov", "Fixed", "Random"),
                                "mean.neff.per.sec.sigma", "max.rhat", "min.neff",
                                "min.neff.per.sec", "in.acc", "out.acc", "time"))
 saveRDS(comp.stats, paste0(save.dir, "eggs",
-                           n.iter, "sims", n.leave.out.q, "QLeftOutCovar_",
+                           n.sims, "sims", n.leave.out.q, "QLeftOutCovar_",
                            paste(all.vars(frml), collapse = "_"),
                            "RandomDiag", Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)

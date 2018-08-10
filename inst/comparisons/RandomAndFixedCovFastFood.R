@@ -18,7 +18,7 @@ if (!is.rserver){
 }
 
 library(rstan)
-options(mc.cores = parallel::detectCores())
+options(mc.cores = parallel::detectCores()/2)
 
 data("fast.food", package = "flipChoice")
 data("fast.food.design", package = "flipChoice")
@@ -41,14 +41,92 @@ levels(fast.food$age) <- c("Under 45", "Under 45", "Under 45", "45 years and ove
                            "45 years and over", "45 years and over", "Under 45")
 levels(fast.food$ethnicity) <- c("Non-white", "Non-white", "Non-white", "Non-white",
                                  "Non-white", "White")
+## 45 states + other in state variable;
+## missing: vermont, DC, alaska, Maine, Delaware, South Dakota
+fast.food$region <- fast.food$state
+levels(fast.food$region) <- c("South",     # Alabama
+                             "West",       # Arizona
+                             "South",      # Arkansas
+                             "West",       # California
+                             "West",       # Colorado,
+                             "Northeast",  # Conneticut
+                             "South",      # Florida
+                             "South",      # Georgia
+                             "West",       # "Hawaii"
+                             "Other",      # "I do not reside in the United States"
+                             "West",       # "Idaho"
+                             "Midwest",    # "Illinois"
+                             "Midwest",    # "Indiana"
+                             "Midwest",    # "Iowa"
+                             "Midwest",    # "Kansas"
+                             "South",      # "Kentucky"
+                             "South",      # "Louisiana"
+                             "South",      # "Maryland"
+                             "Northeast",  # "Massachusetts"
+                             "Midwest",    # "Michigan"
+                             "Midwest",    # "Minnesota"
+                             "South",      # "Mississippi"
+                             "Midwest",    # "Missouri"
+                             "West",       # "Montana"
+                             "Midwest",    # "Nebraska"
+                             "West",       # "Nevada"
+                             "Northeast",  # "New Hampshire"
+                             "Northeast",  # "New Jersey"
+                             "West",       # "New Mexico"
+                             "Northeast",  # "New York"
+                             "South",      # "North Carolina"
+                             "Midwest",    # "North Dakota"
+                             "Midwest",    # "Ohio"
+                             "South",      # "Oklahoma"
+                             "West",       # "Oregon"
+                             "Northeast",  # "Pennsylvania"
+                             "Northeast",  # "Rhode Island"
+                             "South",      # "South Carolina"
+                             "South",      # "Tennessee"
+                             "South",      # "Texas"
+                             "West",       # "Utah"
+                             "South",      # "Virginia"
+                             "West",       # "Washington"
+                             "South",      # "West Virginia"
+                             "Midwest",    # "Wisconsin"
+                             "West"        # "Wyoming"
+                             )
 
+fast.food$bmi <- fast.food$weight/fast.food$height^2*703
+fast.food$overweight <- factor(fast.food$bmi > 25, labels = c("no", "yes"))
+fast.food$obese <- factor(fast.food$bmi > 30, labels = c("no", "yes"))
+fast.food$under45 <- fast.food$age
+levels(fast.food$under45) <- c("Under 45", "Under 45", "Under 45", "45 years and over",
+                           "45 years and over", "45 years and over", "Under 45")
+
+fast.food$caucasian <- fast.food$ethnicity
+levels(fast.food$caucasian) <- c("Non-white", "Non-white", "Non-white", "Non-white",
+                          "Non-white", "White")
+
+data(chocolate, package = "flipChoice")
+cf <- fast.food[, grep("^choice", colnames(fast.food))]
+cc <- chocolate[, grep("^choice", colnames(chocolate))]
+i.f <- which(apply(cf, 1, function(x) sd(x) == 0))
+i.c <- which(apply(cc, 1, function(x) sd(x) == 0))
+
+bad.idx <- c(i.f, i.c[length(i.c)],
+             which(fast.food$state == "I do not reside in the United States"))
+## subset <- fast.food$region != "Other"
+fast.food <- fast.food[-bad.idx, ]
+fast.food$region <- droplevels(fast.food$region)
+fast.food$state <- droplevels(fast.food$state)
+## subset <- fast.food$region != "Other"
+## fast.food <- fast.food[subset, ]
+## fast.food$region <- droplevels(fast.food$region)
 
 choices <- fast.food[, grepl("^choice", colnames(fast.food))]
 questions <- fast.food[, grepl("^task", colnames(fast.food))]
 
 ## frml <- ~age2+gender
 ## frml <- ~(1|age)  # +income+high.blood.pressure
-frml <- ~(1|age) + (1|ethnicity)
+## frml <- ~(1|age) + (1|ethnicity)
+frml <- ~(1|ethnicity) + (1|region)
+
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
     samps <- samps[, , grepl("theta|resp_fixed_coef|resp_rand_eff", dimnames(samps)[[3]]),
@@ -71,14 +149,16 @@ GetStats <- function(res){
              out.acc = res$out.sample.accuracy, time = res$time.take)
 }
 
-n.iter <- 500
+n.iter <- 750
 n.sims <- 15
 n.leave.out.q <- 10
 n.chains <- parallel::detectCores()/2  # 1
-sseed <- 3334
+sseed <- 33134
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
 orig.stanModel <- flipChoice:::stanModel
+pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
+                    width = NA, style = 3)
 for (i in 1:n.sims)
 {
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
@@ -91,6 +171,7 @@ for (i in 1:n.sims)
                              seed = i+sseed))
     if (!inherits(result, "try-error"))
         comp.stats[i, 1, ] <- GetStats(result)
+    utils::setTxtProgressBar(pb, 3*(i-1)+1)
 
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
@@ -102,6 +183,7 @@ for (i in 1:n.sims)
     ## samps <- do.call(cbind, samps)
     if (!inherits(result, "try-error"))
         comp.stats[i, 2, ] <- GetStats(result)
+    utils::setTxtProgressBar(pb, 3*(i-1)+2)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
@@ -114,15 +196,22 @@ for (i in 1:n.sims)
                              seed = i+sseed))
     if (!inherits(result, "try-error"))
         comp.stats[i, 3, ] <- GetStats(result)
-
+    utils::setTxtProgressBar(pb, 3*i)
+    flush.console()
 }
 dimnames(comp.stats) <- list(NULL, c("No Cov.", "Fixed", "Random"),
                              c("mean.rhat.theta", "mean.neff.theta",
                                "mean.neff.per.sec.theta", "mean.rhat.sigma", "mean.neff.sigma",
                                "mean.neff.per.sec.sigma", "max.rhat", "min.neff",
                                "min.neff.per.sec", "in.acc", "out.acc", "time"))
+attr(comp.stats, "n.sims") <- n.sims
+attr(comp.stats, "n.iter") <- n.iter
+attr(comp.stats, "n.chains") <- n.chains
+attr(comp.stats, "n.questions.left.out") <- n.leave.out.q
+attr(comp.stats, "start.seed") <- sseed
+attr(comp.stats, "formula.iter") <- frml
 saveRDS(comp.stats, paste0(save.dir, "fastfood",
-                           n.iter, "sims", n.leave.out.q, "QLeftOutCovar_",
+                           n.sims, "sims", n.leave.out.q, "QLeftOutCovar_",
                            paste(all.vars(frml), collapse = "_"),
                            "RandomDiag", Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)
