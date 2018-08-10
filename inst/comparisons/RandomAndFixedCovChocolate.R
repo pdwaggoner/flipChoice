@@ -119,7 +119,8 @@ questions <- chocolate[, grepl("^task", colnames(chocolate))]
 ## frml <- ~age2+gender
 ## frml <- ~(1|age)  # +income+high.blood.pressure
 ## frml <- ~(1|age) + (1|ethnicity)
-frml <- ~(1|obese) + (1|region)
+frml.fc <- ~ethnicity + region
+frml.rc <- ~(1|ethnicity) + (1|region)
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
@@ -167,7 +168,7 @@ for (i in 1:n.sims)
         comp.stats[i, 1, ] <- GetStats(result)
     utils::setTxtProgressBar(pb, 3*(i-1)+1)
 
-    frml <- ~obese + region
+    frml <- frml.fc
     result <- try(FitChoiceModel(design = chocolate.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
 #                                 subset = subset,
@@ -181,9 +182,9 @@ for (i in 1:n.sims)
     utils::setTxtProgressBar(pb, 3*(i-1)+2)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
+    frml <- frml.rc
     assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
                       "flipChoice")
-    frml <- ~(1|obese) + (1|region)
     result <- try(FitChoiceModel(design = chocolate.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
  #                                subset = subset,
