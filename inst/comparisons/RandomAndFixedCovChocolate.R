@@ -14,14 +14,14 @@ if (!is.rserver){
 }else{
     save.dir <- "./"
     .libPaths("/usr/lib/opencpu/library")
-    library(flipChoice)
+    library(flipChoiceMWM)
 }
 
 library(rstan)
 options(mc.cores = parallel::detectCores())
 
-data("chocolate", package = "flipChoice")
-data("chocolate.design", package = "flipChoice")
+data("chocolate", package = "flipChoiceMWM")
+data("chocolate.design", package = "flipChoiceMWM")
 
 ## remove 3 respondents who didn't state gender
 ## Need to subset here until DS-2057 completed
@@ -100,7 +100,7 @@ chocolate$caucasian <- chocolate$ethnicity
 levels(chocolate$caucasian) <- c("Non-white", "Non-white", "Non-white", "Non-white",
                           "Non-white", "White")
 
-data(fast.food, package = "flipChoice")
+data(fast.food, package = "flipChoiceMWM")
 cf <- fast.food[, grep("^choice", colnames(fast.food))]
 cc <- chocolate[, grep("^choice", colnames(chocolate))]
 i.f <- which(apply(cf, 1, function(x) sd(x) == 0))
@@ -150,8 +150,8 @@ n.leave.out.q <- 5
 n.chains <- parallel::detectCores()  # 1
 sseed <- 331341
 comp.stats <- array(dim = c(n.sims, 3, 12))
-## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
-orig.stanModel <- flipChoice:::stanModel
+## origin.stanModel.b <- body(flipChoiceMWM:::stanModel)[[3]]
+orig.stanModel <- flipChoiceMWM:::stanModel
 pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
                     width = NA, style = 3)
 for (i in 1:n.sims)
@@ -183,8 +183,8 @@ for (i in 1:n.sims)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     frml <- frml.rc
-    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
-                      "flipChoice")
+    assignInNamespace("stanModel", function(a, b, c) flipChoiceMWM:::stanmodels$choicemodelRCdiag,
+                      "flipChoiceMWM")
     result <- try(FitChoiceModel(design = chocolate.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
  #                                subset = subset,
@@ -196,7 +196,7 @@ for (i in 1:n.sims)
     utils::setTxtProgressBar(pb, 3*i)
     flush.console()
 
-    assignInNamespace("stanModel", orig.stanModel, "flipChoice")
+    assignInNamespace("stanModel", orig.stanModel, "flipChoiceMWM")
 }
 dimnames(comp.stats) <- list(NULL, c("No Cov.", "Fixed", "Random"),
                              c("mean.rhat.theta", "mean.neff.theta",

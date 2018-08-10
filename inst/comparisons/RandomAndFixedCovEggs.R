@@ -15,14 +15,14 @@ if (!is.rserver){
 }else{
     save.dir <- "./"
     .libPaths("/usr/lib/opencpu/library")
-    library(flipChoice)
+    library(flipChoiceMWM)
 }
 
 options(mc.cores = parallel::detectCores())
 library(rstan)
 
-data("eggs", package = "flipChoice")
-data("eggs.cov", package = "flipChoice")
+data("eggs", package = "flipChoiceMWM")
+data("eggs.cov", package = "flipChoiceMWM")
 
 ## frml <- ~age2+gender
 ## frml <- ~egg.choice2
@@ -58,13 +58,13 @@ sseed <- 22217
 
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
-orig.stanModel <- flipChoice:::stanModel
+orig.stanModel <- flipChoiceMWM:::stanModel
 pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
                     width = NA, style = 3)
 for (i in 1:n.sims)
 {
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
-    assignInNamespace("stanModel", orig.stanModel, "flipChoice")
+    assignInNamespace("stanModel", orig.stanModel, "flipChoiceMWM")
     result <- try(FitChoiceModel(experiment.data = eggs.data, hb.iterations = n.iter,
                   hb.chains = n.chains, tasks.left.out = n.leave.out.q, seed = i +sseed))
     if (!inherits(result, "try-error"))
@@ -84,8 +84,8 @@ for (i in 1:n.sims)
 
     ## body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     frml <- frml.rc
-    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
-                      "flipChoice")
+    assignInNamespace("stanModel", function(a, b, c) flipChoiceMWM:::stanmodels$choicemodelRCdiag,
+                      "flipChoiceMWM")
     result <- try(FitChoiceModel(experiment.data = eggs.data, hb.iterations = n.iter,
                              cov.formula = frml, cov.data = eggs.cov,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
