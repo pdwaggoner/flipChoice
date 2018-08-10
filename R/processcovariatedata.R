@@ -56,7 +56,8 @@ processCovariateData <- function(dat, n.classes, cov.formula, cov.data)
 ScaleNumericCovariates <- function(covariates)
 {
     n.covariates <- ncol(covariates)
-    for (i in 2:n.covariates) # start at 2 to skip the intercept covariate
+    idx <- which(!colnames(covariates) %in% "(Intercept)")
+    for (i in idx) # start at 2 to skip the intercept covariate
         if (!all(sort(unique(covariates[, i])) == c(0, 1))) # is numeric
         {
             if (sd(covariates[, i]) == 0)
