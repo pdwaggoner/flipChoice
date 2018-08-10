@@ -2,9 +2,9 @@ data {
     int<lower=2> C; // Number of alternatives (choices) in each scenario
     int<lower=1> R; // Number of respondents
     int<lower=1> V_fc; // Number of respondent-specific fixed covariate parameters
-    int<lower=1> V_rc; // Number of respondent-specific random effects vectors
+    int<lower=0> V_rc; // Number of respondent-specific random effects vectors
     int<lower=1> rc_dims[V_rc]; // Dimension of each random covariate
-    int<lower=1> total_rc; /* total num. random effects sum(rc_dims) */ 
+    int<lower=0> total_rc; /* total num. random effects sum(rc_dims) */ 
     /* or fixed cov var fixed real<lower=0> sig_fc */  
     int<lower=1> S[R]; // Number of questions per respondent
     int<lower=1> RS; // sum(S)
