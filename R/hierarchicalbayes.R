@@ -115,7 +115,8 @@ stanParameters <- function(stan.dat, keep.beta, stan.model)
         else
             pars <- c(pars, "class_weights")
     }else if (stan.model@model_name == "choicemodelRCdiag")
-        pars <- c("resp_fixed_coef", "resp_rand_eff", "sigma", "sig_rc", "sig_fc")
+        pars <- c("resp_fixed_coef", "resp_rand_eff", "sigma", "sig_rc", "sig_fc",
+                  "log_likelihood")
     if (keep.beta)
         pars <- c(pars, "beta")
 
