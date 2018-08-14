@@ -21,8 +21,8 @@ if (!is.rserver){
 options(mc.cores = parallel::detectCores())
 library(rstan)
 
-data("eggs", package = "flipChoiceMWM")
-data("eggs.cov", package = "flipChoiceMWM")
+data("eggs", package = "flipChoice")
+data("eggs.cov", package = "flipChoice")
 
 start.age <- as.numeric(sub("-[0-9]{2}", "", levels(eggs.cov$age)))
 end.age <- as.numeric(sub("[0-9]{2}-", "", levels(eggs.cov$age)))
@@ -34,8 +34,8 @@ eggs.cov$age.numeric <- scale(age.n)
 
 ## frml <- ~age2+gender
 ## frml <- ~egg.choice2
-frml.fc <- ~egg.choice+age
-frml.rc <- ~age+(1|egg.choice)
+frml.fc <- ~egg.choice+age.numeric
+frml.rc <- ~age.numeric+(1|egg.choice)
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
@@ -66,13 +66,13 @@ sseed <- 22217
 
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
-orig.stanModel <- flipChoiceMWM:::stanModel
+orig.stanModel <- flipChoice:::stanModel
 pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
                     width = NA, style = 3)
 for (i in 1:n.sims)
 {
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
-    assignInNamespace("stanModel", orig.stanModel, "flipChoiceMWM")
+    assignInNamespace("stanModel", orig.stanModel, "flipChoice")
     result <- try(FitChoiceModel(experiment.data = eggs.data, hb.iterations = n.iter,
                   hb.chains = n.chains, tasks.left.out = n.leave.out.q, seed = i +sseed))
     if (!inherits(result, "try-error"))
@@ -92,8 +92,8 @@ for (i in 1:n.sims)
 
     ## body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     frml <- frml.rc
-    assignInNamespace("stanModel", function(a, b, c) flipChoiceMWM:::stanmodels$choicemodelRCdiag,
-                      "flipChoiceMWM")
+    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
+                      "flipChoice")
     result <- try(FitChoiceModel(experiment.data = eggs.data, hb.iterations = n.iter,
                              cov.formula = frml, cov.data = eggs.cov,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
