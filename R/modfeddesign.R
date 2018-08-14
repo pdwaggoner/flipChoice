@@ -334,7 +334,7 @@ parsePastedData <- function(paste.data, n.sim = 10, coding = "D")
 #'     deviations for a particular attribute with a name corresponding
 #'     to a name in \code{lvls}. Attributes in \code{lvls} that are
 #'     not found in \code{prior.sd} are given prior standard
-#'     deviations of 1 for their coefficients.
+#'     deviations of 0 for their coefficients.
 #' @param coding \code{"D"} to use dummy coding
 #'     (\code{\link[stats]{contr.treatment}}) or \code{"E"} to use
 #'     effects coding (\code{\link[stats]{contr.sum}}).
@@ -353,6 +353,8 @@ constrainedPrior <- function(
                              coding = "D",
                              n.sim = 10)
 {
+    firstLevelValueWarning(prior.means, prior.sd)
+
     contr.fun <- if (coding == "D")
                             contr.treatment
                         else
@@ -407,4 +409,33 @@ constrainedPrior <- function(
         return(beta.c)
 
     return(cbind(beta.c, sd.c))
+}
+
+firstLevelValueWarning <- function(prior.means, prior.sd)
+{
+    has.redundant.value <- FALSE
+    for (means in prior.means)
+    {
+        if (length(means) > 1 && means[1] != 0)
+        {
+            has.redundant.value <- TRUE
+            break
+        }
+    }
+    if (!has.redundant.value)
+    {
+        for (sds in prior.sd)
+        {
+            if (length(sds) > 1 && sds[1] != 0)
+            {
+                has.redundant.value <- TRUE
+                break
+            }
+        }
+    }
+    if (has.redundant.value)
+        warning("The input prior contains means and/or standard deviations ",
+                "for the first level of attributes, which will be ignored ",
+                "due to the coding of variables. These values should be set ",
+                "to zero.")
 }

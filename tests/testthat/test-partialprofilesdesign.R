@@ -85,6 +85,48 @@ test_that(paste0("Bayesian optimal integrated algorithm with zero variation ",
     expect_equal(result$d.error, 2.4519272629644)
 })
 
+test_that(paste0("Entered attribute levels containing fixed priors"),
+{
+    att.lvls <- structure(c("car", "fast", "slow", "med", "", "", "mean", "0",
+                    "0.1", "0.3", "", "", "color", "red", "blue", "green", "white",
+                    "", "mean", "0", "-0.3", "0.1", "0.4", "", "broken", "yes",
+                    "no", "", "", "", "mean", "0", "0.2", "", "", "", "cost", "10000",
+                    "15000", "20000", "30000", "50000", "mean", "0", "0.1", "0.3",
+                    "0.1", "0.2"), .Dim = c(6L, 8L))
+    expect_warning(ChoiceModelDesign(design.algorithm = "Partial profiles",
+                    attribute.levels = att.lvls,
+                    n.questions = 10,
+                    n.versions = 2,
+                    alternatives.per.question = 3,
+                    n.constant.attributes = 0,
+                    seed = 1), paste0("Prior standard deviations were not ",
+                                      "supplied for one or more attributes. ",
+                                      "Their standard deviations have been ",
+                                      "assummed to be 0."))
+})
+
+test_that(paste0("Entered attribute levels containing Bayesian priors"),
+{
+    att.lvls <- structure(c("car", "fast", "slow", "med", "", "", "mean", "0",
+                            "0.1", "0.3", "", "", "color", "red",
+                            "blue", "green", "white", "", "mean", "0", "-0.3", "0.1",
+                            "0.4", "", "broken", "yes",
+                            "no", "", "", "", "mean", "0", "0.2", "", "", "",
+                            "cost", "10000", "15000", "20000", "30000",
+                            "50000", "mean", "0", "0.1", "0.3", "0.1", "0.2", "sd", "0",
+                            "1", "2", "3", "4"), .Dim = c(6L, 9L))
+    expect_warning(ChoiceModelDesign(design.algorithm = "Partial profiles",
+                  attribute.levels = att.lvls,
+                  n.questions = 10,
+                  n.versions = 2,
+                  alternatives.per.question = 3,
+                  n.constant.attributes = 0,
+                  seed = 1), paste0("Prior standard deviations were not ",
+                                    "supplied for one or more attributes. ",
+                                    "Their standard deviations have been ",
+                                    "assummed to be 0."))
+})
+
 test_that("Partial profiles vs modified Federov with a prior distribution",
 {
     prior <- matrix(c(-1, 0, 1, 0, -1, 0, 2, 2, 2, 2, 2, 2), ncol = 2)
