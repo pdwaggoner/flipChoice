@@ -58,7 +58,7 @@ ScaleNumericCovariates <- function(covariates)
     n.covariates <- ncol(covariates)
     idx <- which(!colnames(covariates) %in% "(Intercept)")
     for (i in idx) # start at 2 to skip the intercept covariate
-        if (!all(sort(unique(covariates[, i])) == c(0, 1))) # is numeric
+        if (!all(sort(unique(covariates[, i])) %in% c(0, 1))) # is numeric
         {
             if (sd(covariates[, i]) == 0)
                 stop("One of the covariates has no variation.")
