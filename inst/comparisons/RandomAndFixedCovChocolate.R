@@ -100,21 +100,16 @@ chocolate$caucasian <- chocolate$ethnicity
 levels(chocolate$caucasian) <- c("Non-white", "Non-white", "Non-white", "Non-white",
                           "Non-white", "White")
 
-age.n <- vapply(as.numeric(chocolate$age), function(x) switch(x, "1" = 20, "2" = 30,
+chocolate$age.numeric <- vapply(as.numeric(chocolate$age), function(x) switch(x, "1" = 20, "2" = 30,
                                                               "3" = 40, "4" = 50,
                                                               "5" = 60, "6" = 70, "7" = 10),
                 0)
-chocolate$age.numeric <- drop(scale(age.n))
-
-chocolate$bmi.s <- drop(scale(chocolate$bmi))
-
-income.n <- vapply(as.numeric(chocolate$income), function(x) switch(x, "1" = 12500, "2" = 125000,
-                                                              "3" = 137500, "4" = 175000,
-                                                              "6" = 225000, "7" = 37500,
-                                                              "8" = 62500, "9" = 87500),
-                0)
-chocolate$income.numeric <- drop(scale(income.n))
-chocolate$delivery.numeric <- drop(scale(as.numeric(chocolate$delivery.under.30)))
+chocolate$income.numeric <- vapply(as.numeric(chocolate$income),
+                                   function(x) switch(x, "1" = 12500, "2" = 125000,
+                                                      "3" = 137500, "4" = 175000,
+                                                      "6" = 225000, "7" = 37500,
+                                                      "8" = 62500, "9" = 87500),
+                                   0)
 
 data(fast.food, package = "flipChoiceMWM")
 cf <- fast.food[, grep("^choice", colnames(fast.food))]
@@ -128,6 +123,11 @@ bad.idx <- c(i.f, i.c[length(i.c)],
 chocolate <- chocolate[-bad.idx, ]
 chocolate$region <- droplevels(chocolate$region)
 chocolate$state <- droplevels(chocolate$state)
+## scale after dropping bad obs
+chocolate$age.numeric <- drop(scale(chocolate$age.numeric))
+chocolate$bmi.s <- drop(scale(chocolate$bmi))
+chocolate$income.numeric <- drop(scale(chocolate$income.numeric))
+chocolate$delivery.numeric <- drop(scale(as.numeric(chocolate$delivery.under.30)))
 
 choices <- chocolate[, grepl("^choice", colnames(chocolate))]
 questions <- chocolate[, grepl("^task", colnames(chocolate))]

@@ -103,21 +103,16 @@ fast.food$caucasian <- fast.food$ethnicity
 levels(fast.food$caucasian) <- c("Non-white", "Non-white", "Non-white", "Non-white",
                           "Non-white", "White")
 
-age.n <- vapply(as.numeric(fast.food$age), function(x) switch(x, "1" = 20, "2" = 30,
+fast.food$age.numeric <- vapply(as.numeric(fast.food$age), function(x) switch(x, "1" = 20, "2" = 30,
                                                               "3" = 40, "4" = 50,
                                                               "5" = 60, "6" = 70, "7" = 10),
                 0)
-fast.food$age.numeric <- drop(scale(age.n))
-
-fast.food$bmi.s <- drop(scale(fast.food$bmi))
-
-income.n <- vapply(as.numeric(fast.food$income), function(x) switch(x, "1" = 12500, "2" = 125000,
-                                                              "3" = 137500, "4" = 175000,
-                                                              "6" = 225000, "7" = 37500,
-                                                              "8" = 62500, "9" = 87500),
-                0)
-fast.food$income.numeric <- drop(scale(income.n))
-fast.food$delivery.numeric <- drop(scale(as.numeric(fast.food$delivery.under.30)))
+fast.food$income.numeric <- vapply(as.numeric(fast.food$income),
+                                   function(x) switch(x, "1" = 12500, "2" = 125000,
+                                                      "3" = 137500, "4" = 175000,
+                                                      "6" = 225000, "7" = 37500,
+                                                      "8" = 62500, "9" = 87500),
+                                   0)
 
 data(chocolate, package = "flipChoice")
 cf <- fast.food[, grep("^choice", colnames(fast.food))]
@@ -131,6 +126,13 @@ bad.idx <- c(i.f, i.c[length(i.c)],
 fast.food <- fast.food[-bad.idx, ]
 fast.food$region <- droplevels(fast.food$region)
 fast.food$state <- droplevels(fast.food$state)
+## scale after dropping bad obs
+fast.food$age.numeric <- drop(scale(fast.food$age.numeric))
+fast.food$bmi.s <- drop(scale(fast.food$bmi))
+fast.food$income.numeric <- drop(scale(fast.food$income.numeric))
+fast.food$delivery.numeric <- drop(scale(as.numeric(fast.food$delivery.under.30)))
+
+
 ## subset <- fast.food$region != "Other"
 ## fast.food <- fast.food[subset, ]
 ## fast.food$region <- droplevels(fast.food$region)
@@ -179,29 +181,29 @@ pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
 for (i in 1:n.sims)
 {
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
-##     assignInNamespace("stanModel", orig.stanModel, "flipChoice")
-##     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
-##                                  questions = questions, hb.iterations = n.iter,
-## #                                 subset = subset,
-## #                             cov.formula = frml, cov.data = fast.food,
-##                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
-##                              seed = i+sseed))
-##     if (!inherits(result, "try-error"))
-##         comp.stats[i, 1, ] <- GetStats(result)
-##     utils::setTxtProgressBar(pb, 3*(i-1)+1)
+    assignInNamespace("stanModel", orig.stanModel, "flipChoice")
+    result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
+                                 questions = questions, hb.iterations = n.iter,
+#                                 subset = subset,
+#                             cov.formula = frml, cov.data = fast.food,
+                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
+                             seed = i+sseed))
+    if (!inherits(result, "try-error"))
+        comp.stats[i, 1, ] <- GetStats(result)
+    utils::setTxtProgressBar(pb, 3*(i-1)+1)
 
-##     frml <- frml.fc
-##     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
-##                                  questions = questions, hb.iterations = n.iter,
-## #                                 subset = subset,
-##                              cov.formula = frml, cov.data = fast.food,
-##                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
-##                              seed = i+sseed))
+    frml <- frml.fc
+    result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
+                                 questions = questions, hb.iterations = n.iter,
+#                                 subset = subset,
+                             cov.formula = frml, cov.data = fast.food,
+                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
+                             seed = i+sseed))
 ##     ## samps <- extract(result$stan.fit, pars = c("theta", "sigma"))
 ##     ## samps <- do.call(cbind, samps)
-##     if (!inherits(result, "try-error"))
-##         comp.stats[i, 2, ] <- GetStats(result)
-##     utils::setTxtProgressBar(pb, 3*(i-1)+2)
+     if (!inherits(result, "try-error"))
+         comp.stats[i, 2, ] <- GetStats(result)
+     utils::setTxtProgressBar(pb, 3*(i-1)+2)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     frml <- frml.rc
