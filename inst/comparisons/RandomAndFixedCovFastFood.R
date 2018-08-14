@@ -10,7 +10,7 @@ is.rserver <- node.name == "reusdev" || grepl("^reustest.*", node.name) ||
                   grepl("^reusprod.*", node.name)
 if (!is.rserver){
     devtools::load_all("~/flip/flipChoice")
-    save.dir <- "../../Documents/Features/ChoiceModelCovariates/"
+    save.dir <- "../../Documents/Features/ChoiceModelCovariates/simres/"
 }else{
     save.dir <- "./"
     .libPaths("/usr/lib/opencpu/library")
@@ -20,8 +20,8 @@ if (!is.rserver){
 library(rstan)
 options(mc.cores = parallel::detectCores())
 
-data("fast.food", package = "flipChoiceMWM")
-data("fast.food.design", package = "flipChoiceMWM")
+data("fast.food", package = "flipChoice")
+data("fast.food.design", package = "flipChoice")
 
 ## remove 3 respondents who didn't state gender
 ## Need to subset here until DS-2057 completed
@@ -37,10 +37,10 @@ data("fast.food.design", package = "flipChoiceMWM")
 
 ## levels(fast.food$age) <- c("Under 35", "Under 35", "35 to 54 years", "35 to 54 years",
 ##                            "55 years and over", "55 years and over", "Under 35")
-levels(fast.food$age) <- c("Under 45", "Under 45", "Under 45", "45 years and over",
-                           "45 years and over", "45 years and over", "Under 45")
-levels(fast.food$ethnicity) <- c("Non-white", "Non-white", "Non-white", "Non-white",
-                                 "Non-white", "White")
+## levels(fast.food$age) <- c("Under 45", "Under 45", "Under 45", "45 years and over",
+##                            "45 years and over", "45 years and over", "Under 45")
+## levels(fast.food$ethnicity) <- c("Non-white", "Non-white", "Non-white", "Non-white",
+##                                  "Non-white", "White")
 ## 45 states + other in state variable;
 ## missing: vermont, DC, alaska, Maine, Delaware, South Dakota
 fast.food$region <- fast.food$state
@@ -103,7 +103,23 @@ fast.food$caucasian <- fast.food$ethnicity
 levels(fast.food$caucasian) <- c("Non-white", "Non-white", "Non-white", "Non-white",
                           "Non-white", "White")
 
-data(chocolate, package = "flipChoiceMWM")
+age.n <- vapply(as.numeric(fast.food$age), function(x) switch(x, "1" = 20, "2" = 30,
+                                                              "3" = 40, "4" = 50,
+                                                              "5" = 60, "6" = 70, "7" = 10),
+                0)
+fast.food$age.numeric <- drop(scale(age.n))
+
+fast.food$bmi.s <- drop(scale(fast.food$bmi))
+
+income.n <- vapply(as.numeric(fast.food$income), function(x) switch(x, "1" = 12500, "2" = 125000,
+                                                              "3" = 137500, "4" = 175000,
+                                                              "6" = 225000, "7" = 37500,
+                                                              "8" = 62500, "9" = 87500),
+                0)
+fast.food$income.numeric <- drop(scale(income.n))
+fast.food$delivery.numeric <- drop(scale(as.numeric(fast.food$delivery.under.30)))
+
+data(chocolate, package = "flipChoice")
 cf <- fast.food[, grep("^choice", colnames(fast.food))]
 cc <- chocolate[, grep("^choice", colnames(chocolate))]
 i.f <- which(apply(cf, 1, function(x) sd(x) == 0))
@@ -125,8 +141,8 @@ questions <- fast.food[, grepl("^task", colnames(fast.food))]
 ## frml <- ~age2+gender
 ## frml <- ~(1|age)  # +income+high.blood.pressure
 ## frml <- ~(1|age) + (1|ethnicity)
-frml.fc <- ~ethnicity + region
-frml.rc <- ~(1|ethnicity) + (1|region)
+frml.fc <- ~age.numeric + income.numeric + bmi.s + delivery.under.30  # ~ethnicity + region
+frml.rc <- ~age.numeric + income.numeric + bmi.s + (1|delivery.under.30)
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
@@ -150,47 +166,47 @@ GetStats <- function(res){
              out.acc = res$out.sample.accuracy, time = res$time.take)
 }
 
-n.iter <- 750
-n.sims <- 3
+n.iter <- 1000
+n.sims <- 1
 n.leave.out.q <- 11
 n.chains <- parallel::detectCores()  # 1
-sseed <- 33134
+sseed <- 122
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
-orig.stanModel <- flipChoiceMWM:::stanModel
+orig.stanModel <- flipChoice:::stanModel
 pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
                     width = NA, style = 3)
 for (i in 1:n.sims)
 {
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
-    assignInNamespace("stanModel", orig.stanModel, "flipChoiceMWM")
-    result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
-                                 questions = questions, hb.iterations = n.iter,
-#                                 subset = subset,
-#                             cov.formula = frml, cov.data = fast.food,
-                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
-                             seed = i+sseed))
-    if (!inherits(result, "try-error"))
-        comp.stats[i, 1, ] <- GetStats(result)
-    utils::setTxtProgressBar(pb, 3*(i-1)+1)
+##     assignInNamespace("stanModel", orig.stanModel, "flipChoice")
+##     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
+##                                  questions = questions, hb.iterations = n.iter,
+## #                                 subset = subset,
+## #                             cov.formula = frml, cov.data = fast.food,
+##                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
+##                              seed = i+sseed))
+##     if (!inherits(result, "try-error"))
+##         comp.stats[i, 1, ] <- GetStats(result)
+##     utils::setTxtProgressBar(pb, 3*(i-1)+1)
 
-    frml <- frml.fc
-    result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
-                                 questions = questions, hb.iterations = n.iter,
-#                                 subset = subset,
-                             cov.formula = frml, cov.data = fast.food,
-                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
-                             seed = i+sseed))
-    ## samps <- extract(result$stan.fit, pars = c("theta", "sigma"))
-    ## samps <- do.call(cbind, samps)
-    if (!inherits(result, "try-error"))
-        comp.stats[i, 2, ] <- GetStats(result)
-    utils::setTxtProgressBar(pb, 3*(i-1)+2)
+##     frml <- frml.fc
+##     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
+##                                  questions = questions, hb.iterations = n.iter,
+## #                                 subset = subset,
+##                              cov.formula = frml, cov.data = fast.food,
+##                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
+##                              seed = i+sseed))
+##     ## samps <- extract(result$stan.fit, pars = c("theta", "sigma"))
+##     ## samps <- do.call(cbind, samps)
+##     if (!inherits(result, "try-error"))
+##         comp.stats[i, 2, ] <- GetStats(result)
+##     utils::setTxtProgressBar(pb, 3*(i-1)+2)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     frml <- frml.rc
-    assignInNamespace("stanModel", function(a, b, c) flipChoiceMWM:::stanmodels$choicemodelRCdiag,
-                      "flipChoiceMWM")
+    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
+                      "flipChoice")
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
  #                                subset = subset,

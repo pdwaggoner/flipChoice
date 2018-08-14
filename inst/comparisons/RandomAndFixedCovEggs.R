@@ -11,7 +11,7 @@ is.rserver <- node.name == "reusdev" || grepl("^reustest.*", node.name) ||
                   grepl("^reusprod.*", node.name)
 if (!is.rserver){
     devtools::load_all("~/flip/flipChoice")
-    save.dir <- "../../Documents/Features/ChoiceModelCovariates/"
+    save.dir <- "../../Documents/Features/ChoiceModelCovariates/simres/"
 }else{
     save.dir <- "./"
     .libPaths("/usr/lib/opencpu/library")
