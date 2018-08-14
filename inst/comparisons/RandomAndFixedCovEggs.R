@@ -26,7 +26,7 @@ data("eggs.cov", package = "flipChoice")
 
 start.age <- as.numeric(sub("-[0-9]{2}", "", levels(eggs.cov$age)))
 end.age <- as.numeric(sub("[0-9]{2}-", "", levels(eggs.cov$age)))
-mid.age <- mapply(function(x,y) mean(c(x,y)), start, end)
+mid.age <- mapply(function(x,y) mean(c(x,y)), start.age, end.age)
 age.n <- eggs.cov$age
 levels(age.n) <- mid.age
 age.n <- as.numeric(levels(age.n)[as.numeric(age.n)])
@@ -59,10 +59,10 @@ GetStats <- function(res){
 }
 
 n.iter <- 750
-n.sims <- 3
+n.sims <- 2
 n.leave.out.q <- 7
 n.chains <- parallel::detectCores()
-sseed <- 22217
+sseed <- 210
 
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
