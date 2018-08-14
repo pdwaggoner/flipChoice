@@ -51,8 +51,9 @@ model {
     to_vector(sig_rc) ~ gamma(1.39435729464721, 0.39435729464721);
     /* to_vector(sig_theta) ~ cauchy(0,5); */
 
-    to_vector(resp_fixed_coef) ~ normal(0,sig_fc);
-
+    for(j in 1:V_fc){
+      to_vector(resp_fixed_coef[j]) ~ normal(0,sig_fc[j]);
+    }
     for(i in 1:V){
         start_idx = 1;
         for(j in 1:V_rc){
