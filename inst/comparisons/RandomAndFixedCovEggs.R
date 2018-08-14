@@ -24,10 +24,18 @@ library(rstan)
 data("eggs", package = "flipChoiceMWM")
 data("eggs.cov", package = "flipChoiceMWM")
 
+start.age <- as.numeric(sub("-[0-9]{2}", "", levels(eggs.cov$age)))
+end.age <- as.numeric(sub("[0-9]{2}-", "", levels(eggs.cov$age)))
+mid.age <- mapply(function(x,y) mean(c(x,y)), start, end)
+age.n <- eggs.cov$age
+levels(age.n) <- mid.age
+age.n <- as.numeric(levels(age.n)[as.numeric(age.n)])
+eggs.cov$age.numeric <- scale(age.n)
+
 ## frml <- ~age2+gender
 ## frml <- ~egg.choice2
-frml.fc <- ~egg.choice2
-frml.rc <- ~(1|egg.choice2)
+frml.fc <- ~egg.choice+age
+frml.rc <- ~age+(1|egg.choice)
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
