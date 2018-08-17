@@ -409,6 +409,7 @@ checkDesignColNames <- function(design.matrix)
 
 #' @export
 #' @method print ChoiceModelDesign
+#' @importFrom flipFormat DataTableWithRItemFormat
 #' @noRd
 print.ChoiceModelDesign <- function(x, ...) {
 
@@ -422,7 +423,7 @@ print.ChoiceModelDesign <- function(x, ...) {
         return()
     }
 
-    print(x$labeled.design)
+    DataTableWithRItemFormat(x$labeled.design)
 }
 
 ######################### HELPER FUNCTIONS ###########################

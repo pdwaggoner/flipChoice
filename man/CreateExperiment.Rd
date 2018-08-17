@@ -4,7 +4,8 @@
 \alias{CreateExperiment}
 \title{Create an experimental design}
 \usage{
-CreateExperiment(levels.per.attribute, n.prohibitions = 0, seed = 12345)
+CreateExperiment(levels.per.attribute, n.prohibitions = 0,
+  seed = 12345)
 }
 \arguments{
 \item{levels.per.attribute}{Numeric \code{\link{vector}} of the number of levels
