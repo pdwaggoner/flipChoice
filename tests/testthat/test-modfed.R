@@ -62,11 +62,11 @@ test_that("ChoiceModelDesign: print labels working",
 
     tfile <- tempfile()
     withr::with_output_sink(tfile, {
-        expect_is(print(out), "data.frame")
-        expect_equal(levels(print(out)[[n.non.attr.col + 1]]), pd[-1, 1])
-        expect_equal(levels(print(out)[[n.non.attr.col + 2]]),
-                     pd[-1, pd[1,] == colnames(print(out))[n.non.attr.col + 2]])
-        expect_named(print(out), c(non.attr.col, "price", "time", "type"))
+        expect_is(print(out), "htmlwidget")
+        expect_equal(levels(out$labeled.design[[n.non.attr.col + 1]]), pd[-1, 1])
+        expect_equal(levels(out$labeled.design[[n.non.attr.col + 2]]),
+                     pd[-1, pd[1,] == colnames(out$labeled.design)[n.non.attr.col + 2]])
+        expect_named(out$labeled.design, c(non.attr.col, "price", "time", "type"))
     })
     unlink(tfile)
 })
