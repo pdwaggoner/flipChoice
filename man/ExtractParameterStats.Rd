@@ -34,3 +34,4 @@ the distribution from which individual coefficients are sampled.
 Other HB diagnostics: \code{\link{PlotPosteriorIntervals}},
   \code{\link{TracePlots}}
 }
+\concept{HB diagnostics}
