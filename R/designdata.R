@@ -34,7 +34,7 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
 {
     checkDesignColNames(design)
 
-    design.attributes <- design[, !colnames(design) %in% .non.attr.col.names]
+    design.attributes <- design[, !colnames(design) %in% .non.attr.col.names, drop = FALSE]
     n.attributes <- ncol(design.attributes)
     if (n.attributes != length(attribute.levels))
         stop("The number of attributes in the design file is inconsistent ",
