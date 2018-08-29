@@ -1,9 +1,9 @@
 #' Data from a chocolate bar discrete choice experiment
 #'
 #' A dataset containing responses to a discrete choice experiment
-#' examining preferences for chocolate bars. 403 respondents were each
-#' asked twelve choice questions involving choosing between four chocolate
-#' alternatives. The question asked of each respondent for the choice
+#' examining preferences for chocolate bars . 403 respondents were each
+#' asked twelve choice questions involving choosing between four fast food
+#' alternatives. The question asked each respondent for the choice
 #' questions was "Which of these 2 ounce chocolate bars would you choose to buy?".
 #' The experimental design is available as \code{\link{chocolate.design}}.
 #'
