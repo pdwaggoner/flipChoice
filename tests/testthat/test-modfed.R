@@ -32,10 +32,10 @@ test_that("3*3*2/4/10 dummy coding; old interface",
 
 seed <- 765
 pd <- cbind(c("price", "200", "250", "300"), c("Mean", 0, 1, 1),
-            c("SD", 1, 1, 1),
+            c("SD", 0, 1, 1),
             c("time", "morn", "aft", "eve"), c("Mean", 0, 0, 0),
-            c("SD", 1, 1, 1),
-            c("type", "train", "bus", ""), c("Mean", 2, 3, ""), c("SD", 1, 2, ""))
+            c("SD", 0, 1, 1),
+            c("type", "train", "bus", ""), c("Mean", 0, 3, ""), c("SD", 0, 2, ""))
 vnames <- pd[1, !pd[1,] %in% c("SD", "Mean")]
 n.q <- 10
 apq <- 4
@@ -226,12 +226,12 @@ test_that("Correct prior specification improves fit on sim data",
     seed <- 378
     seed.resp.sim <- 202
     n.respondents <- 15
-    price.mean <- c(-2, 0, 2)
+    price.mean <- c(0, 0, 2)
     time.mean <- 0:2
     type.mean <- 0:1
     pd <- cbind(c("price", "200", "250", "300"),
                 c("Mean", price.mean),
-                c("SD", c(1, 1, 1)),
+                c("SD", c(0, 1, 1)),
                 c("time", "morn", "aft", "eve"),
                 c("Mean", time.mean),
                 c("type", "train", "bus", ""),
@@ -258,14 +258,14 @@ test_that("Correct prior specification improves fit on sim data",
     pval.good <- res.good[, 4]
 
     pd.bad.prior <- cbind(c("price", "200", "250", "300"),
-                c("Mean", rev(price.mean)),
-                c("SD", c(1, 1, 1)),
+                c("Mean", c(0, 0, -2)),
+                c("SD", c(0, 1, 1)),
                 c("time", "morn", "aft", "eve"),
                 c("Mean", time.mean),
-                c("SD", c(1, 1, 1)),
+                c("SD", c(0, 1, 1)),
                 c("type", "train", "bus", ""),
                 c("Mean", type.mean, ""),
-                c("SD", c(1, 1, "")))
+                c("SD", c(0, 1, "")))
 
     out.bad.prior <- ChoiceModelDesign(design.algorithm = "Modfed",
                              attribute.levels = pd.bad.prior, prior = NULL, n.questions = n.q,
@@ -499,7 +499,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta",
     n.q <- 9
 
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -529,7 +529,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta",
     apq <- 2
     n.q <- 15
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -559,7 +559,7 @@ test_that("HZ paper Table 2, 4^4/4/16, non-zero beta",
     n.q <- 16
     pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
     names(pmeans) <- names(levs)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -591,7 +591,7 @@ test_that("HZ paper Table 2, 4*3^3/3/48, non-zero beta",
     pmeans[[1]] <- c(-1, -1/3, 1/3, 1)
     pmeans[2:4] <- replicate(3, c(-1, 0, 1), simplify = FALSE)
     names(pmeans) <- names(levs)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -619,7 +619,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta*1.25",
 
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -650,7 +650,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta*1.25",
     n.q <- 15
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -681,7 +681,7 @@ test_that("HZ paper Table 2, 4^4/4/16, non-zero beta*1.25",
     pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -714,7 +714,7 @@ test_that("HZ paper Table 2, 4*3^3/3/48, non-zero beta*1.25",
     pmeans[2:4] <- replicate(3, c(-1, 0, 1), simplify = FALSE)
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -742,7 +742,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta*.75",
 
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -773,7 +773,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta*.75",
     n.q <- 15
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -804,7 +804,7 @@ test_that("HZ paper Table 2, 4^4/4/16, non-zero beta*.75",
     pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,
@@ -837,7 +837,7 @@ test_that("HZ paper Table 2, 4*3^3/3/48, non-zero beta*.75",
     pmeans[2:4] <- replicate(3, c(-1, 0, 1), simplify = FALSE)
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Modfed",
                          attribute.levels = attr.list, prior = beta, n.questions = n.q,
                          seed = seed, alternatives.per.question = apq,

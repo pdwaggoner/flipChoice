@@ -353,7 +353,8 @@ constrainedPrior <- function(
                              coding = "D",
                              n.sim = 10)
 {
-    firstLevelValueWarning(prior.means, prior.sd)
+    if (coding == "D")
+        firstLevelValueWarning(prior.means, prior.sd)
 
     contr.fun <- if (coding == "D")
                             contr.treatment

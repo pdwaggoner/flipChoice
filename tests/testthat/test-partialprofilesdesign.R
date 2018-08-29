@@ -279,7 +279,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta",
     n.q <- 9
 
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                            attribute.levels = attr.list, prior = beta, n.questions = n.q,
                            seed = seed, alternatives.per.question = apq,
@@ -309,7 +309,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta",
     n.q <- 15
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1),
                    d = c(-1, 0, 1))
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                            attribute.levels = attr.list, prior = beta,
                            n.questions = n.q,
@@ -338,7 +338,7 @@ test_that("HZ paper Table 2, 4^4/4/16, non-zero beta",
     n.q <- 16
     pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
     names(pmeans) <- names(levs)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                            attribute.levels = attr.list, prior = beta, n.questions = n.q,
                            seed = seed, alternatives.per.question = apq,
@@ -365,7 +365,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta*1.25",
 
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                            attribute.levels = attr.list, prior = beta,
                            n.questions = n.q,
@@ -398,7 +398,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta*1.25",
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1),
                    d = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                            attribute.levels = attr.list, prior = beta,
                            n.questions = n.q,
@@ -428,7 +428,7 @@ test_that("HZ paper Table 2, 4^4/4/16, non-zero beta*1.25",
     pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
     pmeans <- mapply(`*`, pmeans, 1.25, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                            attribute.levels = attr.list, prior = beta, n.questions = n.q,
                            seed = seed, alternatives.per.question = apq,
@@ -455,7 +455,7 @@ test_that("HZ paper Table 2, 3^3/3/9, non-zero beta*.75",
 
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                            attribute.levels = attr.list, prior = beta, n.questions = n.q,
                            seed = seed, alternatives.per.question = apq,
@@ -485,7 +485,7 @@ test_that("HZ paper Table 2, 3^4/2/15, non-zero beta*.75",
     n.q <- 15
     pmeans <- list(a = c(-1, 0, 1), b = c(-1, 0, 1), c = c(-1, 0, 1), d = c(-1, 0, 1))
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                            attribute.levels = attr.list, prior = beta, n.questions = n.q,
                            seed = seed, alternatives.per.question = apq,
@@ -513,7 +513,7 @@ test_that("HZ paper Table 2, 4^4/4/16, non-zero beta*.75",
     pmeans <- replicate(4, c(-1, -1/3, 1/3, 1), simplify = FALSE)
     pmeans <- mapply(`*`, pmeans, .75, SIMPLIFY = FALSE)
     names(pmeans) <- names(levs)
-    beta <- constrainedPrior(levs, pmeans, coding = "D")
+    suppressWarnings(beta <- constrainedPrior(levs, pmeans, coding = "D"))
     out <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                            attribute.levels = attr.list, prior = beta, n.questions = n.q,
                            seed = seed, alternatives.per.question = apq,
