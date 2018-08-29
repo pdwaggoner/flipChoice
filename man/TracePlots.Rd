@@ -27,4 +27,3 @@ from which individual coefficients are sampled.
 Other HB diagnostics: \code{\link{ExtractParameterStats}},
   \code{\link{PlotPosteriorIntervals}}
 }
-\concept{HB diagnostics}

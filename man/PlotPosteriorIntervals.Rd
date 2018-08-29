@@ -28,4 +28,3 @@ sampled.
 Other HB diagnostics: \code{\link{ExtractParameterStats}},
   \code{\link{TracePlots}}
 }
-\concept{HB diagnostics}
