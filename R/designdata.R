@@ -24,9 +24,9 @@ processDesignFile <- function(design.file, attribute.levels.file, choices,
                   subset, weights, n.questions.left.out, seed,
                   input.prior.mean, input.prior.sd, include.choice.parameters,
                   missing, covariates, simulated.priors, simulated.sample.size)
-}
+  }
 
-#' @importFrom flipData CleanSubset NoData
+  #' @importFrom flipData CleanSubset NoData
 processDesign <- function(design, attribute.levels, choices, questions, subset,
                           weights, n.questions.left.out, seed, input.prior.mean,
                           input.prior.sd, include.choice.parameters, missing,
@@ -68,13 +68,13 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
                                              n.questions.left.out, missing,
                                              n.questions)
 
-        filter.subset <- CleanSubset(subset, nrow(choices))
-        subset <- filter.subset & non.missing
+        ## filter.subset <- CleanSubset(subset, nrow(choices))
+        ## subset <- filter.subset & non.missing
 
-        if (sum(filter.subset) == 0)
-            stop("All respondents have been filtered out.")
-        else if (sum(subset) == 0)
-            NoData()
+        ## if (sum(filter.subset) == 0)
+        ##     stop("All respondents have been filtered out.")
+        ## else if (sum(subset) == 0)
+        ##     NoData()
 
         n.respondents <- sum(subset)
         weights <- prepareWeights(weights, subset)
@@ -120,8 +120,8 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
     all.names <- allNamesFromAttributes(attribute.levels)
     attribute.names <- names(attribute.levels)
 
-    checkPriorParameters(input.prior.mean, input.prior.sd, n.alternatives,
-                         n.attributes, n.parameters, include.choice.parameters)
+    ## checkPriorParameters(input.prior.mean, input.prior.sd, n.alternatives,
+    ##                      n.attributes, n.parameters, include.choice.parameters)
     ordered.attributes <- orderedAttributes(input.prior.mean, n.attributes,
                                             n.parameters)
     if (any(ordered.attributes) && any(is.none.alternative))
@@ -196,13 +196,13 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
         simulated.respondent.parameters <- NULL
     }
 
-    split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
-                                       respondent.indices)
+    ## split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
+    ##                                    respondent.indices)
 
-    prior.mean <- processInputPrior(input.prior.mean, n.parameters,
-                                    n.attributes, n.attribute.parameters)
-    prior.sd <- processInputPrior(input.prior.sd, n.parameters,
-                                  n.attributes, n.attribute.parameters)
+    ## prior.mean <- processInputPrior(input.prior.mean, n.parameters,
+    ##                                 n.attributes, n.attribute.parameters)
+    ## prior.sd <- processInputPrior(input.prior.sd, n.parameters,
+    ##                               n.attributes, n.attribute.parameters)
 
     list(n.questions = n.questions,
          n.questions.left.out = n.questions.left.out,
@@ -213,19 +213,21 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
          n.attribute.parameters = n.attribute.parameters,
          par.names = par.names,
          all.names = all.names,
-         beta.names = par.names,
-         all.beta.names = all.names,
-         X.in = split.data$X.in,
-         Y.in = split.data$Y.in,
-         X.out = split.data$X.out,
-         Y.out = split.data$Y.out,
+         ## beta.names = par.names,
+         ## all.beta.names = all.names,
+         Y = Y,
+         X = X,
+         ## X.in = split.data$X.in,
+         ## Y.in = split.data$Y.in,
+         ## X.out = split.data$X.out,
+         ## Y.out = split.data$Y.out,
          n.questions.left.in = split.data$n.questions.left.in,
          subset = subset,
          weights = weights,
          covariates = covariates,
          parameter.scales = rep(1, n.parameters),
-         prior.mean = prior.mean,
-         prior.sd = prior.sd,
+         ## prior.mean = prior.mean,
+         ## prior.sd = prior.sd,
          simulated.respondent.parameters = simulated.respondent.parameters)
 }
 

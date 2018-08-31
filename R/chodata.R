@@ -174,13 +174,13 @@ processChoFile <- function(cho.file, attribute.levels.file,
                                             weights, covariates,
                                             n.questions.left.out, missing)
 
-    filter.subset <- CleanSubset(subset, n.respondents)
-    subset <- filter.subset & non.missing
+    ## filter.subset <- CleanSubset(subset, n.respondents)
+    ## subset <- filter.subset & non.missing
 
-    if (sum(filter.subset) == 0)
-        stop("All respondents have been filtered out.")
-    else if (sum(subset) == 0)
-        NoData()
+    ## if (sum(filter.subset) == 0)
+    ##     stop("All respondents have been filtered out.")
+    ## else if (sum(subset) == 0)
+    ##     NoData()
 
     weights <- prepareWeights(weights, subset)
     rs.subset <- unlist(respondent.indices[subset])
@@ -212,188 +212,152 @@ processChoFile <- function(cho.file, attribute.levels.file,
     else
         simulated.respondent.parameters <- NULL
 
-    split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
-                                       respondent.indices)
+    ## split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
+    ##                                    respondent.indices)
 
-    prior.mean <- processInputPrior(input.prior.mean, n.parameters,
-                                    n.attributes, n.attribute.parameters)
-    prior.sd <- processInputPrior(input.prior.sd, n.parameters, n.attributes,
-                                  n.attribute.parameters)
+    ## prior.mean <- processInputPrior(input.prior.mean, n.parameters,
+    ##                                 n.attributes, n.attribute.parameters)
+    ## prior.sd <- processInputPrior(input.prior.sd, n.parameters, n.attributes,
+    ##                               n.attribute.parameters)
 
-    list(n.questions = n.questions.common,
-         n.questions.left.out = n.questions.left.out,
-         n.alternatives = n.alternatives,
-         n.attributes = n.attributes,
-         n.respondents = n.respondents,
-         n.parameters = n.parameters,
-         n.attribute.parameters = n.attribute.parameters,
-         par.names = par.names,
-         all.names = all.names,
-         beta.names = par.names,
-         all.beta.names = all.names,
-         X.in = split.data$X.in,
-         Y.in = split.data$Y.in,
-         X.out = split.data$X.out,
-         Y.out = split.data$Y.out,
-         n.questions.left.in = split.data$n.questions.left.in,
-         subset = subset,
-         weights = weights,
-         covariates = covariates,
-         parameter.scales = rep(1, n.parameters),
-         prior.mean = prior.mean,
-         prior.sd = prior.sd,
-         simulated.respondent.parameters = simulated.respondent.parameters)
-}
+      list(n.questions = n.questions.common,
+           n.questions.left.out = n.questions.left.out,
+           n.alternatives = n.alternatives,
+           n.attributes = n.attributes,
+           n.respondents = n.respondents,
+           n.parameters = n.parameters,
+           n.attribute.parameters = n.attribute.parameters,
+           par.names = par.names,
+           all.names = all.names,
+           ## beta.names = par.names,
+           ## all.beta.names = all.names,
+           ## X.in = split.data$X.in,
+           ## Y.in = split.data$Y.in,
+           ## X.out = split.data$X.out,
+           ## Y.out = split.data$Y.out,
+           Y = Y,
+           X = X,
+           n.questions.left.in = split.data$n.questions.left.in,
+           subset = subset,
+           weights = weights,
+           covariates = covariates,
+           parameter.scales = rep(1, n.parameters),
+           prior.mean = prior.mean,
+           prior.sd = prior.sd,
+           simulated.respondent.parameters = simulated.respondent.parameters)
+  }
 
-processAttributeLevelsFile <- function(attribute.levels.file)
-{
-    raw.attribute.levels <- readExcelFile(attribute.levels.file)
-    n.attributes <- length(raw.attribute.levels)
-    nms <- names(raw.attribute.levels)
-    attribute.levels <- list()
-    for (i in 1:n.attributes)
-    {
-        not.na <- !is.na(raw.attribute.levels[[i]])
-        attribute.levels[[nms[i]]] <- raw.attribute.levels[[i]][not.na]
-    }
-    attribute.levels
-}
+  processAttributeLevelsFile <- function(attribute.levels.file)
+  {
+      raw.attribute.levels <- readExcelFile(attribute.levels.file)
+      n.attributes <- length(raw.attribute.levels)
+      nms <- names(raw.attribute.levels)
+      attribute.levels <- list()
+      for (i in 1:n.attributes)
+      {
+          not.na <- !is.na(raw.attribute.levels[[i]])
+          attribute.levels[[nms[i]]] <- raw.attribute.levels[[i]][not.na]
+      }
+      attribute.levels
+  }
 
-parameterNamesFromAttributes <- function(attribute.levels)
-{
-    n.attributes <- length(attribute.levels)
-    n.attribute.parameters <- unlist(lapply(attribute.levels, length)) - 1
-    n.parameters <- sum(n.attribute.parameters)
-    attribute.names <- names(attribute.levels)
-    result <- rep("", n.parameters)
-    ind <- 1
-    for (i in 1:n.attributes)
-    {
-        for (j in 1:n.attribute.parameters[i])
-        {
-            result[ind] <- paste0(attribute.names[i], ": ",
-                                  attribute.levels[[i]][j + 1])
-            ind <- ind + 1
-        }
-    }
-    result
-}
 
-allNamesFromAttributes <- function(attribute.levels)
-{
-    n.attributes <- length(attribute.levels)
-    n.attribute.levels <- unlist(lapply(attribute.levels, length))
-    attribute.names <- names(attribute.levels)
-    result <- rep("", sum(n.attribute.levels))
-    ind <- 1
-    for (i in 1:n.attributes)
-    {
-        for (j in 1:n.attribute.levels[i])
-        {
-            result[ind] <- paste0(attribute.names[i], ": ",
-                                  attribute.levels[[i]][j])
-            ind <- ind + 1
-        }
-    }
-    result
-}
+  addChoiceParameters <- function(X, n.attributes, n.parameters,
+                                  n.attribute.parameters, n.alternatives,
+                                  par.names, all.names, is.none.alternative)
+  {
+      X <- addChoiceParametersX(X)
+      n.attributes <- n.attributes + 1
+      n.parameters <- n.parameters + n.alternatives - 1
+      n.attribute.parameters <- c(n.alternatives - 1, n.attribute.parameters)
+      alt.labels <- createAlternativeLabels(n.alternatives, is.none.alternative)
+      par.names <- c(alt.labels[-1], par.names)
+      all.names <- c(alt.labels, all.names)
+      list(X = X, n.attributes = n.attributes, n.parameters = n.parameters,
+           n.attribute.parameters = n.attribute.parameters,
+           par.names = par.names, all.names = all.names)
+  }
 
-addChoiceParameters <- function(X, n.attributes, n.parameters,
-                                n.attribute.parameters, n.alternatives,
-                                par.names, all.names, is.none.alternative)
-{
-    X <- addChoiceParametersX(X)
-    n.attributes <- n.attributes + 1
-    n.parameters <- n.parameters + n.alternatives - 1
-    n.attribute.parameters <- c(n.alternatives - 1, n.attribute.parameters)
-    alt.labels <- createAlternativeLabels(n.alternatives, is.none.alternative)
-    par.names <- c(alt.labels[-1], par.names)
-    all.names <- c(alt.labels, all.names)
-    list(X = X, n.attributes = n.attributes, n.parameters = n.parameters,
-         n.attribute.parameters = n.attribute.parameters,
-         par.names = par.names, all.names = all.names)
-}
+  addChoiceParametersX <- function(X)
+  {
+      dim.X <- dim(X)
+      n.alternatives <- dim.X[2]
+      dim.new.X <- dim.X
+      dim.new.X[3] <- dim.X[3] + n.alternatives - 1
+      new.X <- array(data = 0, dim = dim.new.X)
+      new.X[, , n.alternatives:dim.new.X[3]] <- X
+      for (i in 1:(n.alternatives - 1))
+          new.X[, i + 1, i] <- 1
+      new.X
+  }
 
-addChoiceParametersX <- function(X)
-{
-    dim.X <- dim(X)
-    n.alternatives <- dim.X[2]
-    dim.new.X <- dim.X
-    dim.new.X[3] <- dim.X[3] + n.alternatives - 1
-    new.X <- array(data = 0, dim = dim.new.X)
-    new.X[, , n.alternatives:dim.new.X[3]] <- X
-    for (i in 1:(n.alternatives - 1))
-        new.X[, i + 1, i] <- 1
-    new.X
-}
+  createAlternativeLabels <- function(n.alternatives, is.none.alternative)
+  {
+      result <- character(n.alternatives)
+      for (i in 1:n.alternatives)
+      {
+          if (is.none.alternative[i])
+              result[i] <- paste0("Alternative: ", i, " (none of these)")
+          else
+              result[i] <- paste0("Alternative: ", i)
+      }
+      result
+  }
 
-createAlternativeLabels <- function(n.alternatives, is.none.alternative)
-{
-    result <- character(n.alternatives)
-    for (i in 1:n.alternatives)
-    {
-        if (is.none.alternative[i])
-            result[i] <- paste0("Alternative: ", i, " (none of these)")
-        else
-            result[i] <- paste0("Alternative: ", i)
-    }
-    result
-}
+  fillXAttributes <- function(n.parameters, n.attributes, n.attribute.parameters,
+                              ordered.attributes, question.design)
+  {
+      result <- rep(0, n.parameters)
+      parameter.index <- 0
+      for (l in 1:n.attributes)
+      {
+          if (ordered.attributes[l])
+          {
+              if (question.design[l] > 1)
+              {
+                  start.ind <- parameter.index + 1
+                  end.ind <- parameter.index + question.design[l] - 1
+                  result[start.ind:end.ind] <- 1
+              }
+          }
+          else
+          {
+              if (question.design[l] > 1)
+                  result[parameter.index + question.design[l] - 1] <- 1
+          }
 
-fillXAttributes <- function(n.parameters, n.attributes, n.attribute.parameters,
-                            ordered.attributes, question.design)
-{
-    result <- rep(0, n.parameters)
-    parameter.index <- 0
-    for (l in 1:n.attributes)
-    {
-        if (ordered.attributes[l])
-        {
-            if (question.design[l] > 1)
-            {
-                start.ind <- parameter.index + 1
-                end.ind <- parameter.index + question.design[l] - 1
-                result[start.ind:end.ind] <- 1
-            }
-        }
-        else
-        {
-            if (question.design[l] > 1)
-                result[parameter.index + question.design[l] - 1] <- 1
-        }
+          parameter.index <- parameter.index + n.attribute.parameters[l]
+      }
+      result
+  }
 
-        parameter.index <- parameter.index + n.attribute.parameters[l]
-    }
-    result
-}
+  reconcileRespondentIDs <- function(respondent.ids, file.respondent.ids)
+  {
+      n.respondents <- length(respondent.ids)
+      reordering <- rep(NA, n.respondents)
+      for (i in 1:n.respondents)
+      {
+          id <- respondent.ids[i]
+          ind <- which(file.respondent.ids == id)
+          if (length(ind) == 0)
+              stop("Respondent ", id, " not found in the .cho file.")
+          else if (length(ind) > 1)
+              stop("Respondent ", id, " has duplicate entries in the .cho file.")
+          else
+              reordering[i] <- ind
+      }
+      if (length(setdiff(file.respondent.ids, respondent.ids)) > 0)
+          warning("Respondents in the .cho file that do not appear in the ",
+                  "supplied respondent IDs have been omitted.")
+      reordering
+  }
 
-reconcileRespondentIDs <- function(respondent.ids, file.respondent.ids)
-{
-    n.respondents <- length(respondent.ids)
-    reordering <- rep(NA, n.respondents)
-    for (i in 1:n.respondents)
-    {
-        id <- respondent.ids[i]
-        ind <- which(file.respondent.ids == id)
-        if (length(ind) == 0)
-            stop("Respondent ", id, " not found in the .cho file.")
-        else if (length(ind) > 1)
-            stop("Respondent ", id, " has duplicate entries in the .cho file.")
-        else
-            reordering[i] <- ind
-    }
-    if (length(setdiff(file.respondent.ids, respondent.ids)) > 0)
-        warning("Respondents in the .cho file that do not appear in the ",
-                "supplied respondent IDs have been omitted.")
-    reordering
-}
-
-nonMissingRespondentsCho <- function(respondent.indices,
-                                     respondent.has.missing, subset, weights,
-                                     covariates, n.questions.left.out, missing)
-{
-    result <- sapply(respondent.indices, length) > n.questions.left.out
-    if (missing == "Exclude cases with missing data")
+  nonMissingRespondentsCho <- function(respondent.indices,
+                                       respondent.has.missing, subset, weights,
+                                       covariates, n.questions.left.out, missing)
+  {
+      result <- sapply(respondent.indices, length) > n.questions.left.out
+      if (missing == "Exclude cases with missing data")
         result <- result & !respondent.has.missing
     if (!is.null(subset))
         result <- result & !is.na(subset)
