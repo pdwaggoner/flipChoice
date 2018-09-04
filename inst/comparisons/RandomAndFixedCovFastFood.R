@@ -1,3 +1,4 @@
+#!/usr/bin/Rscript
 
 ## Note if seeing errors from the 2nd call to FitChoiceModel when trying to use mulitple chains such as:
 ## Error in error.handler(e) :
@@ -20,8 +21,8 @@ if (!is.rserver){
 library(rstan)
 options(mc.cores = parallel::detectCores())
 
-data("fast.food", package = "flipChoice")
-data("fast.food.design", package = "flipChoice")
+data("fast.food", package = "flipChoiceMWM")
+data("fast.food.design", package = "flipChoiceMWM")
 
 ## remove 3 respondents who didn't state gender
 ## Need to subset here until DS-2057 completed
@@ -114,7 +115,7 @@ fast.food$income.numeric <- vapply(as.numeric(fast.food$income),
                                                       "8" = 62500, "9" = 87500),
                                    0)
 
-data(chocolate, package = "flipChoice")
+data(chocolate, package = "flipChoiceMWM")
 cf <- fast.food[, grep("^choice", colnames(fast.food))]
 cc <- chocolate[, grep("^choice", colnames(chocolate))]
 i.f <- which(apply(cf, 1, function(x) sd(x) == 0))
@@ -172,16 +173,16 @@ n.iter <- 1000
 n.sims <- 1
 n.leave.out.q <- 11
 n.chains <- parallel::detectCores()  # 1
-sseed <- 122
+sseed <- 1221
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
-orig.stanModel <- flipChoice:::stanModel
+orig.stanModel <- flipChoiceMWM:::stanModel
 pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
                     width = NA, style = 3)
 for (i in 1:n.sims)
 {
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
-    assignInNamespace("stanModel", orig.stanModel, "flipChoice")
+    assignInNamespace("stanModel", orig.stanModel, "flipChoiceMWM")
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
 #                                 subset = subset,
@@ -207,8 +208,8 @@ for (i in 1:n.sims)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     frml <- frml.rc
-    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
-                      "flipChoice")
+    assignInNamespace("stanModel", function(a, b, c) flipChoiceMWM:::stanmodels$choicemodelRCdiag,
+                      "flipChoiceMWM")
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
  #                                subset = subset,
@@ -234,5 +235,5 @@ attr(comp.stats, "formula.iter") <- frml
 saveRDS(comp.stats, paste0(save.dir, "fastfood",
                            n.sims, "sims", n.leave.out.q, "QLeftOutCovar_",
                            paste(all.vars(frml), collapse = "_"),
-                           "RandomDiag", Sys.Date(), ".rds"))
+                           "RandomDiagDiffPriors", Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)
