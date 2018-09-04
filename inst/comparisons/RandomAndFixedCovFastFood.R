@@ -144,8 +144,8 @@ questions <- fast.food[, grepl("^task", colnames(fast.food))]
 ## frml <- ~age2+gender
 ## frml <- ~(1|age)  # +income+high.blood.pressure
 ## frml <- ~(1|age) + (1|ethnicity)
-frml.fc <- ~age.numeric + income.numeric + bmi.s + delivery.under.30  # ~ethnicity + region
-frml.rc <- ~age.numeric + income.numeric + bmi.s + (1|delivery.under.30)
+frml.fc <- ~age.numeric + income.numeric + bmi.s + delivery.under.30min  # ~ethnicity + region
+frml.rc <- ~age.numeric + income.numeric + bmi.s + (1|delivery.under.30min)
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
