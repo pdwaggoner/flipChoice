@@ -4,20 +4,21 @@
 \alias{FitChoiceModel}
 \title{FitChoiceModel}
 \usage{
-FitChoiceModel(design = NULL, experiment.data = NULL, cho.file = NULL,
-  design.file = NULL, attribute.levels.file = NULL, cov.formula = NULL,
-  cov.data = NULL, choices = NULL, questions = NULL,
-  simulated.priors = NULL, simulated.priors.from.design = FALSE,
-  simulated.sample.size = 300, synthetic.priors = NULL,
-  synthetic.priors.from.design = NULL, synthetic.sample.size = NULL,
-  n.classes = 1, subset = NULL, weights = NULL,
-  missing = "Use partial data", seed = 123, tasks.left.out = 0,
-  algorithm = "HB-Stan", lc.tolerance = 1e-04, initial.parameters = NULL,
-  normal.covariance = "Full", hb.iterations = 100, hb.chains = 8,
-  hb.max.tree.depth = 10, hb.adapt.delta = 0.8, hb.keep.samples = FALSE,
-  hb.stanfit = TRUE, hb.prior.mean = 0, hb.prior.sd = 5,
-  hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
-  include.choice.parameters = TRUE, respondent.ids = NULL, ...)
+FitChoiceModel(design = NULL, experiment.data = NULL,
+  cho.file = NULL, design.file = NULL, attribute.levels.file = NULL,
+  cov.formula = NULL, cov.data = NULL, choices = NULL,
+  questions = NULL, simulated.priors = NULL,
+  simulated.priors.from.design = FALSE, simulated.sample.size = 300,
+  synthetic.priors = NULL, synthetic.priors.from.design = NULL,
+  synthetic.sample.size = NULL, n.classes = 1, subset = NULL,
+  weights = NULL, missing = "Use partial data", seed = 123,
+  tasks.left.out = 0, algorithm = "HB-Stan", lc.tolerance = 1e-04,
+  initial.parameters = NULL, normal.covariance = "Full",
+  hb.iterations = 100, hb.chains = 8, hb.max.tree.depth = 10,
+  hb.adapt.delta = 0.8, hb.keep.samples = FALSE, hb.stanfit = TRUE,
+  hb.prior.mean = 0, hb.prior.sd = 5, hb.warnings = TRUE,
+  hb.beta.draws.to.keep = 0, include.choice.parameters = TRUE,
+  respondent.ids = NULL, ...)
 }
 \arguments{
 \item{design}{A design object produced by ChoiceModelDesign}

@@ -503,6 +503,16 @@ print.FitChoice <- function(x, ...)
     RespondentParametersTable(x$respondent.parameters, title, subtitle, footer)
 }
 
+#' @importFrom flipFormat ExtractChartData
+#' @export
+flipFormat::ExtractChartData
+
+#' @export
+ExtractChartData.FitChoice <- function(x)
+{
+    return(x$respondent.parameters)
+}
+
 #' @importFrom flipFormat FormatAsPercent
 choiceModelSubtitle <- function(x)
 {
