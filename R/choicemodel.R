@@ -363,6 +363,102 @@ accuracyResults <- function(dat, result, n.questions.left.out)
     result
 }
 
+predict.FitChoice <- function(object, data,  n.reps = 10000, ...)
+{
+    if (missing(data))
+        data <- object$processed.data
+    n.respondents <- length(data$n.questions.left.in)
+#    resp.pars <- result$reduced.respondent.parameters[dat$subset, ]
+
+    n.rs <- dim(data$X.in)[1]  # n.q*n.resp
+    n.alternatives <- dim(data$X.in)[2]
+    is.q.const <- length(unique(data$n.questions.left.in)) == 1L
+    if (!is.q.const)
+        stop("Number of questions per respondent needs to be constant")
+
+    n.questions <- data$n.questions.left.in[1L]
+    resp.pars <- extract(object$stan.fit, pars = "beta")[[1L]]
+
+    ## in.sample.accuracies <- rep(NA, n.respondents)
+    y.pred <- matrix(nrow = n.respondents, ncol = n.questions)
+    y.rep <- matrix(nrow = n.reps, ncol = n.rs)
+    rs <- 1
+    for (i in 1:n.respondents)
+    {
+        pars <- resp.pars[, i, ]
+        pars <- apply(pars, 2, sample, size = n.reps, replace = TRUE)
+        ## n.questions <- data$n.questions.left.in[i]
+        ## score <- rep(NA, n.questions)
+        for (j in 1:n.questions)
+        {
+            ## u <- rep(NA, n.alternatives)
+            lp <- tcrossprod(pars, data$X.in[rs, , ])
+            probs <- t(apply(lp, 1, flipChoice:::softmax))
+            y.preds <- apply(probs, 1, which.max)
+            y.pred[i, j] <- which.max(table(y.preds))
+            ## for (k in 1:n.alternatives)
+            ##     u[k] <- sum(pars * dat$X.in[rs, k, ])
+
+            ## score[j] <- if(which.max(u) == dat$Y.in[rs]) 1 else 0
+            y.rep[, rs] <- y.preds
+            rs <- rs + 1
+        }
+        ## in.sample.accuracies[i] <- mean(score)
+    }
+
+    ## w <- dat$weights
+    ## result$in.sample.accuracy <- sum(in.sample.accuracies * w) / sum(w)
+
+    ## if (n.questions.left.out > 0)
+    ## {
+    ##     out.sample.accuracies <- rep(NA, n.respondents)
+    ##     rs <- 1
+    ##     for (i in 1:n.respondents)
+    ##     {
+    ##         pars <- resp.pars[i, ]
+    ##         score <- rep(NA, n.questions.left.out)
+    ##         for (j in 1:n.questions.left.out)
+    ##         {
+    ##             u <- rep(NA, n.alternatives)
+    ##             for (k in 1:n.alternatives)
+    ##                 u[k] <- sum(pars * dat$X.out[rs, k, ])
+    ##             score[j] <- if(which.max(u) == dat$Y.out[rs]) 1 else 0
+    ##             rs <- rs + 1
+    ##         }
+    ##         out.sample.accuracies[i] <- mean(score)
+    ##     }
+    ##     result$prediction.accuracies <- rep(NA, length(dat$subset))
+    ##     result$prediction.accuracies[dat$subset] <- out.sample.accuracies
+    ##     result$out.sample.accuracy <- sum(out.sample.accuracies * w) / sum(w)
+    ## }
+    ## else
+    ## {
+    ##     result$prediction.accuracies <- rep(NA, length(dat$subset))
+    ##     result$prediction.accuracies[dat$subset] <- in.sample.accuracies
+    ##     result$out.sample.accuracy <- NA
+    ## }
+    ## result
+    list(y.rep = y.rep, y.pred = y.pred)
+}
+
+computeAccuracy <- function(object, data, ...)
+{
+    y.pred.in <- predict(object, data, ...)
+    n.resp <- length(data$n.questions.left.in)
+    y.in <- matrix(data$Y.in, nrow = n.resp, byrow = TRUE)
+    in.correct <- y.in == y.pred.in$y.pred
+
+    y.pred.out <- predict(object,
+                          data = list(Y.in = data$Y.out, X.in = data$X.out,
+                                      n.questions.left.in = rep(data$n.questions.left.out, n.resp)),
+                          ...)
+
+    y.out <- matrix(data$Y.out, nrow = n.resp, byrow = TRUE)
+    out.correct <- y.out == y.pred.out$y.pred
+    list(y.pred.in, y.pred.out, in.acc = mean(in.correct), out.acc = mean(out.correct))
+}
+
+
 #' @title RespondentParameters
 #' @description The parameters for each respondent.
 #' @param object A \code{FitChoice} or \code{FitMaxDiff} object.
