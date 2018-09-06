@@ -108,7 +108,7 @@ print.ChoiceEnsemble <- function(x, ...) {
 
     if (x$output == "Ensemble")
     {
-        title <- paste0("Choice Modeling : Ensemble of ", x$n.models, " models")
+        title <- paste0("Choice Modeling: Ensemble of ", x$n.models, " models")
 
         subtitle <- choiceModelSubtitle(x)
         footer <- choiceModelFooter(x)
