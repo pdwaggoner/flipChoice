@@ -512,3 +512,20 @@ test_that("Fast food experiment choice model",
                              simulated.sample.size = 1000)
     expect_error(print(result), NA)
 })
+
+test_that("One attribute, no alt.-specific constant",
+{
+    data(chocolate)
+    data(chocolate.design)
+    choices <- chocolate[, grepl("^choice", colnames(chocolate))]
+    questions <- chocolate[, grepl("^task", colnames(chocolate))]
+    result <- FitChoiceModel(design = chocolate.design,
+                             choices = choices,
+                             questions = questions,
+                             cov.formula = ~diabetes, cov.data = chocolate,
+                             hb.iterations = 10, hb.chains = 1,
+                             include.choice.parameters = FALSE,
+                             hb.warnings = FALSE)
+    expect_error(print(result), NA)
+
+})
