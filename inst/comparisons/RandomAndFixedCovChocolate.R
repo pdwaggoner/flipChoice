@@ -10,18 +10,18 @@ is.rserver <- node.name == "reusdev" || grepl("^reustest.*", node.name) ||
                   grepl("^reusprod.*", node.name)
 if (!is.rserver){
     devtools::load_all("~/flip/flipChoice")
-    save.dir <- "../../Documents/Features/ChoiceModelCovariates/"
+    save.dir <- "../../Documents/Features/ChoiceModelCovariates/simres/"
 }else{
     save.dir <- "./"
     .libPaths("/usr/lib/opencpu/library")
-    library(flipChoiceMWM)
+    library(flipChoice)
 }
 
 library(rstan)
 options(mc.cores = parallel::detectCores())
 
-data("chocolate", package = "flipChoiceMWM")
-data("chocolate.design", package = "flipChoiceMWM")
+data("chocolate", package = "flipChoice")
+data("chocolate.design", package = "flipChoice")
 
 ## remove 3 respondents who didn't state gender
 ## Need to subset here until DS-2057 completed
@@ -111,7 +111,7 @@ chocolate$income.numeric <- vapply(as.numeric(chocolate$income),
                                                       "8" = 62500, "9" = 87500),
                                    0)
 
-data(fast.food, package = "flipChoiceMWM")
+data(fast.food, package = "flipChoice")
 cf <- fast.food[, grep("^choice", colnames(fast.food))]
 cc <- chocolate[, grep("^choice", colnames(chocolate))]
 i.f <- which(apply(cf, 1, function(x) sd(x) == 0))
@@ -127,7 +127,7 @@ chocolate$state <- droplevels(chocolate$state)
 chocolate$age.numeric <- drop(scale(chocolate$age.numeric))
 chocolate$bmi.s <- drop(scale(chocolate$bmi))
 chocolate$income.numeric <- drop(scale(chocolate$income.numeric))
-chocolate$delivery.numeric <- drop(scale(as.numeric(chocolate$delivery.under.30)))
+chocolate$delivery.numeric <- drop(scale(as.numeric(chocolate$delivery.under.30min)))
 
 choices <- chocolate[, grepl("^choice", colnames(chocolate))]
 questions <- chocolate[, grepl("^task", colnames(chocolate))]
@@ -137,8 +137,10 @@ questions <- chocolate[, grepl("^task", colnames(chocolate))]
 ## frml <- ~(1|age) + (1|ethnicity)
 ## frml.fc <- ~ethnicity + region
 ## frml.rc <- ~(1|ethnicity) + (1|region)
-frml.fc <- ~age.numeric + bmi.s + income
-frml.rc <- ~age.numeric + bmi.s + (1|income)
+# frml.fc <- ~age.numeric + bmi.s + income
+# frml.rc <- ~age.numeric + bmi.s + (1|income)
+frml.fc <- ~diabetes
+frml.rc <- ~(1|diabetes)
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
@@ -162,14 +164,24 @@ GetStats <- function(res){
              out.acc = res$out.sample.accuracy, time = res$time.take)
 }
 
-n.iter <- 750
-n.sims <- 3
+reduced <- TRUE
+include.choice.parameters <- FALSE  # indicator for alternative number
+n.iter <- 1000
+n.sims <- 1
 n.leave.out.q <- 5
 n.chains <- parallel::detectCores()  # 1
-sseed <- 331341
+sseed <- 38911
+
+
+if (reduced){
+    chocolate.design$design.with.none <- chocolate.design$design.with.none[, c("Version", "Task", "Question", "Alternative", "Sugar")]
+    chocolate.design$attribute.levels <- chocolate.design$attribute.levels["Sugar"]
+    chocolate.design$n.attributes <- 1
+}
+
 comp.stats <- array(dim = c(n.sims, 3, 12))
-## origin.stanModel.b <- body(flipChoiceMWM:::stanModel)[[3]]
-orig.stanModel <- flipChoiceMWM:::stanModel
+## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
+orig.stanModel <- flipChoice:::stanModel
 pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
                     width = NA, style = 3)
 for (i in 1:n.sims)
@@ -178,10 +190,14 @@ for (i in 1:n.sims)
     ## assignInNamespace("stanModel", orig.stanModel, "flipChoice")
     result <- try(FitChoiceModel(design = chocolate.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
-#                                 subset = subset,
-#                             cov.formula = frml, cov.data = chocolate,
-                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
-                             seed = i+sseed))
+##                                 subset = subset,
+##                             cov.formula = frml, cov.data = chocolate,
+                                 include.choice.parameters = include.choice.parameters,
+                                 hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
+                                 hb.beta.draws.to.keep = n.iter, hb.keep.samples = TRUE,
+                                 hb.stanfit = TRUE,
+                                 seed = i+sseed))
+
     if (!inherits(result, "try-error"))
         comp.stats[i, 1, ] <- GetStats(result)
     utils::setTxtProgressBar(pb, 3*(i-1)+1)
@@ -190,7 +206,8 @@ for (i in 1:n.sims)
     result <- try(FitChoiceModel(design = chocolate.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
 #                                 subset = subset,
-                             cov.formula = frml, cov.data = chocolate,
+                                 cov.formula = frml, cov.data = chocolate,
+                                 include.choice.parameters = include.choice.parameters,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
                              seed = i+sseed))
     ## samps <- extract(result$stan.fit, pars = c("theta", "sigma"))
@@ -201,20 +218,23 @@ for (i in 1:n.sims)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     frml <- frml.rc
-    assignInNamespace("stanModel", function(a, b, c) flipChoiceMWM:::stanmodels$choicemodelRCdiag,
-                      "flipChoiceMWM")
+    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
+                      "flipChoice")
     result <- try(FitChoiceModel(design = chocolate.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
  #                                subset = subset,
                              cov.formula = frml, cov.data = chocolate,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
+                             hb.beta.draws.to.keep = n.iter, hb.keep.samples = TRUE,
+                             include.choice.parameters = include.choice.parameters,
+                             hb.stanfit = TRUE,
                              seed = i+sseed))
     if (!inherits(result, "try-error"))
         comp.stats[i, 3, ] <- GetStats(result)
     utils::setTxtProgressBar(pb, 3*i)
     flush.console()
 
-    assignInNamespace("stanModel", orig.stanModel, "flipChoiceMWM")
+    assignInNamespace("stanModel", orig.stanModel, "flipChoice")
 }
 dimnames(comp.stats) <- list(NULL, c("No Cov.", "Fixed", "Random"),
                              c("mean.rhat.theta", "mean.neff.theta",
@@ -230,5 +250,6 @@ attr(comp.stats, "formula.iter") <- frml
 saveRDS(comp.stats, paste0(save.dir, "chocolate",
                            n.sims, "sims", n.leave.out.q, "QLeftOutCovar_",
                            paste(all.vars(frml), collapse = "_"),
-                           "RandomDiag", Sys.Date(), ".rds"))
+                           "RandomDiag", if (reduced) "SugarAttrOnly", Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)
+
