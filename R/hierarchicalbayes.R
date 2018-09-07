@@ -160,7 +160,8 @@ createStanData <- function(dat, n.classes, normal.covariance)
                      RS = nrow(dat$X.in),
                      A = dat$n.attributes,
                      V = dat$n.parameters,
-                     V_attribute = dat$n.attribute.parameters,
+                     ## as.array necessary for one attribute, no alt. specific const case.
+                     V_attribute = as.array(dat$n.attribute.parameters),
                      Y = dat$Y.in,
                      X = dat$X.in,
                      V_covariates = dat$n.covariates,
