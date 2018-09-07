@@ -480,6 +480,12 @@ print.FitChoice <- function(x, ...)
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
     footer <- paste0(footer, "log-likelihood: ", FormatAsReal(x$log.likelihood, decimals = 2), "; ")
     footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 2), "; ")
+
+    if (!is.na(x$out.sample.accuracy))
+        footer <- paste0(footer, " in-sample accuracy: ",
+                         FormatAsPercent(x$in.sample.accuracy, decimals = 1),
+                         "; ")
+
     if (!is.null(x$class.match.fail)) # HB-Stan only
     {
         if (x$class.match.fail)

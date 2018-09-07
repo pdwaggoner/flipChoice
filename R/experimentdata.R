@@ -467,6 +467,13 @@ errorIfMissingDataFoundExperiment <- function(experiment.data, subset, weights,
         MissingDataFail();
 }
 
+#' Returns which respondents are considered missing based on missing data
+#' settings.
+#' @param non.missing.table A logical matrix of respondents x questions
+#'     indicating which ones are not missing.
+#' @param n.questions.left.out The number of questions to leave out.
+#' @param missing The missing data setting.
+#' @param n.questions The number of questions per respondent.
 nonMissingRespondents <- function(non.missing.table, n.questions.left.out,
                                   missing, n.questions)
 {
