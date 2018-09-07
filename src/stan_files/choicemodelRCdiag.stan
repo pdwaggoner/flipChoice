@@ -44,11 +44,13 @@ model {
     int start_idx; /* for updating random effects */
 
     // gamma distribution with mode = 1 and p(x < 20) = 0.999
-    sigma ~ gamma(1.39435729464721, 0.39435729464721);
-
+    /* sigma ~ gamma(1.39435729464721, 0.39435729464721); */
+    sigma ~ gamma(10, 10000);
     /* mu0 ~ normal(prior_mean, prior_sd); */
-    sig_fc ~ gamma(1.39435729464721, 0.39435729464721);
-    to_vector(sig_rc) ~ gamma(1.39435729464721, 0.39435729464721);
+    /* sig_fc ~ gamma(1.39435729464721, 0.39435729464721); */
+  sig_fc ~ gamma(10,10000);
+    /* to_vector(sig_rc) ~ gamma(1.39435729464721, 0.39435729464721); */
+  to_vector(sig_rc) ~ gamma(10,10000);
     /* to_vector(sig_theta) ~ cauchy(0,5); */
 
     for(j in 1:V_fc){
@@ -66,8 +68,9 @@ model {
   
     L_omega ~ lkj_corr_cholesky(4);
 
-    to_vector(standard_normal) ~ normal(0, 1);
-
+    /* to_vector(standard_normal) ~ normal(0, 1); */
+    to_vector(standard_normal) ~ normal(0, .001);
+  
     for (r in 1:R)
     {
         for (s in 1:S[r])

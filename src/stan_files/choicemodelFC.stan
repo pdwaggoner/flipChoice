@@ -33,14 +33,15 @@ model {
     int rs = 1;
 
     // gamma distribution with mode = 1 and p(x < 20) = 0.999
-    sigma ~ gamma(1.39435729464721, 0.39435729464721);
-
+    /* sigma ~ gamma(1.39435729464721, 0.39435729464721); */
+    sigma ~ gamma(10, 10000);
+  
     for(v in 1:V_covariates)
         theta[v] ~ normal(prior_mean, prior_sd);
     L_omega ~ lkj_corr_cholesky(4);
 
-    to_vector(standard_normal) ~ normal(0, 1);
-
+    /* to_vector(standard_normal) ~ normal(0, 1); */
+    to_vector(standard_normal) ~ normal(0, .001);
     for (r in 1:R)
     {
         for (s in 1:S[r])
