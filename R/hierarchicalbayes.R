@@ -398,6 +398,7 @@ onStanWarning <- function(warn)
                 "tree depth does not resolve this warning.")
     else
         warning(warn)
+    message(msg)
 }
 
 #' @title GetParameterStatistics
