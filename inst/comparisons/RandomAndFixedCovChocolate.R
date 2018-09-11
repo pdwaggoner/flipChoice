@@ -167,15 +167,17 @@ GetStats <- function(res){
 reduced <- TRUE
 include.choice.parameters <- FALSE  # indicator for alternative number
 n.iter <- 1000
-n.sims <- 1
+n.sims <- 3
 n.leave.out.q <- 5
 n.chains <- parallel::detectCores()  # 1
 sseed <- 38911
 
 
 if (reduced){
-    chocolate.design$design.with.none <- chocolate.design$design.with.none[, c("Version", "Task", "Question", "Alternative", "Sugar")]
-    chocolate.design$attribute.levels <- chocolate.design$attribute.levels["Sugar"]
+    attr.name <- "Sugar"
+    cnames <- c("Version", "Task", "Question", "Alternative", attr.name)
+    chocolate.design$design.with.none <- chocolate.design$design.with.none[, cnames]
+    chocolate.design$attribute.levels <- chocolate.design$attribute.levels[attr.name]
     chocolate.design$n.attributes <- 1
 }
 
@@ -193,7 +195,11 @@ for (i in 1:n.sims)
 ##                                 subset = subset,
 ##                             cov.formula = frml, cov.data = chocolate,
                                  include.choice.parameters = include.choice.parameters,
-                                 hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
+                                 hb.chains = n.chains, hb.warnings = FALSE,
+                                 hb.sigma.prior.shape = hb.sigma.prior.shape,
+                                 hb.sigma.prior.scale = hb.sigma.prior.scale,
+                                 hb.lkj.prior.shape = hb.lkj.prior.shape,
+                                 tasks.left.out = n.leave.out.q,
                                  hb.beta.draws.to.keep = n.iter, hb.keep.samples = TRUE,
                                  hb.stanfit = TRUE,
                                  seed = i+sseed))
@@ -208,7 +214,11 @@ for (i in 1:n.sims)
 #                                 subset = subset,
                                  cov.formula = frml, cov.data = chocolate,
                                  include.choice.parameters = include.choice.parameters,
-                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
+                                 hb.chains = n.chains, hb.warnings = FALSE,
+                                 hb.sigma.prior.shape = hb.sigma.prior.shape,
+                                 hb.sigma.prior.scale = hb.sigma.prior.scale,
+                                 hb.lkj.prior.shape = hb.lkj.prior.shape,
+                                 tasks.left.out = n.leave.out.q,
                              seed = i+sseed))
     ## samps <- extract(result$stan.fit, pars = c("theta", "sigma"))
     ## samps <- do.call(cbind, samps)
@@ -226,6 +236,9 @@ for (i in 1:n.sims)
                              cov.formula = frml, cov.data = chocolate,
                              hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
                              hb.beta.draws.to.keep = n.iter, hb.keep.samples = TRUE,
+                                 hb.sigma.prior.shape = hb.sigma.prior.shape,
+                                 hb.sigma.prior.scale = hb.sigma.prior.scale,
+                                 hb.lkj.prior.shape = hb.lkj.prior.shape,
                              include.choice.parameters = include.choice.parameters,
                              hb.stanfit = TRUE,
                              seed = i+sseed))
