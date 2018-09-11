@@ -21,8 +21,8 @@ if (!is.rserver){
 library(rstan)
 options(mc.cores = parallel::detectCores())
 
-data("fast.food", package = "flipChoiceMWM")
-data("fast.food.design", package = "flipChoiceMWM")
+data("fast.food", package = "flipChoice")
+data("fast.food.design", package = "flipChoice")
 
 ## remove 3 respondents who didn't state gender
 ## Need to subset here until DS-2057 completed
@@ -115,7 +115,7 @@ fast.food$income.numeric <- vapply(as.numeric(fast.food$income),
                                                       "8" = 62500, "9" = 87500),
                                    0)
 
-data(chocolate, package = "flipChoiceMWM")
+data(chocolate, package = "flipChoice")
 cf <- fast.food[, grep("^choice", colnames(fast.food))]
 cc <- chocolate[, grep("^choice", colnames(chocolate))]
 i.f <- which(apply(cf, 1, function(x) sd(x) == 0))
@@ -171,9 +171,26 @@ GetStats <- function(res){
              out.acc = res$out.sample.accuracy, time = res$time.take)
 }
 
-reduced <- TRUE
+reduced <- TRUE  # only one attribute (Price per person) used from the design
 include.choice.parameters <- FALSE  # indicator for alternative number
-n.iter <- 1000
+sim.setting <- if (is.rserver)
+                   as.integer(commandArgs(trailingOnly = TRUE)[[2L]])
+               else
+                   1
+if (sim.setting == 1){  # defaults
+    hb.sigma.prior.shape <- 1.394357
+    hb.sigma.prior.scale <- 0.394357
+    hb.lkj.prior.shape <- 4
+}else if (sim.setting == 2){  # zero correlation
+    hb.sigma.prior.shape <- 1.394357
+    hb.sigma.prior.scale <- 0.394357
+    hb.lkj.prior.shape <- 1e8
+}else{  # zero corr. and near-zero var.
+    hb.sigma.prior.shape <- 10
+    hb.sigma.prior.scale <- 10000
+    hb.lkj.prior.shape <- 1e8
+}
+n.iter <- 2000
 n.sims <- 3
 n.leave.out.q <- 11
 n.chains <- parallel::detectCores()  # 1
@@ -191,19 +208,22 @@ if (reduced){
 
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
-orig.stanModel <- flipChoiceMWM:::stanModel
+orig.stanModel <- flipChoice:::stanModel
 pb <- utils::txtProgressBar(min = 0, max = n.sims*3, initial = 0, char = "*",
                     width = NA, style = 3)
 for (i in 1:n.sims)
 {
     ## body(flipChoice:::stanModel)[[3]] <- quote(stanmodels$choicemodelRC)
-    assignInNamespace("stanModel", orig.stanModel, "flipChoiceMWM")
+    assignInNamespace("stanModel", orig.stanModel, "flipChoice")
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
-#                                 subset = subset,
-                                        #                             cov.formula = frml, cov.data = fast.food,
+##                                 subset = subset,
+##                             cov.formula = frml, cov.data = fast.food,
                                  include.choice.parameters = include.choice.parameters,
                                  hb.chains = n.chains, hb.warnings = FALSE,
+                                 hb.sigma.prior.shape = hb.sigma.prior.shape,
+                                 hb.sigma.prior.scale = hb.sigma.prior.scale,
+                                 hb.lkj.prior.shape = hb.lkj.prior.shape,
                                  tasks.left.out = n.leave.out.q,
                                  seed = i+sseed))
     if (!inherits(result, "try-error"))
@@ -217,6 +237,9 @@ for (i in 1:n.sims)
                                  cov.formula = frml, cov.data = fast.food,
                                  include.choice.parameters = include.choice.parameters,
                                  hb.chains = n.chains, hb.warnings = FALSE,
+                                 hb.sigma.prior.shape = hb.sigma.prior.shape,
+                                 hb.sigma.prior.scale = hb.sigma.prior.scale,
+                                 hb.lkj.prior.shape = hb.lkj.prior.shape,
                                  tasks.left.out = n.leave.out.q,
                                  seed = i+sseed))
 ##     ## samps <- extract(result$stan.fit, pars = c("theta", "sigma"))
@@ -227,14 +250,17 @@ for (i in 1:n.sims)
 
     # body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
     frml <- frml.rc
-    assignInNamespace("stanModel", function(a, b, c) flipChoiceMWM:::stanmodels$choicemodelRCdiag,
-                      "flipChoiceMWM")
+    assignInNamespace("stanModel", function(a, b, c) flipChoice:::stanmodels$choicemodelRCdiag,
+                      "flipChoice")
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
  #                                subset = subset,
                                  cov.formula = frml, cov.data = fast.food,
                                  include.choice.parameters = include.choice.parameters,
                                  hb.chains = n.chains, hb.warnings = FALSE,
+                                 hb.sigma.prior.shape = hb.sigma.prior.shape,
+                                 hb.sigma.prior.scale = hb.sigma.prior.scale,
+                                 hb.lkj.prior.shape = hb.lkj.prior.shape,
                                  tasks.left.out = n.leave.out.q,
                                  seed = i+sseed))
     if (!inherits(result, "try-error"))
@@ -256,6 +282,9 @@ attr(comp.stats, "formula.iter") <- frml
 saveRDS(comp.stats, paste0(save.dir, "fastfood",
                            n.sims, "sims", n.leave.out.q, "QLeftOutCovar_",
                            paste(all.vars(frml), collapse = "_"),
-                           "RandomDiagDiffPriors", if (reduced) "PriceAttrOnly",
+                           switch(sim.setting, "1" = "DefaultPriors",
+                                  "2" = "ZeroCorrPrior",
+                                  "ZeroScalePrior"),
+                           if (reduced) "PriceAttrOnly",
                            Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)
