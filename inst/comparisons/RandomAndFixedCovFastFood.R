@@ -131,7 +131,7 @@ fast.food$state <- droplevels(fast.food$state)
 fast.food$age.numeric <- drop(scale(fast.food$age.numeric))
 fast.food$bmi.s <- drop(scale(fast.food$bmi))
 fast.food$income.numeric <- drop(scale(fast.food$income.numeric))
-fast.food$delivery.numeric <- drop(scale(as.numeric(fast.food$delivery.under.30)))
+fast.food$delivery.numeric <- drop(scale(as.numeric(fast.food$delivery.under.30min)))
 
 
 ## subset <- fast.food$region != "Other"
@@ -144,8 +144,10 @@ questions <- fast.food[, grepl("^task", colnames(fast.food))]
 ## frml <- ~age2+gender
 ## frml <- ~(1|age)  # +income+high.blood.pressure
 ## frml <- ~(1|age) + (1|ethnicity)
-frml.fc <- ~age.numeric + income.numeric + bmi.s + delivery.under.30min  # ~ethnicity + region
-frml.rc <- ~age.numeric + income.numeric + bmi.s + (1|delivery.under.30min)
+## frml.fc <- ~age.numeric + income.numeric + bmi.s + delivery.under.30min  # ~ethnicity + region
+## frml.rc <- ~age.numeric + income.numeric + bmi.s + (1|delivery.under.30min)
+frml.fc <- ~income
+frml.rc <- ~(1|income)
 
 GetStats <- function(res){
     samps <- as.array(res$stan.fit)
@@ -169,11 +171,24 @@ GetStats <- function(res){
              out.acc = res$out.sample.accuracy, time = res$time.take)
 }
 
+reduced <- TRUE
+include.choice.parameters <- FALSE  # indicator for alternative number
 n.iter <- 1000
-n.sims <- 1
+n.sims <- 3
 n.leave.out.q <- 11
 n.chains <- parallel::detectCores()  # 1
-sseed <- 1221
+sseed <- 129921
+
+if (reduced){
+    attr.name <- "Price per person"
+    cnames <- c("Version", "Task", "Question", "Alternative", "Price per person")
+    fast.food.design$design <- fast.food.design$design[, cnames]
+    fast.food.design$design.with.none <- fast.food.design$design.with.none[, cnames]
+    fast.food.design$attribute.levels <- fast.food.design$attribute.levels["Price per person"]
+    fast.food.design$n.attributes <- 1
+}
+
+
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
 orig.stanModel <- flipChoiceMWM:::stanModel
@@ -186,9 +201,11 @@ for (i in 1:n.sims)
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
 #                                 subset = subset,
-#                             cov.formula = frml, cov.data = fast.food,
-                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
-                             seed = i+sseed))
+                                        #                             cov.formula = frml, cov.data = fast.food,
+                                 include.choice.parameters = include.choice.parameters,
+                                 hb.chains = n.chains, hb.warnings = FALSE,
+                                 tasks.left.out = n.leave.out.q,
+                                 seed = i+sseed))
     if (!inherits(result, "try-error"))
         comp.stats[i, 1, ] <- GetStats(result)
     utils::setTxtProgressBar(pb, 3*(i-1)+1)
@@ -197,9 +214,11 @@ for (i in 1:n.sims)
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
 #                                 subset = subset,
-                             cov.formula = frml, cov.data = fast.food,
-                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
-                             seed = i+sseed))
+                                 cov.formula = frml, cov.data = fast.food,
+                                 include.choice.parameters = include.choice.parameters,
+                                 hb.chains = n.chains, hb.warnings = FALSE,
+                                 tasks.left.out = n.leave.out.q,
+                                 seed = i+sseed))
 ##     ## samps <- extract(result$stan.fit, pars = c("theta", "sigma"))
 ##     ## samps <- do.call(cbind, samps)
      if (!inherits(result, "try-error"))
@@ -213,9 +232,11 @@ for (i in 1:n.sims)
     result <- try(FitChoiceModel(design = fast.food.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
  #                                subset = subset,
-                             cov.formula = frml, cov.data = fast.food,
-                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
-                             seed = i+sseed))
+                                 cov.formula = frml, cov.data = fast.food,
+                                 include.choice.parameters = include.choice.parameters,
+                                 hb.chains = n.chains, hb.warnings = FALSE,
+                                 tasks.left.out = n.leave.out.q,
+                                 seed = i+sseed))
     if (!inherits(result, "try-error"))
         comp.stats[i, 3, ] <- GetStats(result)
     utils::setTxtProgressBar(pb, 3*i)
@@ -235,5 +256,6 @@ attr(comp.stats, "formula.iter") <- frml
 saveRDS(comp.stats, paste0(save.dir, "fastfood",
                            n.sims, "sims", n.leave.out.q, "QLeftOutCovar_",
                            paste(all.vars(frml), collapse = "_"),
-                           "RandomDiagDiffPriors", Sys.Date(), ".rds"))
+                           "RandomDiagDiffPriors", if (reduced) "PriceAttrOnly",
+                           Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)
