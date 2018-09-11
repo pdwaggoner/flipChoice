@@ -4,27 +4,28 @@
 #' @param design A design object produced by ChoiceModelDesign
 #' @param experiment.data A data.frame from an Experiment question
 #' @param cho.file The file path to a cho file.
-#' @param design.file The file path to a Sawtooth design file (dual file
-#'     format) or a JMP design file.
-#' @param attribute.levels.file The file path to an Excel file containing the
-#'     level names of each attribute.
+#' @param design.file The file path to a Sawtooth design file (dual
+#'     file format) or a JMP design file.
+#' @param attribute.levels.file The file path to an Excel file
+#'     containing the level names of each attribute.
 #' @param cov.formula An optional \code{\link{formula}} for any fixed
 #'     (respondent-specific) covariates to be included in the model.
-#'     When only 1 class is specified, covariates are applied to the mean
-#'     parameter theta (fixed covariates). When more than 1 class is
-#'     specified, covariates are applied to the class weight parameters.
+#'     When only 1 class is specified, covariates are applied to the
+#'     mean parameter theta (fixed covariates). When more than 1 class
+#'     is specified, covariates are applied to the class weight
+#'     parameters.
 #' @param cov.data An optional \code{\link{data.frame}} containing the
 #'     variables present in \code{cov.formula}.
 #' @param choices A data.frame of choices made by respondents for each
 #'     question.
 #' @param questions A data.frame of IDs of tasks presented to the
 #'     respondents.
-#' @param simulated.priors A 2-column matrix whose columns correspond to the
-#'     mean and standard deviations of the parameters; or a character matrix
-#'     with attribute levels and corresponding mean and sd columns after each
-#'     attribute level column.
-#' @param simulated.priors.from.design Whether simulated priors from the design
-#'     object are to be used.
+#' @param simulated.priors A 2-column matrix whose columns correspond
+#'     to the mean and standard deviations of the parameters; or a
+#'     character matrix with attribute levels and corresponding mean
+#'     and sd columns after each attribute level column.
+#' @param simulated.priors.from.design Whether simulated priors from
+#'     the design object are to be used.
 #' @param simulated.sample.size The number of simulated respondents to
 #'     generate.
 #' @param synthetic.priors Deprecated. see simulated.priors.
@@ -35,22 +36,23 @@
 #' @param subset An optional vector specifying a subset of
 #'     observations to be used in the fitting process.
 #' @param weights An optional vector of sampling or frequency weights.
-#' @param missing How missing data is to be treated in the regression. Options:
-#'   \code{"Error if missing data"},
-#'   \code{"Exclude cases with missing data"}, and
-#'   \code{"Use partial data"}.
+#' @param missing How missing data is to be treated in the
+#'     regression. Options: \code{"Error if missing data"},
+#'     \code{"Exclude cases with missing data"}, and
+#'     \code{"Use partial data"}.
 #' @param seed Random seed.
 #' @param tasks.left.out Number of questions to leave out for
 #'     cross-validation.
-#' @param algorithm Either "HB-Stan" for Hierarchical Bayes or "LCA" for
-#'     latent class analysis.
+#' @param algorithm Either "HB-Stan" for Hierarchical Bayes or "LCA"
+#'     for latent class analysis.
 #' @param lc.tolerance The tolerance used for defining convergence in
 #'     latent class analysis.
 #' @param initial.parameters Specify initial parameters intead of
-#'     starting at random in latent class analysis. The initial parameters
-#'     need to be supplied as list consisting of a matrix called
-#'     class.parameters whose columns are the parameters of the classes, and a
-#'     vector called class.sizes containing the class size parameters.
+#'     starting at random in latent class analysis. The initial
+#'     parameters need to be supplied as list consisting of a matrix
+#'     called class.parameters whose columns are the parameters of the
+#'     classes, and a vector called class.sizes containing the class
+#'     size parameters.
 #' @param normal.covariance The form of the covariance matrix for
 #'     Hierarchical Bayes. Can be 'Full, 'Spherical', 'Diagonal'.
 #' @param hb.iterations The number of iterations in Hierarchical
@@ -77,13 +79,24 @@
 #'     attribute, the attribute is treated as ordered categorical and
 #'     hb.prior.sd controls the standard deviations of the offsets
 #'     from the base attribute.
+#' @param hb.sigma.prior.shape Postive real number; the shape
+#'     hyperparameter for the gamma priors used for the scale
+#'     parameters of the respondent coefficients covariance matrix.
+#' @param hb.sigma.prior.scale Postive real number; the rate
+#'     hyperparameter for the gamma priors used for the scale
+#'     parameters of the respondent coefficients covariance matrix.
+#' @param hb.lkj.prior.shape Real number greater than one; the shape
+#'     hyperparameter for the LKJ prior used for the correlation matrix
+#'     of the respondent coefficients distribution. A value of one gives
+#' equal probability weight to all possible correlation matrices. Larger values
+#' favour less correlation (draws closer to the identity matrix).
 #' @param hb.warnings Whether to show warnings from Stan.
 #' @param hb.beta.draws.to.keep Maximum number of beta draws per
 #'     respondent to return in beta.draws.
 #' @param include.choice.parameters Whether to include
 #'     alternative-specific parameters.
-#' @param respondent.ids If a cho file is supplied, this is the vector of the
-#'     respondent IDs to use.
+#' @param respondent.ids If a cho file is supplied, this is the vector
+#'     of the respondent IDs to use.
 #' @param ... Additional parameters to pass on to \code{rstan::stan}
 #'     and \code{rstan::sampling}.
 #' @return A list with the following components:
@@ -172,6 +185,9 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                            hb.max.tree.depth = 10, hb.adapt.delta = 0.8,
                            hb.keep.samples = FALSE, hb.stanfit = TRUE,
                            hb.prior.mean = 0, hb.prior.sd = 5,
+                           hb.sigma.prior.shape = 1.394357,
+                           hb.sigma.prior.scale = 0.394357,
+                           hb.lkj.prior.shape = 4,
                            hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
                            include.choice.parameters = TRUE,
                            respondent.ids = NULL, ...)
@@ -252,6 +268,11 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
 
     if (!is.null(dat$covariates))
         dat <- processCovariateData(dat, n.classes, cov.formula, cov.data)
+
+    dat$hb.sigma.prior.shape <- hb.sigma.prior.shape
+    dat$hb.sigma.prior.scale <- hb.sigma.prior.scale
+    dat$hb.lkj.prior.shape <- hb.lkj.prior.shape
+
 
     if (algorithm == "HB-Stan")
     {
@@ -382,6 +403,24 @@ predict.FitChoice <- function(object, data,  n.reps = 10000, ...)
     ## in.sample.accuracies <- rep(NA, n.respondents)
     y.pred <- matrix(nrow = n.respondents, ncol = n.questions)
     y.rep <- matrix(nrow = n.reps, ncol = n.rs)
+    if ("theta" %in% stan.fit@model_pars)
+        pars <- "theta"
+    else
+        pars <- c("resp_fixed_coef", "resp_rand_eff")
+
+
+    mean.par.samps <- extract(object$stan.fit, pars = pars, permuted = TRUE,
+                              inc_warmup = FALSE)[[1L]]
+    mean.new.samps <- lapply(mean.par.samps, function(x) apply(x, 2:3, sample,
+                                                               replace = TRUE, size = n.reps))
+    ## new.dat <- processCovariateData(object$processed.data,
+    ##                                 object$n.classes,
+    ##                                 object$processed.data$cov.formula,
+    ##                                 data$cov.data)
+    ## design matrices for the covariates are already formed since we
+    ##   fit the model to all respondents and only hold out a subset of
+    ##   questions for each respondent
+
     rs <- 1
     for (i in 1:n.respondents)
     {

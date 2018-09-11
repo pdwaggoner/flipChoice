@@ -47,11 +47,14 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
                                                     dat$parameter.scales,
                                                     dat$all.beta.names)
     result$class.match.fail <- class.match.fail
+    sig.names <- if (!is.null(dat$sigma.names))
+                     dat$sd.names
+                 else dat$par.names
     if (!class.match.fail)
         result$parameter.statistics <- GetParameterStatistics(stan.fit,
                                                               dat$par.names,
                                                               n.classes,
-                                                              dat$beta.names)
+                                                              sig.names)
     if (include.stanfit)
     {
         result$stan.fit <- if (keep.samples)
@@ -167,7 +170,11 @@ createStanData <- function(dat, n.classes, normal.covariance)
                      V_covariates = dat$n.covariates,
                      covariates = dat$covariates,
                      prior_mean = dat$prior.mean,
-                     prior_sd = dat$prior.sd)
+                     prior_sd = dat$prior.sd,
+                     gamma_shape = dat$hb.sigma.prior.shape,
+                     gamma_scale = dat$hb.sigma.prior.scale,
+                     lkj_shape = dat$hb.lkj.prior.shape
+                     )
 
     if (n.classes > 1)
         stan.dat$P <- n.classes
@@ -267,7 +274,7 @@ ComputeRespPars <- function(stan.fit, par.names, subset,
 
 stanModel <- function(n.classes, normal.covariance, has.covariates)
 {
-    covariates.error.msg <- paste0("Covariates is not currently implemented ",
+    covariates.error.msg <- paste0("Covariates are not currently implemented ",
                                    "for the specified settings.")
     if (n.classes == 1)
     {
@@ -401,20 +408,20 @@ onStanWarning <- function(warn)
                 "Rerun the analysis with more iterations. Please contact ",
                 "support@q-researchsoftware.com if increasing the number of ",
                 "iterations does not resolve this warning.", call. = FALSE)
-    else if (grepl("Examine the pairs\\(\\) plot", msg))
-        warning("Examine the Diagnostic plots to diagnose sampling problems",
-                call. = FALSE)
-    else if (grepl("exceeded the maximum treedepth", msg))
-        warning("Results may be inaccurate as the maximum tree depth",
-                " is too low. Rerun the analysis with a higher",
-                " maximum tree depth. Please contact ",
-                "support@q-researchsoftware.com if increasing the maximum ",
-                "tree depth does not resolve this warning.")
-    else
-        warning(warn)
-}
+      else if (grepl("Examine the pairs\\(\\) plot", msg))
+          warning("Examine the Diagnostic plots to diagnose sampling problems",
+                  call. = FALSE)
+      else if (grepl("exceeded the maximum treedepth", msg))
+          warning("Results may be inaccurate as the maximum tree depth",
+                  " is too low. Rerun the analysis with a higher",
+                  " maximum tree depth. Please contact ",
+                  "support@q-researchsoftware.com if increasing the maximum ",
+                  "tree depth does not resolve this warning.")
+      else
+          warning(warn)
+  }
 
-#' @title GetParameterStatistics
+  #' @title GetParameterStatistics
 #' @description This function returns a 2D array of the parameter statistics.
 #' @param stan.fit A stanfit object.
 #' @param parameter.names Names of the mean parameters.

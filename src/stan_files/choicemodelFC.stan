@@ -12,6 +12,9 @@ data {
     matrix[R,V_covariates] covariates;  // matrix of respondent characteristics
     vector[V] prior_mean; // Prior mean for theta
     vector[V] prior_sd; // Prior sd for theta
+    real<lower=1> lkj_shape; // shape parameter for LKJ prior
+    real<lower=0> gamma_shape; // shape parameter for gamma prior for sigma
+    real<lower=0> gamma_scale; // scale parameter for gamma prior for sigma
 }
 
 parameters {
@@ -34,14 +37,14 @@ model {
 
     // gamma distribution with mode = 1 and p(x < 20) = 0.999
     /* sigma ~ gamma(1.39435729464721, 0.39435729464721); */
-    sigma ~ gamma(10, 10000);
+    sigma ~ gamma(gamma_shape, gamma_scale);
   
     for(v in 1:V_covariates)
         theta[v] ~ normal(prior_mean, prior_sd);
-    L_omega ~ lkj_corr_cholesky(4);
+    L_omega ~ lkj_corr_cholesky(lkj_shape);
 
-    /* to_vector(standard_normal) ~ normal(0, 1); */
-    to_vector(standard_normal) ~ normal(0, .001);
+    to_vector(standard_normal) ~ normal(0, 1);
+
     for (r in 1:R)
     {
         for (s in 1:S[r])
