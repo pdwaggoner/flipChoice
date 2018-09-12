@@ -10,7 +10,7 @@ is.rserver <- node.name == "reusdev" || grepl("^reustest.*", node.name) ||
                   grepl("^reusprod.*", node.name)
 if (!is.rserver){
     devtools::load_all("~/flip/flipChoice")
-    save.dir <- "../../Documents/Features/ChoiceModelCovariates/simres/"
+    save.dir <- "~/Documents/Features/ChoiceModelCovariates/simres/"
 }else{
     save.dir <- "./"
     .libPaths("/usr/lib/opencpu/library")
@@ -19,6 +19,8 @@ if (!is.rserver){
 
 library(rstan)
 options(mc.cores = parallel::detectCores())
+
+createSawtoothDualCSV <- FALSE
 
 data("chocolate", package = "flipChoice")
 data("chocolate.design", package = "flipChoice")
@@ -166,6 +168,25 @@ GetStats <- function(res){
 
 reduced <- TRUE
 include.choice.parameters <- FALSE  # indicator for alternative number
+sim.setting <- if (is.rserver){
+                   as.integer(commandArgs(trailingOnly = TRUE)[[2L]])
+               }else
+                   1
+
+if (sim.setting == 1){  # defaults
+    hb.sigma.prior.shape <- 1.394357
+    hb.sigma.prior.scale <- 0.394357
+    hb.lkj.prior.shape <- 4
+}else if (sim.setting == 2){  # zero correlation
+    hb.sigma.prior.shape <- 1.394357
+    hb.sigma.prior.scale <- 0.394357
+    hb.lkj.prior.shape <- 1e8
+}else{  # zero corr. and near-zero var.
+    hb.sigma.prior.shape <- 10
+    hb.sigma.prior.scale <- 10000
+    hb.lkj.prior.shape <- 1e8
+}
+
 n.iter <- 1000
 n.sims <- 3
 n.leave.out.q <- 5
@@ -180,6 +201,27 @@ if (reduced){
     chocolate.design$attribute.levels <- chocolate.design$attribute.levels[attr.name]
     chocolate.design$n.attributes <- 1
 }
+
+if (createSawtoothDualCSV){
+    fprefix <- if (reduced){ make.names(attr.name) }else "chocolate"
+    for (i in seq_len(n.sims)){
+      fname <- paste0(fprefix, sseed+i)
+      SawtoothDualCsv(design = chocolate.design,
+                 respondent.data = chocolate,
+                 covariates.data = chocolate[, 20:48],
+                 dual.response.none = FALSE,
+                 design.file = paste0(save.dir, fname, "_design.csv"),
+                 design.out.file = paste0(save.dir, fname, "_design_out.csv"),
+                 respondent.file = paste0(save.dir, fname, "_data.csv"),
+                 respondent.out.file = paste0(save.dir, fname, "_data_out.csv"),
+                 covariates.file = paste0(save.dir, fname, "_covariates.csv"),
+                 n.questions.left.out = n.leave.out.q, subset = rep(TRUE, nrow(fast.food)),
+                 include.choice.parameters = include.choice.parameters,
+                 seed = sseed+i)
+    }
+    zip(paste0(attr.name, ".zip"), list.files(save.dir, pattern = fprefix))
+}
+
 
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
@@ -233,15 +275,16 @@ for (i in 1:n.sims)
     result <- try(FitChoiceModel(design = chocolate.design, choices = choices,
                                  questions = questions, hb.iterations = n.iter,
  #                                subset = subset,
-                             cov.formula = frml, cov.data = chocolate,
-                             hb.chains = n.chains, hb.warnings = FALSE, tasks.left.out = n.leave.out.q,
-                             hb.beta.draws.to.keep = n.iter, hb.keep.samples = TRUE,
+                                 cov.formula = frml, cov.data = chocolate,
+                                 hb.chains = n.chains, hb.warnings = FALSE,
+                                 tasks.left.out = n.leave.out.q,
+                                 hb.beta.draws.to.keep = n.iter, hb.keep.samples = TRUE,
                                  hb.sigma.prior.shape = hb.sigma.prior.shape,
                                  hb.sigma.prior.scale = hb.sigma.prior.scale,
                                  hb.lkj.prior.shape = hb.lkj.prior.shape,
-                             include.choice.parameters = include.choice.parameters,
-                             hb.stanfit = TRUE,
-                             seed = i+sseed))
+                                 include.choice.parameters = include.choice.parameters,
+                                 hb.stanfit = TRUE,
+                                 seed = i+sseed))
     if (!inherits(result, "try-error"))
         comp.stats[i, 3, ] <- GetStats(result)
     utils::setTxtProgressBar(pb, 3*i)
@@ -263,6 +306,9 @@ attr(comp.stats, "formula.iter") <- frml
 saveRDS(comp.stats, paste0(save.dir, "chocolate",
                            n.sims, "sims", n.leave.out.q, "QLeftOutCovar_",
                            paste(all.vars(frml), collapse = "_"),
-                           "RandomDiag", if (reduced) "SugarAttrOnly", Sys.Date(), ".rds"))
+                           switch(sim.setting, "1" = "DefaultPriors",
+                                  "2" = "ZeroCorrPrior",
+                                  "ZeroScalePrior"),
+                           if (reduced) "SugarAttrOnly", Sys.Date(), ".rds"))
 colMeans(comp.stats, dim = 1)
 

@@ -11,7 +11,7 @@ is.rserver <- node.name == "reusdev" || grepl("^reustest.*", node.name) ||
                   grepl("^reusprod.*", node.name)
 if (!is.rserver){
     devtools::load_all("~/flip/flipChoice")
-    save.dir <- "../../Documents/Features/ChoiceModelCovariates/simres/"
+    save.dir <- "~/Documents/Features/ChoiceModelCovariates/simres/"
 }else{
     save.dir <- "./"
     .libPaths("/usr/lib/opencpu/library")
@@ -20,6 +20,8 @@ if (!is.rserver){
 
 library(rstan)
 options(mc.cores = parallel::detectCores())
+
+createSawtoothDualCSV <- FALSE
 
 data("fast.food", package = "flipChoice")
 data("fast.food.design", package = "flipChoice")
@@ -173,10 +175,11 @@ GetStats <- function(res){
 
 reduced <- TRUE  # only one attribute (Price per person) used from the design
 include.choice.parameters <- FALSE  # indicator for alternative number
-sim.setting <- if (is.rserver)
+sim.setting <- if (is.rserver){
                    as.integer(commandArgs(trailingOnly = TRUE)[[2L]])
-               else
+               }else
                    1
+
 if (sim.setting == 1){  # defaults
     hb.sigma.prior.shape <- 1.394357
     hb.sigma.prior.scale <- 0.394357
@@ -190,6 +193,7 @@ if (sim.setting == 1){  # defaults
     hb.sigma.prior.scale <- 10000
     hb.lkj.prior.shape <- 1e8
 }
+
 n.iter <- 2000
 n.sims <- 3
 n.leave.out.q <- 11
@@ -198,13 +202,33 @@ sseed <- 129921
 
 if (reduced){
     attr.name <- "Price per person"
-    cnames <- c("Version", "Task", "Question", "Alternative", "Price per person")
+    cnames <- c("Version", "Task", "Question", "Alternative", attr.name)
     fast.food.design$design <- fast.food.design$design[, cnames]
     fast.food.design$design.with.none <- fast.food.design$design.with.none[, cnames]
-    fast.food.design$attribute.levels <- fast.food.design$attribute.levels["Price per person"]
+    fast.food.design$attribute.levels <- fast.food.design$attribute.levels[attr.name]
     fast.food.design$n.attributes <- 1
 }
 
+
+if (createSawtoothDualCSV){
+    fprefix <- if (reduced){ make.names(attr.name) }else "fast.food"
+    for (i in seq_len(n.sims)){
+      fname <- paste0(fprefix, sseed+i)
+      SawtoothDualCsv(design = fast.food.design,
+                 respondent.data = fast.food,
+                 covariates.data = fast.food[, 20:48],
+                 dual.response.none = FALSE,
+                 design.file = paste0(save.dir, fname, "_design.csv"),
+                 design.out.file = paste0(save.dir, fname, "_design_out.csv"),
+                 respondent.file = paste0(save.dir, fname, "_data.csv"),
+                 respondent.out.file = paste0(save.dir, fname, "_data_out.csv"),
+                 covariates.file = paste0(save.dir, fname, "_covariates.csv"),
+                 n.questions.left.out = n.leave.out.q, subset = rep(TRUE, nrow(fast.food)),
+                 include.choice.parameters = include.choice.parameters,
+                 seed = sseed+i)
+    }
+    zip(paste0(attr.name, ".zip"), list.files(save.dir, pattern = fprefix))
+}
 
 comp.stats <- array(dim = c(n.sims, 3, 12))
 ## origin.stanModel.b <- body(flipChoice:::stanModel)[[3]]
