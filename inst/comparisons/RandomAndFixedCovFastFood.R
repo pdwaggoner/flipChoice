@@ -196,9 +196,12 @@ if (sim.setting == 1){  # defaults
 
 n.iter <- 2000
 n.sims <- 3
-n.leave.out.q <- 11
+n.leave.out.q <- 6
 n.chains <- parallel::detectCores()  # 1
-sseed <- 129921
+sseed <- switch(as.character(n.leave.out.q),
+                "1" = 84201,
+                "6" = 908,
+                "11" = 129921)
 
 if (reduced){
     attr.name <- "Price per person"
