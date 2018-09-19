@@ -48,7 +48,7 @@ processExperimentData <- function(experiment.data, subset, weights,
 
     weights <- prepareWeights(weights, subset)
     experiment.data <- experiment.data[subset, ]
-    non.missing.table <- non.missing.table[subset, ]
+    non.missing.table <- non.missing.table[subset, , drop = FALSE]
     if (!is.null(covariates))
         covariates <- covariates[subset, ]
     n.respondents <- nrow(experiment.data)
