@@ -298,7 +298,7 @@ SawtoothAccuracy <- function(design.file, respondent.file, utilities.file,
     for (i in 1:n.respondents)
     {
         id <- responses$Caseid[i]
-        u <- utilities[utilities[[1]] == id, -1:-2]
+        u <- unlist(utilities[utilities[[1]] == id, -1:-2])
 
         v <- responses$Version[i]
         version.design <- design[design$Version == v, ]
