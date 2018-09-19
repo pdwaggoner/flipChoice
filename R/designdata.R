@@ -5,6 +5,10 @@ processDesignObject <- function(design.object, choices, questions, subset,
                                 covariates, simulated.priors,
                                 simulated.sample.size)
 {
+    if (grepl("^Alternative specific.*", design.object$design.algorithm))
+        stop("An alternative specific design was supplied but modeling ",
+             "this type of design has not yet been implemented.")
+
     processDesign(design.object$design.with.none,
                   design.object$attribute.levels,
                   choices, questions, subset, weights, n.questions.left.out,

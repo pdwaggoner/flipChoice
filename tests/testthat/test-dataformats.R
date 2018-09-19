@@ -57,6 +57,18 @@ test.design.none <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                                             none.positions = 2,
                                             seed = 1)
 
+small.levels <- list(car = list(time = c("10", "20", "30"), comfort = c("H", "M", "L")),
+                     bus = list(time = c("20", "30", "40"), crowded = c("Y", "N"), wait = c("5", "10", "15")),
+                     walk = list(time = c("30", "45", "60"), weather = c("Rain", "Sun", "Cloud")),
+                     bike = list(time = c("15", "25", "35"), weather = c("Rain", "Sun", "Cloud")))
+asd <- ChoiceModelDesign(attribute.levels = small.levels,
+                         n.questions = 6,
+                         n.versions = 10,
+                         max.subsample = 1e5,
+                         none.alternatives = 2,
+                         none.position = c(2, 4),
+                         design.algorithm = "Alternative specific - Federov")
+
 test_that("experiment question simulated data", {
     exp.simulated.prior <- structure(c("Alt", "a", "b", "c", "", "mean", "0", "0", "0",
                 "", "Weight", "a", "b", "c", "d", "mean", "0", "1", "2", "3",
@@ -528,4 +540,12 @@ test_that("One attribute, no alt.-specific constant",
                              hb.warnings = FALSE)
     expect_error(print(result), NA)
 
+})
+
+test_that("Alternative-specific design",
+{
+    expect_error(FitChoiceModel(asd, simulated.priors = 0),
+                 paste0("An alternative specific design was supplied but ",
+                        "modeling this type of design has not yet been ",
+                        "implemented."))
 })
