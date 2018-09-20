@@ -90,7 +90,7 @@ if (reduced){
     attr.name <- "Quality"
     ## cnames <- c("Choices", attr.name)
     ## cnames.all <- colnames(eggs.data)[colnames(eggs.data) %in% cnames]
-    ## eggs.data <- eggs.data[, cnames.all]
+    ## eggs.data <- eggs.data[, colnames(eggs.data) %in% cnames]
     ## colnames(eggs.data) <- cnames.all
     cnames <- c("Version", "Task", "Question", "Alternative", attr.name)
     eggs.design$design <- eggs.design$design[, cnames]
