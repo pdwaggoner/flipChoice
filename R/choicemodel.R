@@ -17,8 +17,9 @@
 #'     variables present in \code{cov.formula}.
 #' @param choices A data.frame of choices made by respondents for each
 #'     question.
-#' @param questions A data.frame of IDs of tasks presented to the
+#' @param tasks A data.frame of IDs of tasks presented to the
 #'     respondents.
+#' @param questions Deprecated. Replaced by tasks.
 #' @param simulated.priors A 2-column matrix whose columns correspond to the
 #'     mean and standard deviations of the parameters; or a character matrix
 #'     with attribute levels and corresponding mean and sd columns after each
@@ -154,6 +155,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                            attribute.levels.file = NULL,
                            cov.formula = NULL, cov.data = NULL,
                            choices = NULL, questions = NULL,
+                           tasks = NULL,
                            simulated.priors = NULL,
                            simulated.priors.from.design = FALSE,
                            simulated.sample.size = 300,
@@ -177,6 +179,9 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
 {
     if (algorithm == "HB-Stan" && !is.null(weights))
         stop("Weights are not able to be applied for Hierarchical Bayes.")
+
+    if (!is.null(questions) && is.null(tasks))
+        tasks <- questions
 
     if (any(hb.prior.sd <= 0))
         stop("All prior standard deviations must be greater than 0.")
@@ -212,8 +217,8 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
         NULL
 
     dat <- if (!is.null(design) && (!is.null(simulated.priors) ||
-                                (!is.null(choices) && !is.null(questions))))
-        processDesignObject(design, choices, questions, subset, weights,
+                                (!is.null(choices) && !is.null(tasks))))
+        processDesignObject(design, choices, tasks, subset, weights,
                             tasks.left.out, seed, hb.prior.mean, hb.prior.sd,
                             include.choice.parameters, missing, covariates,
                             simulated.priors, simulated.sample.size)
@@ -229,9 +234,9 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                        respondent.ids, missing, covariates, simulated.priors,
                        simulated.sample.size)
     else if (!is.null(design.file) && (!is.null(simulated.priors) ||
-                                (!is.null(choices) && !is.null(questions))))
+                                (!is.null(choices) && !is.null(tasks))))
         processDesignFile(design.file, attribute.levels.file, choices,
-                          questions, subset, weights, tasks.left.out,
+                          tasks, subset, weights, tasks.left.out,
                           seed, hb.prior.mean, hb.prior.sd,
                           include.choice.parameters, missing, covariates,
                           simulated.priors, simulated.sample.size)

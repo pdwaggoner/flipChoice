@@ -1,4 +1,4 @@
-processDesignObject <- function(design.object, choices, questions, subset,
+processDesignObject <- function(design.object, choices, tasks, subset,
                                 weights, n.questions.left.out, seed,
                                 input.prior.mean, input.prior.sd,
                                 include.choice.parameters, missing,
@@ -12,27 +12,27 @@ processDesignObject <- function(design.object, choices, questions, subset,
 
     processDesign(design.object$design.with.none,
                   design.object$attribute.levels,
-                  choices, questions, subset, weights, n.questions.left.out,
+                  choices, tasks, subset, weights, n.questions.left.out,
                   seed, input.prior.mean, input.prior.sd,
                   include.choice.parameters, missing, covariates,
                   simulated.priors, simulated.sample.size)
 }
 
 processDesignFile <- function(design.file, attribute.levels.file, choices,
-                              questions, subset, weights, n.questions.left.out,
+                              tasks, subset, weights, n.questions.left.out,
                               seed, input.prior.mean, input.prior.sd,
                               include.choice.parameters, missing, covariates,
                               simulated.priors, simulated.sample.size)
 {
     output <- readDesignFile(design.file, attribute.levels.file)
-    processDesign(output$design, output$attribute.levels, choices, questions,
+    processDesign(output$design, output$attribute.levels, choices, tasks,
                   subset, weights, n.questions.left.out, seed,
                   input.prior.mean, input.prior.sd, include.choice.parameters,
                   missing, covariates, simulated.priors, simulated.sample.size)
 }
 
 #' @importFrom flipData CleanSubset NoData
-processDesign <- function(design, attribute.levels, choices, questions, subset,
+processDesign <- function(design, attribute.levels, choices, tasks, subset,
                           weights, n.questions.left.out, seed, input.prior.mean,
                           input.prior.sd, include.choice.parameters, missing,
                           covariates, simulated.priors, simulated.sample.size)
@@ -49,25 +49,25 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
 
     checkNumberOfQuestionsLeftOut(n.questions, n.questions.left.out)
 
-    if (!is.null(choices) && !is.null(questions))
+    if (!is.null(choices) && !is.null(tasks))
     {
         choices <- if (is.matrix(choices))
             data.frame(choices)
         else
             data.frame(sapply(choices, as.numeric))
 
-        questions <- if (is.matrix(questions))
-            data.frame(questions)
+        tasks <- if (is.matrix(tasks))
+            data.frame(tasks)
         else
-            data.frame(sapply(questions, as.numeric))
+            data.frame(sapply(tasks, as.numeric))
 
         n.alternatives <- getNumberOfAlternatives(choices)
 
         if (missing == "Error if missing data")
-            errorIfMissingDataFound(choices, questions, subset, weights,
+            errorIfMissingDataFound(choices, tasks, subset, weights,
                                     covariates, missing)
 
-        non.missing.table <- nonMissingTable(choices, questions, subset, weights,
+        non.missing.table <- nonMissingTable(choices, tasks, subset, weights,
                                              covariates, missing)
         non.missing <- nonMissingRespondents(non.missing.table,
                                              n.questions.left.out, missing,
@@ -84,7 +84,7 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
         n.respondents <- sum(subset)
         weights <- prepareWeights(weights, subset)
         choices <- choices[subset, ]
-        questions <- questions[subset, ]
+        tasks <- tasks[subset, ]
         non.missing.table <- non.missing.table[subset, ]
         if (!is.null(covariates))
             covariates <- covariates[subset, ]
@@ -92,7 +92,7 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
     else if (!is.null(simulated.priors))
     {
         n.alternatives <- max(design[, "Alternative"])
-        questions <- generateSimulatedTasks(simulated.sample.size, design,
+        tasks <- generateSimulatedTasks(simulated.sample.size, design,
                                             seed)
         n.respondents <- simulated.sample.size
         non.missing.table <- matrix(TRUE, nrow = n.respondents,
@@ -143,7 +143,7 @@ processDesign <- function(design, attribute.levels, choices, questions, subset,
         {
             if (non.missing.table[i, j])
             {
-                question.number <- questions[i, j]
+                question.number <- tasks[i, j]
                 ind <- which(design[, "Task"] == question.number)[1]
                 for (k in 1:n.alternatives)
                 {
@@ -311,7 +311,7 @@ generateSimulatedTasks <- function(simulated.sample.size, design, seed)
 }
 
 #' @importFrom flipData MissingDataFail
-nonMissingTable <- function(choices, questions, subset, weights, covariates,
+nonMissingTable <- function(choices, tasks, subset, weights, covariates,
                             missing)
 {
     n.respondents <- nrow(choices)
@@ -319,14 +319,14 @@ nonMissingTable <- function(choices, questions, subset, weights, covariates,
 
     if (missing == "Use partial data")
     {
-        non.missing.table <- !is.na(choices) & !is.na(questions)
+        non.missing.table <- !is.na(choices) & !is.na(tasks)
         missing.ind <- rep(FALSE, n.respondents)
     }
     else
     {
         non.missing.table <- matrix(TRUE, nrow = n.respondents,
                                     ncol = n.questions)
-        missing.ind <- is.na(rowSums(choices)) | is.na(rowSums(questions))
+        missing.ind <- is.na(rowSums(choices)) | is.na(rowSums(tasks))
     }
     if (!is.null(subset))
         missing.ind <- missing.ind | is.na(subset)
@@ -384,10 +384,10 @@ orderedAttributes <- function(input.prior.mean, n.attributes, n.parameters)
 }
 
 #' @importFrom flipData MissingDataFail
-errorIfMissingDataFound <- function(choices, questions, subset, weights,
+errorIfMissingDataFound <- function(choices, tasks, subset, weights,
                                     covariates, missing)
 {
-    if (any(is.na(choices)) || any(is.na(questions)) ||
+    if (any(is.na(choices)) || any(is.na(tasks)) ||
         (!is.null(subset) && any(is.na(subset))) ||
         (!is.null(weights) && any(is.na(weights)))
         (!is.null(covariates) && any(is.na(covariates))))

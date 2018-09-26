@@ -89,7 +89,7 @@ test_that("experiment question simulated data", {
 test_that("design object", {
     result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
-                             questions = test.design.data$questions,
+                             tasks = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE)
     expect_error(print(result), NA)
@@ -99,7 +99,7 @@ test_that("design object simulated data", {
     simulated.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
     result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
-                             questions = test.design.data$questions,
+                             tasks = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              simulated.priors = simulated.priors,
@@ -111,7 +111,7 @@ test_that("design object simulated data without priors", {
     simulated.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
     expect_warning(result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
-                             questions = test.design.data$questions,
+                             tasks = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              simulated.priors.from.design = TRUE,
@@ -125,7 +125,7 @@ test_that("design object simulated data without alternatives", {
     simulated.priors <- matrix(c(0, 1, -2, 1, 3, 0, 0, 1, 0.5, 1.5), ncol = 2)
     result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
-                             questions = test.design.data$questions,
+                             tasks = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              simulated.priors = simulated.priors[-1, ], # leave out alternative prior
@@ -136,7 +136,7 @@ test_that("design object simulated data without alternatives", {
 test_that("design object simulated data entered priors", {
     expect_warning(result <- FitChoiceModel(design = test.design,
                              choices = test.design.data$choices,
-                             questions = test.design.data$questions,
+                             tasks = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              simulated.priors = test.design.data$simulated.priors,
@@ -150,7 +150,7 @@ test_that("design object simulated data partially entered priors", {
     partial.priors <- test.design.data$simulated.priors[, -2:-3] # remove Att1
     expect_warning(result <- FitChoiceModel(design = test.design,
                                             choices = test.design.data$choices,
-                                            questions = test.design.data$questions,
+                                            tasks = test.design.data$questions,
                                             hb.iterations = 10, hb.chains = 1,
                                             hb.warnings = FALSE,
                                             simulated.priors = partial.priors,
@@ -166,7 +166,7 @@ test_that("design object simulated data incorrect entered priors", {
     incorrect.priors[1, 2] <- "Att99"
     expect_warning(result <- FitChoiceModel(design = test.design,
                                             choices = test.design.data$choices,
-                                            questions = test.design.data$questions,
+                                            tasks = test.design.data$questions,
                                             hb.iterations = 10, hb.chains = 1,
                                             hb.warnings = FALSE,
                                             simulated.priors = incorrect.priors,
@@ -180,7 +180,7 @@ test_that("design object simulated data incorrect entered priors", {
 test_that("design object simulated data priors from design", {
     result <- FitChoiceModel(design = test.design.with.prior,
                              choices = test.design.data$choices,
-                             questions = test.design.data$questions,
+                             tasks = test.design.data$questions,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              simulated.priors.from.design = TRUE,
@@ -240,7 +240,7 @@ test_that("cho file simulated data", {
 test_that("jmp format", {
     result <- FitChoiceModel(design.file = jmp.design.file,
                              attribute.levels.file = attribute.levels.file.jmp,
-                             choices = choices.jmp, questions = tasks.jmp,
+                             choices = choices.jmp, tasks = tasks.jmp,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE)
     expect_error(print(result), NA)
@@ -250,7 +250,7 @@ test_that("jmp format none of these", {
     result <- FitChoiceModel(design.file = jmp.design.file,
                              attribute.levels.file = attribute.levels.file.jmp,
                              choices = choices.jmp.none.of.these,
-                             questions = tasks.jmp,
+                             tasks = tasks.jmp,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE)
     expect_error(print(result), NA)
@@ -258,7 +258,7 @@ test_that("jmp format none of these", {
 
 test_that("jmp format with labels", {
     result <- FitChoiceModel(design.file = jmp.design.with.levels.file,
-                             choices = choices.jmp, questions = tasks.jmp,
+                             choices = choices.jmp, tasks = tasks.jmp,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE)
     expect_error(print(result), NA)
@@ -269,7 +269,7 @@ test_that("jmp format simulated data", {
     result <- FitChoiceModel(design.file = jmp.design.file,
                              attribute.levels.file = attribute.levels.file.jmp,
                              choices = choices.jmp,
-                             questions = tasks.jmp,
+                             tasks = tasks.jmp,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
                              simulated.priors = simulated.priors)
@@ -344,7 +344,7 @@ test_that("Design file missing data", {
     expect_error(processDesignFile(design.file = jmp.design.file,
                       attribute.levels.file = attribute.levels.file.jmp,
                       choices = choices.jmp.missing,
-                      questions = tasks.jmp.missing,
+                      tasks = tasks.jmp.missing,
                       subset = NULL, weights = NULL,
                       n.questions.left.out = 0,
                       seed = 123, input.prior.mean = 0, input.prior.sd = 5,
@@ -358,7 +358,7 @@ test_that("Design file missing data", {
     dat <- processDesignFile(design.file = jmp.design.file,
                       attribute.levels.file = attribute.levels.file.jmp,
                       choices = choices.jmp.missing,
-                      questions = tasks.jmp.missing,
+                      tasks = tasks.jmp.missing,
                       subset = NULL, weights = NULL,
                       n.questions.left.out = 0,
                       seed = 123, input.prior.mean = 0, input.prior.sd = 5,
@@ -377,7 +377,7 @@ test_that("Design file missing data", {
     dat <- processDesignFile(design.file = jmp.design.file,
                              attribute.levels.file = attribute.levels.file.jmp,
                              choices = choices.jmp.missing,
-                             questions = tasks.jmp.missing,
+                             tasks = tasks.jmp.missing,
                              subset = NULL, weights = NULL,
                              n.questions.left.out = 0,
                              seed = 123, input.prior.mean = 0, input.prior.sd = 5,
@@ -480,7 +480,7 @@ test_that("jmp format with fixed covariates", {
     result <- FitChoiceModel(design.file = jmp.design.file,
                              cov.formula = ~egg.choice2, cov.data = eggs.cov,
                              attribute.levels.file = attribute.levels.file.jmp,
-                             choices = choices.jmp, questions = tasks.jmp,
+                             choices = choices.jmp, tasks = tasks.jmp,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE)
     expect_error(print(result), NA)
@@ -496,10 +496,10 @@ test_that("Chocolate experiment choice model",
     data(chocolate)
     data(chocolate.design)
     choices <- chocolate[, grepl("^choice", colnames(chocolate))]
-    questions <- chocolate[, grepl("^task", colnames(chocolate))]
+    tasks <- chocolate[, grepl("^task", colnames(chocolate))]
     result <- FitChoiceModel(design = chocolate.design,
                              choices = choices,
-                             questions = questions,
+                             tasks = tasks,
                              cov.formula = ~gender, cov.data = chocolate,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
@@ -513,10 +513,10 @@ test_that("Fast food experiment choice model",
     data(fast.food)
     data(fast.food.design)
     choices <- fast.food[, grepl("^choice", colnames(fast.food))]
-    questions <- fast.food[, grepl("^task", colnames(fast.food))]
+    tasks <- fast.food[, grepl("^task", colnames(fast.food))]
     result <- FitChoiceModel(design = fast.food.design,
                              choices = choices,
-                             questions = questions,
+                             tasks = tasks,
                              cov.formula = ~diabetes, cov.data = fast.food,
                              hb.iterations = 10, hb.chains = 1,
                              hb.warnings = FALSE,
@@ -530,10 +530,10 @@ test_that("One attribute, no alt.-specific constant",
     data(chocolate)
     data(chocolate.design)
     choices <- chocolate[, grepl("^choice", colnames(chocolate))]
-    questions <- chocolate[, grepl("^task", colnames(chocolate))]
+    tasks <- chocolate[, grepl("^task", colnames(chocolate))]
     result <- FitChoiceModel(design = chocolate.design,
                              choices = choices,
-                             questions = questions,
+                             tasks = tasks,
                              cov.formula = ~diabetes, cov.data = chocolate,
                              hb.iterations = 10, hb.chains = 1,
                              include.choice.parameters = FALSE,
