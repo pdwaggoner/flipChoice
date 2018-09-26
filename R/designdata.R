@@ -351,9 +351,17 @@ fillXNoneOfThese <- function(n.parameters, n.attributes, n.attribute.parameters)
 #' @importFrom flipU InterceptExceptions
 readExcelFile <- function(file.path)
 {
+    get.file.error <- function(unused)
+    {
+        stop("The file in the link ", file.path , "could not be found. ",
+             "Please check that it exists. Note that local file paths are not",
+             "currently supported in Q and Displayr.")
+    }
+
     excel.file.error <- function(unused)
     {
-        stop("An Excel .xls or .xlsx file is required.")
+        stop("The file could not be opened. Please check that it is an Excel ",
+             ".xls or .xlsx file.")
     }
 
     ext <- if (grepl("\\.xlsx", file.path))
@@ -368,7 +376,12 @@ readExcelFile <- function(file.path)
                             error.handler = excel.file.error)
     else # URL
     {
-        GET(file.path, write_disk(temp.file <- tempfile(fileext = ext)))
+        InterceptExceptions(outcome <- GET(file.path, write_disk(temp.file <- tempfile(fileext = ext))),
+                            error.handler = get.file.error)
+        if (outcome$status_code >= 400)
+            stop("The file in the link ", file.path, " could not be ",
+                 "downloaded. Please manually check that it exists by ",
+                 "pasting the link in the browser.")
         InterceptExceptions(read_excel(temp.file),
                             error.handler = excel.file.error)
     }
