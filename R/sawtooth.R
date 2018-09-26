@@ -26,6 +26,7 @@
 #' @param seed Random seed.
 #' @return Nothing is returned, but .csv files are written to the working
 #'      directory.
+#' @importFrom utils write.csv
 #' @export
 SawtoothDualCsv <- function(design, respondent.data, covariates.data = NULL,
                             subset = NULL, dual.response.none = FALSE,
@@ -265,6 +266,7 @@ SawtoothDualCsv <- function(design, respondent.data, covariates.data = NULL,
 #'     prediction accuracies of the respondents is returned. Otherwise, a list
 #'     is returned with prediction accuracies of just the second (none)
 #'     response and the prediction accuracies of the overall response.
+#' @importFrom utils read.csv
 #' @export
 SawtoothAccuracy <- function(design.file, respondent.file, utilities.file,
                              dual.response.none = FALSE)
