@@ -7,7 +7,7 @@
 FitChoiceModel(design = NULL, experiment.data = NULL,
   cho.file = NULL, design.file = NULL, attribute.levels.file = NULL,
   cov.formula = NULL, cov.data = NULL, choices = NULL,
-  questions = NULL, simulated.priors = NULL,
+  questions = NULL, tasks = NULL, simulated.priors = NULL,
   simulated.priors.from.design = FALSE, simulated.sample.size = 300,
   synthetic.priors = NULL, synthetic.priors.from.design = NULL,
   synthetic.sample.size = NULL, n.classes = 1, subset = NULL,
@@ -45,7 +45,9 @@ variables present in \code{cov.formula}.}
 \item{choices}{A data.frame of choices made by respondents for each
 question.}
 
-\item{questions}{A data.frame of IDs of tasks presented to the
+\item{questions}{Deprecated. Replaced by tasks.}
+
+\item{tasks}{A data.frame of IDs of tasks presented to the
 respondents.}
 
 \item{simulated.priors}{A 2-column matrix whose columns correspond to the
