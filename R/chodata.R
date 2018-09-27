@@ -20,7 +20,15 @@ processChoFile <- function(cho.file, attribute.levels.file,
         (!is.null(covariates) && any(is.na(covariates))))
         MissingDataFail();
 
-    raw.lines <- readLines(cho.file)
+    get.file.error <- function(unused)
+    {
+        stop("The file in the link ", cho.file , " could not be found. ",
+             "Please check that it exists. Note that local file paths are not ",
+             "currently supported in Q and Displayr.")
+    }
+
+    suppressWarnings(InterceptExceptions(raw.lines <- readLines(cho.file),
+                                         error.handler = get.file.error))
     attribute.levels <- processAttributeLevelsFile(attribute.levels.file)
 
     raw.num <- lapply(strsplit(raw.lines, " "), as.numeric)
