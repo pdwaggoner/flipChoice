@@ -5,6 +5,8 @@
 #' \item \code{design} The experimental design as a matrix
 #' \item \code{design.with.none} Same as design
 #' \item \code{attribute.levels} The attribute levels of the attributes in a list
+#' \item \code{design.algorithm} This is an empty string as a non-NULL value
+#'     may be expected.
 #' }
 #' @docType data
 #' @keywords datasets

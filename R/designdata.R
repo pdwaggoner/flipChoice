@@ -353,8 +353,8 @@ readExcelFile <- function(file.path)
 {
     get.file.error <- function(unused)
     {
-        stop("The file in the link ", file.path , "could not be found. ",
-             "Please check that it exists. Note that local file paths are not",
+        stop("The file in the link ", file.path , " could not be found. ",
+             "Please check that it exists. Note that local file paths are not ",
              "currently supported in Q and Displayr.")
     }
 
