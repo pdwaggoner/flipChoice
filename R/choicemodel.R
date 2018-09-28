@@ -486,11 +486,6 @@ print.FitChoice <- function(x, ...)
     footer <- paste0(footer, "log-likelihood: ", FormatAsReal(x$log.likelihood, decimals = 2), "; ")
     footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 2), "; ")
 
-    if (!is.na(x$out.sample.accuracy))
-        footer <- paste0(footer, " in-sample accuracy: ",
-                         FormatAsPercent(x$in.sample.accuracy, decimals = 1),
-                         "; ")
-
     if (!is.null(x$class.match.fail)) # HB-Stan only
     {
         if (x$class.match.fail)
@@ -556,5 +551,9 @@ choiceModelFooter <- function(x) {
     footer <- paste0(footer, "choices per question: ", x$n.alternatives, "; ")
     footer <- paste0(footer, "number of attributes: ", x$n.attributes, "; ")
     footer <- paste0(footer, "number of parameters: ", x$n.parameters, "; ")
+    if (!is.na(x$out.sample.accuracy))
+        footer <- paste0(footer, " in-sample accuracy: ",
+                         FormatAsPercent(x$in.sample.accuracy, decimals = 1),
+                         "; ")
     return(footer)
 }
