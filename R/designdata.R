@@ -51,6 +51,18 @@ processDesign <- function(design, attribute.levels, choices, tasks, subset,
 
     if (!is.null(choices) && !is.null(tasks))
     {
+        if (is.list(choices) && !is.data.frame(choices) &&
+            length(unique(sapply(choices, length))) > 1)
+            stop("The variables supplied for respondent choices have ",
+                 "differing lengths. Please ensure that they are from the ",
+                 "same data set or have the same length.")
+
+        if (is.list(tasks) && !is.data.frame(tasks) &&
+            length(unique(sapply(tasks, length))) > 1)
+            stop("The variables supplied for respondent tasks have ",
+                 "differing lengths. Please ensure that they are from the ",
+                 "same data set or have the same length.")
+
         choices <- if (is.matrix(choices))
             data.frame(choices)
         else
@@ -60,6 +72,16 @@ processDesign <- function(design, attribute.levels, choices, tasks, subset,
             data.frame(tasks)
         else
             data.frame(sapply(tasks, as.numeric))
+
+        if (nrow(choices) != nrow(tasks))
+            stop("The respondent choices and tasks variables have differing ",
+                 "lengths. Please ensure that they are from the same data ",
+                 "set or have the same length.")
+
+        if (ncol(choices) != ncol(tasks))
+            stop("The respondent choices and tasks have differing numbers of ",
+                 "variables. Please ensure that the choices and tasks ",
+                 "variables have been correctly supplied.")
 
         n.alternatives <- getNumberOfAlternatives(choices)
 
