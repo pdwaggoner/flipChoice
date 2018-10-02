@@ -3,9 +3,15 @@
 #'     as Hierarchical Bayes
 #' @param design A design object produced by ChoiceModelDesign
 #' @param experiment.data A data.frame from an Experiment question
+#' @param cho.lines A character vector of lines from a CHO file.
 #' @param cho.file The file path to a cho file.
+#' @param design.variables A list of variables of columns from a Sawtooth
+#'     design file (dual file format) or a JMP design file.
 #' @param design.file The file path to a Sawtooth design file (dual file
 #'     format) or a JMP design file.
+#' @param attribute.levels A list of attribute levels (with attribute names as
+#'     names) or a character matrix with the first row containing attribute
+#'     names and subsequent rows containing attribute levels.
 #' @param attribute.levels.file The file path to an Excel file containing the
 #'     level names of each attribute.
 #' @param cov.formula An optional \code{\link{formula}} for any fixed
@@ -151,7 +157,10 @@
 #' @export
 #'
 FitChoiceModel <- function(design = NULL, experiment.data = NULL,
-                           cho.file = NULL, design.file = NULL,
+                           cho.lines = NULL, cho.file = NULL,
+                           design.variables = NULL,
+                           design.file = NULL,
+                           attribute.levels = NULL,
                            attribute.levels.file = NULL,
                            cov.formula = NULL, cov.data = NULL,
                            choices = NULL, questions = NULL,
@@ -227,19 +236,30 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                               seed, hb.prior.mean, hb.prior.sd, missing,
                               covariates, simulated.priors,
                               simulated.sample.size)
+    else if (!is.null(cho.lines) && !is.null(attribute.levels))
+        processChoVariables(cho.lines, attribute.levels, subset, weights,
+                            tasks.left.out, seed, hb.prior.mean, hb.prior.sd,
+                            include.choice.parameters, respondent.ids, missing,
+                            covariates, simulated.priors,
+                            simulated.sample.size)
     else if (!is.null(cho.file) && !is.null(attribute.levels.file))
-        processChoFile(cho.file, attribute.levels.file,
-                       subset, weights, tasks.left.out, seed,
-                       hb.prior.mean, hb.prior.sd, include.choice.parameters,
-                       respondent.ids, missing, covariates, simulated.priors,
-                       simulated.sample.size)
-    else if (!is.null(design.file) && (!is.null(simulated.priors) ||
+        processChoFile(cho.file, attribute.levels.file, subset, weights,
+                       tasks.left.out, seed, hb.prior.mean, hb.prior.sd,
+                       include.choice.parameters, respondent.ids, missing,
+                       covariates, simulated.priors, simulated.sample.size)
+    else if (!is.null(design.variables) && (!is.null(simulated.priors) ||
                                 (!is.null(choices) && !is.null(tasks))))
-        processDesignFile(design.file, attribute.levels.file, choices,
-                          tasks, subset, weights, tasks.left.out,
-                          seed, hb.prior.mean, hb.prior.sd,
-                          include.choice.parameters, missing, covariates,
-                          simulated.priors, simulated.sample.size)
+        processDesignVariables(design.variables, attribute.levels, choices,
+                               tasks, subset, weights, tasks.left.out, seed,
+                               hb.prior.mean, hb.prior.sd,
+                               include.choice.parameters, missing, covariates,
+                               simulated.priors, simulated.sample.size)
+    else if (!is.null(design.file) && (!is.null(simulated.priors) ||
+                                       (!is.null(choices) && !is.null(tasks))))
+        processDesignFile(design.file, attribute.levels.file, choices, tasks,
+                          subset, weights, tasks.left.out, seed, hb.prior.mean,
+                          hb.prior.sd, include.choice.parameters, missing,
+                          covariates, simulated.priors, simulated.sample.size)
     else
         stop("Insufficient data was supplied.")
 

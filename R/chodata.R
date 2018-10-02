@@ -1,9 +1,48 @@
+processChoFile <- function(cho.file, attribute.levels.file, subset, weights,
+                           n.questions.left.out, seed, input.prior.mean,
+                           input.prior.sd, include.choice.parameters,
+                           respondent.ids, missing, covariates,
+                           simulated.priors, simulated.sample.size)
+{
+    get.file.error <- function(unused)
+    {
+        stop("The file in the link ", cho.file , " could not be found. ",
+             "Please check that it exists. Note that local file paths are not ",
+             "currently supported in Q and Displayr.")
+    }
+    suppressWarnings(InterceptExceptions(raw.lines <- readLines(cho.file),
+                                         error.handler = get.file.error))
+    attribute.levels <- processAttributeLevelsFile(attribute.levels.file)
+    processCho(raw.lines, attribute.levels, subset, weights,
+               n.questions.left.out, seed, input.prior.mean,
+               input.prior.sd, include.choice.parameters,
+               respondent.ids, missing, covariates, simulated.priors,
+               simulated.sample.size)
+}
+
+processChoVariables <- function(cho.lines, attribute.levels, subset,
+                                weights, n.questions.left.out, seed,
+                                input.prior.mean, input.prior.sd,
+                                include.choice.parameters, respondent.ids,
+                                missing, covariates, simulated.priors,
+                                simulated.sample.size)
+{
+    if (is.matrix(attribute.levels) && is.character(attribute.levels))
+        attribute.levels <- parseAttributeLevelsMatrix(attribute.levels)
+
+    processCho(cho.lines, attribute.levels, subset, weights,
+               n.questions.left.out, seed, input.prior.mean,
+               input.prior.sd, include.choice.parameters,
+               respondent.ids, missing, covariates, simulated.priors,
+               simulated.sample.size)
+}
+
 #' @importFrom flipData CleanSubset NoData MissingDataFail
-processChoFile <- function(cho.file, attribute.levels.file,
-                           subset, weights, n.questions.left.out, seed,
-                           input.prior.mean, input.prior.sd,
-                           include.choice.parameters, respondent.ids, missing,
-                           covariates, simulated.priors, simulated.sample.size)
+processCho <- function(raw.lines, attribute.levels, subset, weights,
+                       n.questions.left.out, seed, input.prior.mean,
+                       input.prior.sd, include.choice.parameters,
+                       respondent.ids, missing, covariates, simulated.priors,
+                       simulated.sample.size)
 {
     is.data.simulated <- !is.null(simulated.priors)
     if (is.data.simulated)
@@ -19,17 +58,6 @@ processChoFile <- function(cho.file, attribute.levels.file,
         (!is.null(weights) && any(is.na(weights)))) ||
         (!is.null(covariates) && any(is.na(covariates))))
         MissingDataFail();
-
-    get.file.error <- function(unused)
-    {
-        stop("The file in the link ", cho.file , " could not be found. ",
-             "Please check that it exists. Note that local file paths are not ",
-             "currently supported in Q and Displayr.")
-    }
-
-    suppressWarnings(InterceptExceptions(raw.lines <- readLines(cho.file),
-                                         error.handler = get.file.error))
-    attribute.levels <- processAttributeLevelsFile(attribute.levels.file)
 
     raw.num <- lapply(strsplit(raw.lines, " "), as.numeric)
     n.attributes <- raw.num[[1]][3]
@@ -265,6 +293,11 @@ processAttributeLevelsFile <- function(attribute.levels.file)
         attribute.levels[[nms[i]]] <- raw.attribute.levels[[i]][not.na]
     }
     attribute.levels
+}
+
+parseAttributeLevelsMatrix <- function(attribute.levels.matrix)
+{
+    parsePastedData(attribute.levels.matrix)[["attribute.list"]]
 }
 
 parameterNamesFromAttributes <- function(attribute.levels)

@@ -31,6 +31,36 @@ processDesignFile <- function(design.file, attribute.levels.file, choices,
                   missing, covariates, simulated.priors, simulated.sample.size)
 }
 
+processDesignVariables <- function(design.variables, attribute.levels, choices,
+                                   tasks, subset, weights,
+                                   n.questions.left.out, seed,
+                                   input.prior.mean, input.prior.sd,
+                                   include.choice.parameters, missing,
+                                   covariates, simulated.priors,
+                                   simulated.sample.size)
+{
+    if (length(unique(sapply(design.variables, length))) > 1)
+        stop("The variables supplied for the design have ",
+             "differing lengths. Please ensure that they are from the ",
+             "same data set or have the same length.")
+
+    design <- data.frame(design.variables)
+    if (isDesignNumeric(design))
+        design <- sapply(design, as.numeric)
+    else
+        stop("Only design variables with numeric values can be supplied.")
+
+    design <- convertDesign(design)
+
+    if (is.matrix(attribute.levels) && is.character(attribute.levels))
+        attribute.levels <- parseAttributeLevelsMatrix(attribute.levels)
+
+    processDesign(design, attribute.levels, choices, tasks,
+                  subset, weights, n.questions.left.out, seed,
+                  input.prior.mean, input.prior.sd, include.choice.parameters,
+                  missing, covariates, simulated.priors, simulated.sample.size)
+}
+
 #' @importFrom flipData CleanSubset NoData
 processDesign <- function(design, attribute.levels, choices, tasks, subset,
                           weights, n.questions.left.out, seed, input.prior.mean,
@@ -260,9 +290,7 @@ readDesignFile <- function(design.file, attribute.levels.file)
 {
     design <- readExcelFile(design.file)
     n.attributes <- length(design) - 3
-    design.is.numeric <- all(sapply(design[4:length(design)], function(x) {
-            is.numeric(x) || !any(is.na(suppressWarnings(as.numeric(x))))
-        }))
+    design.is.numeric <- isDesignNumeric(design[-1:-3])
     if (design.is.numeric && (is.null(attribute.levels.file) ||
                               attribute.levels.file == ""))
         stop("A file containing attribute levels is required.")
@@ -289,28 +317,62 @@ readDesignFile <- function(design.file, attribute.levels.file)
             design[[i + 3]] <- as.numeric(attribute.factor)
         }
     }
-    design <- as.matrix(design)
+    design <- convertDesign(as.matrix(design))
 
-    # Add a "Question" column
-    n.rows <- nrow(design)
-    question <- rep(NA, n.rows)
-    question[1] <- 1
-    for (i in 2:n.rows)
-    {
-        if (design[i, 1] == design[i - 1, 1]) # Version
-        {
-            question[i] <- if (design[i, 2] == design[i - 1, 2]) # Task
-                question[i - 1]
-            else
-                question[i - 1] + 1
-        }
-        else
-            question[i] <- 1
-    }
-    design <- cbind(design[, 1:2], question, design[, -1:-2])
-
-    colnames(design)[1:4] <- c("Version", "Task", "Question", "Alternative")
     list(design = design, attribute.levels = attribute.levels)
+}
+
+isDesignNumeric <- function(design)
+{
+    all(sapply(design, function(x) {
+        is.numeric(x) || !any(is.na(suppressWarnings(as.numeric(x))))
+    }))
+}
+
+# Takes in a data frame from a design file and outputs a design matrix
+# with Version, Task, Question, Alternative and attribute columns.
+convertDesign <- function(design.data)
+{
+    n.rows <- nrow(design.data)
+
+    result <- matrix(NA, nrow = n.rows, ncol = ncol(design.data) + 1)
+    result[, 1] <- design.data[, 1]
+    if (any(diff(design.data[, 2]) < 0)) # Question provided
+    {
+        question <- design.data[, 2]
+        task <- rep(NA, n.rows)
+        task[1] <- 1
+        for (i in 2:n.rows)
+        {
+            task[i] <- if (question[i] == question[i - 1])
+                task[i - 1]
+            else
+                task[i - 1] + 1
+        }
+        result <- cbind(design.data[, 1], task, design.data[, -1])
+    }
+    else # Task provided
+    {
+        vers <- design.data[, 1]
+        task <- design.data[, 2]
+        question <- rep(NA, n.rows)
+        question[1] <- 1
+        for (i in 2:n.rows)
+        {
+            if (vers[i] == vers[i - 1])
+            {
+                question[i] <- if (task[i] == task[i - 1])
+                    question[i - 1]
+                else
+                    question[i - 1] + 1
+            }
+            else
+                question[i] <- 1
+        }
+        result <- cbind(design.data[, 1:2], question, design.data[, -1:-2])
+    }
+    colnames(result)[1:4] <- c("Version", "Task", "Question", "Alternative")
+    result
 }
 
 generateSimulatedTasks <- function(simulated.sample.size, design, seed)

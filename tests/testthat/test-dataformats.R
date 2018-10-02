@@ -549,3 +549,44 @@ test_that("Alternative-specific design",
                         "modeling this type of design has not yet been ",
                         "implemented."))
 })
+
+test_that("CHO lines input", {
+    data(test.cho.lines)
+    attr.lvls <- structure(c("Att 1", "Destination 1", "Destination 2",
+                             "Destination 3", "Destination 4", "Destination 5",
+                             "Destination 6", "Att 2", "Company 1",
+                             "Company 2", "Company 3", "Company 4",
+                             "Company 5", "Company 6", "Att 3", "Duration 1",
+                             "Duration 2", "Duration 3", "Duration 4",
+                             "Duration 5", "", "Att 4", "Feature 1",
+                             "Feature 2", "Feature 3", "", "", "", "Att 5",
+                             "Condition 1", "Condition 2", "", "", "", "",
+                             "Att 6", "Price 1", "Price 2", "Price 3",
+                             "Price 4", "Price 5", ""), .Dim = 7:6)
+    result <- FitChoiceModel(cho.lines = test.cho.lines,
+                             attribute.levels = attr.lvls,
+                             algorithm = "LCA")
+    expect_error(print(result), NA)
+})
+
+test_that("Design variables input", {
+    data(test.design.variables)
+    attr.lvls <- structure(c("Weight", "55g", "60g", "65g", "70g", "",
+                             "Organic", "BLANK", "Antibiotic and hormone free",
+                             "", "", "", "Charity", "BLANK",
+                             "10% of Revenue donated to RSPCA", "", "", "",
+                             "Quality", "Fresh Eggs (Caged)", "Barn Raised",
+                             "Free Range", "", "", "Uniformity",
+                             "All eggs appear the same",
+                             "Some eggs appear different (e.g. Shell Colour)",
+                             "", "", "", "Feed", "BLANK",
+                             "Fed on grain and fish (high in Omega)",
+                             "Fed only on vegetables", "", "", "Price",
+                             "2 dollars", "3 dollars", "4 dollars",
+                             "5 dollars", "6 dollars"), .Dim = 6:7)
+    result <- FitChoiceModel(design.variables = test.design.variables,
+                             attribute.levels = attr.lvls,
+                             choices = choices.jmp, tasks = tasks.jmp,
+                             algorithm = "LCA")
+    expect_error(print(result), NA)
+})

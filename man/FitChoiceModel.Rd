@@ -5,14 +5,16 @@
 \title{FitChoiceModel}
 \usage{
 FitChoiceModel(design = NULL, experiment.data = NULL,
-  cho.file = NULL, design.file = NULL, attribute.levels.file = NULL,
-  cov.formula = NULL, cov.data = NULL, choices = NULL,
-  questions = NULL, tasks = NULL, simulated.priors = NULL,
-  simulated.priors.from.design = FALSE, simulated.sample.size = 300,
-  synthetic.priors = NULL, synthetic.priors.from.design = NULL,
-  synthetic.sample.size = NULL, n.classes = 1, subset = NULL,
-  weights = NULL, missing = "Use partial data", seed = 123,
-  tasks.left.out = 0, algorithm = "HB-Stan", lc.tolerance = 1e-04,
+  cho.lines = NULL, cho.file = NULL, design.variables = NULL,
+  design.file = NULL, attribute.levels = NULL,
+  attribute.levels.file = NULL, cov.formula = NULL, cov.data = NULL,
+  choices = NULL, questions = NULL, tasks = NULL,
+  simulated.priors = NULL, simulated.priors.from.design = FALSE,
+  simulated.sample.size = 300, synthetic.priors = NULL,
+  synthetic.priors.from.design = NULL, synthetic.sample.size = NULL,
+  n.classes = 1, subset = NULL, weights = NULL,
+  missing = "Use partial data", seed = 123, tasks.left.out = 0,
+  algorithm = "HB-Stan", lc.tolerance = 1e-04,
   initial.parameters = NULL, normal.covariance = "Full",
   hb.iterations = 100, hb.chains = 8, hb.max.tree.depth = 10,
   hb.adapt.delta = 0.8, hb.keep.samples = FALSE, hb.stanfit = TRUE,
@@ -25,10 +27,19 @@ FitChoiceModel(design = NULL, experiment.data = NULL,
 
 \item{experiment.data}{A data.frame from an Experiment question}
 
+\item{cho.lines}{A character vector of lines from a CHO file.}
+
 \item{cho.file}{The file path to a cho file.}
+
+\item{design.variables}{A list of variables of columns from a Sawtooth
+design file (dual file format) or a JMP design file.}
 
 \item{design.file}{The file path to a Sawtooth design file (dual file
 format) or a JMP design file.}
+
+\item{attribute.levels}{A list of attribute levels (with attribute names as
+names) or a character matrix with the first row containing attribute
+names and subsequent rows containing attribute levels.}
 
 \item{attribute.levels.file}{The file path to an Excel file containing the
 level names of each attribute.}
