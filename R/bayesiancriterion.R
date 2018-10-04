@@ -43,7 +43,10 @@ computeMidpoints <- function(vertices)
             counter <- counter + 1
         }
     }
-    t(t(midpoints) / sqrt(colSums(midpoints ^ 2)))
+    if (dim(midpoints) == c(1, 1) && midpoints == 0)
+        midpoints
+    else
+        t(t(midpoints) / sqrt(colSums(midpoints ^ 2)))
 }
 
 extendedSimplexWeights <- function(p)
