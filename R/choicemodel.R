@@ -504,7 +504,7 @@ print.FitChoice <- function(x, ...)
             "Choice Model: Hierarchical Bayes"
     }
     else
-        paste0("Choice Model: ", x$n.classes, "Latent Class Analysis")
+        paste0("Choice Model: ", x$n.classes, "-class Latent Class Analysis")
 
     footer <- choiceModelFooter(x)
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
