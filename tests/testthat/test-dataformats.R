@@ -590,3 +590,24 @@ test_that("Design variables input", {
                              algorithm = "LCA")
     expect_error(print(result), NA)
 })
+
+test_that("Labeled design variables input", {
+    data(test.labeled.design.variables)
+    attr.lvls <- structure(c("Weight", "55g", "60g", "65g", "70g", "",
+                             "Organic", "BLANK", "Antibiotic and hormone free",
+                             "", "", "", "Charity", "BLANK",
+                             "10% of Revenue donated to RSPCA", "", "", "",
+                             "Quality", "Fresh Eggs (Caged)", "Barn Raised",
+                             "Free Range", "", "", "Uniformity",
+                             "All eggs appear the same",
+                             "Some eggs appear different (e.g. Shell Colour)",
+                             "", "", "", "Feed", "BLANK",
+                             "Fed on grain and fish (high in Omega)",
+                             "Fed only on vegetables", "", "", "Price",
+                             "2 dollars", "3 dollars", "4 dollars",
+                             "5 dollars", "6 dollars"), .Dim = 6:7)
+    result <- FitChoiceModel(design.variables = test.labeled.design.variables,
+                             choices = choices.jmp, tasks = tasks.jmp,
+                             algorithm = "LCA")
+    expect_error(print(result), NA)
+})

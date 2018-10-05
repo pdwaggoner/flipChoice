@@ -45,15 +45,21 @@ processDesignVariables <- function(design.variables, attribute.levels, choices,
              "same data set or have the same length.")
 
     design <- data.frame(design.variables)
-    if (isDesignNumeric(design))
-        design <- sapply(design, as.numeric)
-    else
-        stop("Only design variables with numeric values can be supplied.")
 
-    design <- convertDesign(design)
+    is.labeled <- any(sapply(design[, -1:-3], function(x) {
+        any(!sapply(levels(x), is.numeric))
+    }))
 
-    if (is.matrix(attribute.levels) && is.character(attribute.levels))
+    if (is.labeled)
+    {
+        attribute.levels <- sapply(design[-1:-3], levels)
+        names(attribute.levels) <- sapply(design[-1:-3],
+                                          function(x) attr(x, "label"))
+    }
+    else if (is.matrix(attribute.levels) && is.character(attribute.levels))
         attribute.levels <- parseAttributeLevelsMatrix(attribute.levels)
+
+    design <- convertDesign(as.matrix(sapply(design, as.numeric)))
 
     processDesign(design, attribute.levels, choices, tasks,
                   subset, weights, n.questions.left.out, seed,
@@ -290,7 +296,9 @@ readDesignFile <- function(design.file, attribute.levels.file)
 {
     design <- readExcelFile(design.file)
     n.attributes <- length(design) - 3
-    design.is.numeric <- isDesignNumeric(design[-1:-3])
+    design.is.numeric <- all(sapply(design[-1:-3], function(x) {
+        is.numeric(x) || !any(is.na(suppressWarnings(as.numeric(x))))
+    }))
     if (design.is.numeric && (is.null(attribute.levels.file) ||
                               attribute.levels.file == ""))
         stop("A file containing attribute levels is required.")
@@ -320,13 +328,6 @@ readDesignFile <- function(design.file, attribute.levels.file)
     design <- convertDesign(as.matrix(design))
 
     list(design = design, attribute.levels = attribute.levels)
-}
-
-isDesignNumeric <- function(design)
-{
-    all(sapply(design, function(x) {
-        is.numeric(x) || !any(is.na(suppressWarnings(as.numeric(x))))
-    }))
 }
 
 # Takes in a data frame from a design file and outputs a design matrix
