@@ -497,9 +497,14 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
 print.FitChoice <- function(x, ...)
 {
     title <- if (x$algorithm == "HB-Stan")
-        "Choice Model: Hierarchical Bayes"
+    {
+        if (x$n.classes > 1)
+            paste0("Choice Model: ", x$n.classes, "-class Hierarchical Bayes")
+        else
+            "Choice Model: Hierarchical Bayes"
+    }
     else
-        "Choice Model: Latent Class Analysis"
+        paste0("Choice Model: ", x$n.classes, "Latent Class Analysis")
 
     footer <- choiceModelFooter(x)
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
