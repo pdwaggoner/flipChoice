@@ -53,20 +53,28 @@ ExtractParameterStats <- function(fit)
     }
 }
 
+#' Error if FitChoiceModel object does not have components necessary
+#' for particular diagnostics
+#' @param f FitChoiceModel object
+#' @param require.hb Does \code{f} have to be fit with \code{algorithm = "HB-Stan"}
+#' to work?
+#' @return called for it's side-effect of erroring if the fit is not valid
+#' @noRd
 checkValidFit <- function(f, require.hb = TRUE)
 {
-    if (require.hb)
-    {
-        if (!inherits(f, "FitChoice") || is.null(f$stan.fit))
-            stop("The selected output was not a choice model output computed ",
-                 "using Hierarchical Bayes (Stan). Please select such an ",
-                 "output before running this script.")
-    }
-    else if (!inherits(f, "FitChoice"))
-    {
+    if (!inherits(f, "FitChoice"))
         stop("The selected output was not a choice model output. Please ",
              "select such an output before running this script.")
-    }
+
+    if (require.hb && f$algorithm != "HB-Stan")
+    {
+        stop("The selected output was not a choice model output computed ",
+             "using Hierarchical Bayes (Stan). Please select such an ",
+             "output before running this script.")
+    }else if (f$algorithm == "HB-Stan" && is.null(f$stan.fit))
+        stop("This output is only available if FitChoiceModel is called with ",
+             shQuote("hb.stanfit = TRUE"),
+             ". Please refit the model with that argument set to 'TRUE'.")
 }
 
 makeLabels <- function(fit, add.weight.labels = FALSE)
