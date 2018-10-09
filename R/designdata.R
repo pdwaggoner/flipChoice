@@ -46,11 +46,16 @@ processDesignVariables <- function(design.variables, attribute.levels, choices,
 
     design <- data.frame(design.variables)
 
-    is.labeled <- any(sapply(design[, -1:-3], function(x) {
-        any(!sapply(levels(x), is.numeric))
+    is.labeled <- any(sapply(a[, -1:-3], function(x) {
+        if (is.factor(x))
+            any(sapply(levels(x), function(x) {
+                any(is.na(suppressWarnings(as.numeric(x))))
+            }))
+        else
+            FALSE
     }))
 
-    if (is.labeled)
+    if (is.labeled && (is.null(attribute.levels) || max(dim(attribute.levels)) == 0))
     {
         attribute.levels <- sapply(design[-1:-3], levels)
         names(attribute.levels) <- sapply(design[-1:-3],
