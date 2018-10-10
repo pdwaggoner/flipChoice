@@ -6,9 +6,19 @@ sudo: required
 cache: packages
 warnings_are_errors: false
 
-env:
-  matrix:
-    - CXX_OLEVEL=2 CXX=g++-6
+# need higher g++ version for rstan
+# https://docs.travis-ci.com/user/languages/cpp/#gcc-on-linux
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++ 6
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++ 6 && CXX_OLEVEL=2"
 
 # install debian libraries to match R-servers
 # update pre-installed packages to latest versions
@@ -22,7 +32,7 @@ before_install:
   - echo "CXXFLAGS += -Wno-ignored-attributes -Wno-deprecated-declerations" >> ~/.R/Makevars
   - export CLANG_EXTRA_ARG=""
   - if [[ $CXX = "clang++" ]] ;  then export CLANG_EXTRA_ARG=" -Qunused-arguments -fcolor-diagnostics " ; fi
-  - sed -i.bak "s/ g++/ ${CXX}${CLANG_EXTRA_ARG}/" ~/.R/Makevars
+  - sed -i.bak "s/ g++-6/ ${CXX}${CLANG_EXTRA_ARG}/" ~/.R/Makevars
   - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
 
 r_packages:
