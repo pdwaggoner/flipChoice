@@ -46,7 +46,7 @@ processDesignVariables <- function(design.variables, attribute.levels, choices,
 
     design <- data.frame(design.variables)
 
-    is.labeled <- any(sapply(a[, -1:-3], function(x) {
+    is.labeled <- any(sapply(design[, -1:-3], function(x) {
         if (is.factor(x))
             any(sapply(levels(x), function(x) {
                 any(is.na(suppressWarnings(as.numeric(x))))
