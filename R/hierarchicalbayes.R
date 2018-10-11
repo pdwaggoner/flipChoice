@@ -558,6 +558,20 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size)
          bic = log(sample.size) * n.parameters - 2 * log.likelihood)
 }
 
+# The number of HB parameters is:
+#
+# (<number of mean parameters> + <number of covariance parameters>) *
+#     <number of classes> + <number of class parameters>
+#
+# The number of covariance parameters depends on how the covariance is
+# constrained:
+#
+# Full covariance: n(diagonal + triangle) = n.coef * (n.coef + 1) / 2
+# Diagonal covariance: n(diagonal) = n.coef
+# Spherical covariance: n(same values on diagonal) = 1
+#
+# where n.coef is the number of mean parameters.
+# The number of class parameters is n.classes - 1
 numberOfHBParameters <- function(stan.dat)
 {
     n.coef <- stan.dat$V
