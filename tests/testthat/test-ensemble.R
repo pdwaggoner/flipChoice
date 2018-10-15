@@ -28,6 +28,6 @@ test_that("FitChoice Ensemble", {
     # cannot ensemble models with different data
     expect_error(ChoiceEnsemble(list(fit1, fit4), compare.only = FALSE),
                  "Models must have the same input data.")
-    # can compare  models with different data
+    # can compare models with different data
     expect_error(ChoiceEnsemble(list(fit1, fit4), compare.only = TRUE), NA)
 })

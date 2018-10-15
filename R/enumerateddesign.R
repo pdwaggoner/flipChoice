@@ -73,7 +73,7 @@ enumeratedDesign <- function(levels.per.attribute, n.questions, alternatives.per
 
             full.enumeration <- FALSE
             if (question == 1 && i.alternative == 1) # break the initial symmetry
-                best.alternative <- rep(1, n.attributes)
+                best.alternative <- enumeration[1, ]
             else
             {
                 # only enumerate alternatives that use the least frequent levels of each attribute
