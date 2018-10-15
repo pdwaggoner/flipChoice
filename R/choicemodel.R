@@ -116,8 +116,8 @@
 #'     \item \code{beta.draws} A 3D array containing
 #'     sampling draws of beta for each respondent (only for the HB-Stan
 #'      algorithm).
-#'     \item \code{parameter.names} Character vector of parameter names
-#'     for the mean parameters in the model.
+##     \item \code{parameter.names} Character vector of parameter names
+##     for the mean parameters in the model.
 #'     \item \code{in.sample.accuracy} The in-sample prediction accuracy.
 #'     \item \code{out.sample.accuracy} The out-of-sample prediction
 #'     accuracy.
@@ -312,11 +312,6 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     result$n.attributes <- dat$n.attributes
     result$n.parameters <- dat$n.parameters
     result$n.total <- length(dat$subset)
-    result$parameter.names <- dat$par.names
-    result$covariate.names <- if (is.null(cov.formula))
-                                  NULL
-                              else
-                                  colnames(dat$covariates)
     result$simulated.respondent.parameters <- simulated.resp.pars
     result$synthetic.respondent.parameters <- simulated.resp.pars # deprecated
     result$time.taken <- (end.time - start.time)[3]
