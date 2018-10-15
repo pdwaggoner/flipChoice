@@ -5,7 +5,7 @@
 #' additionally combine them to make a new ensemble model.
 #' @param output If \code{compare.only} is \code{FALSE}, one of \code{"Comparison"} which
 #'     produces a table comparing the models, or \code{"Ensemble"} which produces histograms
-#'     of respondent coefficients (as for \code{\link{FitChoice}}).
+#'     of respondent coefficients (as for \code{\link{FitChoiceModel}}).
 #' @importFrom flipFormat Labels
 #' @export
 ChoiceEnsemble <- function(models,
