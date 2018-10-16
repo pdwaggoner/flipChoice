@@ -26,6 +26,8 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 
     keep.beta <- beta.draws.to.keep > 0
 
+    ##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@5@"]]));##:ess-bp-end:##
     InterceptExceptions(
     {
         stan.fit <- RunStanSampling(stan.dat, n.iterations, n.chains,
@@ -55,7 +57,7 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
         result$parameter.statistics <- GetParameterStatistics(stan.fit,
                                                               param.names$mean.pars,
                                                               n.classes,
-                                                              param.names$covariate.sd.pars)
+                                                              param.names$sd.pars)
     if (include.stanfit)
     {
         result$stan.fit <- if (keep.samples)
@@ -615,15 +617,24 @@ numberOfHBParameters <- function(stan.dat)
 #' \item respondent.pars - names for the (constrained) respondent parameters/coefficients
 #' \item unconstrained.respondent.pars - names for the unconstrained respondent
 #' parameters/coefficients
-#' \item covariate.mean.pars
+#' \item stan.pars - names for the parameters used in the stan code; useful for extracting
+#' samples, using diagnostics, etc. when working with the stan.fit object
+#' \code mean.pars - names for the (population) mean parameters (theta in the stan code) for
+#' the respondent parameters
+#' \item covariates - names for the covariates in the model (i.e. the
+#'       terms in \code{cov.formula})
+#' \item sd.pars - names for the standard deviation (sigma) parameters in the
+#' model. Equal to \code{mean.pars} unless grouped covariates are included in the model
 #' }
 #' @noRd
 createNamesList <- function(stan.dat, keep.beta, stan.model)
 {
+    if (is.null(stan.dat$sd.names))
+        stan.dat$sd.names <- stan.dat$par.names
     list(respondent.pars = stan.dat$beta.names,
          unconstrained.respondent.pars = stan.dat$all.beta.names,
          stan.pars = stanParameters(stan.dat, keep.beta, stan.model),
          mean.pars = stan.dat$par.names,
          covariates = colnames(stan.dat$covariates),
-         covariate.sd.pars = stan.dat$sd.names)
+         sd.pars = stan.dat$sd.names)
 }

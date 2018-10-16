@@ -22,7 +22,10 @@ TracePlots <- function(fit)
         stop("Traceplots are not available as classes from ",
              "different chains could not be matched.")
 
-    trace.plot <- traceplot(fit$stan.fit, pars = c('theta', 'sigma'),
+    pars <- fit$param.names.list$stan.pars
+    pars <- pars[pars != "log_likelihood"]
+
+    trace.plot <- traceplot(fit$stan.fit, pars = pars,
                             inc_warmup = TRUE)
     levels(trace.plot$data$parameter) <- makeLabels(fit, FALSE)
     trace.plot$plot_env <- new.env()

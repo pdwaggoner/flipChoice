@@ -24,7 +24,10 @@ PlotPosteriorIntervals <- function(fit)
         stop("Posterior intervals are not available as classes from ",
              "different chains could not be matched.")
 
-    p <- rstan::plot(fit$stan.fit, pars = c('theta', 'sigma'))
+    pars <- fit$param.names.list$stan.pars
+    pars <- pars[pars != "log_likelihood"]
+
+    p <- rstan::plot(fit$stan.fit, pars = pars)
     lbls <- makeLabels(fit, FALSE)
     p$plot_env <- new.env()
     p + ggplot2::scale_y_discrete(labels=lbls, limits=length(lbls):1)

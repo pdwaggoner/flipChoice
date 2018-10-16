@@ -23,34 +23,33 @@ ExtractParameterStats <- function(fit)
 {
     checkValidFit(fit, require.hb = FALSE)
 
-    if (!is.null(fit$algorithm) && fit$algorithm == "LCA")
-        parameterStatisticsLCA(fit)
-    else
-    {
-        is.multi.class <- fit$n.classes > 1
+    # has.grouped.covariate <- hasGroupedCovariate(fit)
 
-        if (is.multi.class && fit$class.match.fail)
+    pars <- fit$param.names.list$stan.pars
+    pars <- pars[pars != "log_likelihood"]
+
+    if (!is.null(fit$algorithm) && fit$algorithm == "LCA")
+        return(parameterStatisticsLCA(fit))
+
+    is.multi.class <- fit$n.classes > 1
+    if (is.multi.class)
+    {
+        if (fit$class.match.fail)
             stop("Parameter statistics are not available as classes from ",
                  "different chains could not be matched.")
-
-        if (is.multi.class)
-        {
-            if ("class_weights" %in% fit$stan.fit@model_pars)
-                ex <- rstan::extract(fit$stan.fit,
-                                     pars = c('class_weights', 'theta', 'sigma'),
-                                     permuted = FALSE, inc_warmup = FALSE)
-            else
-                ex <- rstan::extract(fit$stan.fit,
-                                     pars = c('covariates_beta', 'theta', 'sigma'),
-                                     permuted = FALSE, inc_warmup = FALSE)
-        }
+        if ("class_weights" %in% fit$stan.fit@model_pars)
+            par.names <- c("class_weights", par.names)
         else
-            ex <- rstan::extract(fit$stan.fit, pars = c('theta', 'sigma'),
-                                 permuted = FALSE, inc_warmup = FALSE)
-        sample.stats <- suppressWarnings(rstan::monitor(ex, probs = c()))
-        rownames(sample.stats) <- makeLabels(fit, TRUE)
-        sample.stats
+            par.names <- c("covariates_beta", par.names)
+
     }
+
+    ex <- rstan::extract(fit$stan.fit, pars = par.names,
+                         permuted = FALSE, inc_warmup = FALSE)
+
+    sample.stats <- suppressWarnings(rstan::monitor(ex, probs = c()))
+    rownames(sample.stats) <- makeLabels(fit, TRUE)
+    return(sample.stats)
 }
 
 #' Error if FitChoiceModel object does not have components necessary
@@ -80,23 +79,30 @@ checkValidFit <- function(f, require.hb = TRUE)
 makeLabels <- function(fit, add.weight.labels = FALSE)
 {
     n.classes <- fit$n.classes
-    nms.sigma <- if (!is.null(fit$reduced.respondent.parameters))
-                    colnames(fit$reduced.respondent.parameters)
-                 else
-                    colnames(fit$respondent.parameters)
-    nms <- fit$parameter.names
+    par.names <- fit$param.names.list
 
-    lbls <- c(rep(paste0(nms, ' (Mean)'), each = n.classes),
-              rep(paste0(nms.sigma, ' (St. Dev.)'), each = n.classes))
+    nms.sigma <- par.names$sd.pars
+    nms <- par.names$mean.pars
+##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@4@"]]));##:ess-bp-end:##
+
+    lbls <- c(rep(paste0(nms, " (Mean)"), each = n.classes),
+              rep(paste0(nms.sigma, " (St. Dev.)"), each = n.classes))
+
+    ## if (hasGroupedCovariate(fit))
+    ##     lbls <- c(lbls, paste0(par.names$covariate.sd.pars, " (Covariate St. Dev.)"))
 
     if (n.classes > 1L)
-        lbls <- paste0(lbls, rep(paste0(', Class ', 1:n.classes), 2 * length(nms)))
+        lbls <- paste0(lbls, rep(paste0(", Class ", 1:n.classes), 2 * length(nms)))
     if (add.weight.labels && n.classes > 1L)
     {
-        if ('class_weights' %in% fit$stan.fit@sim$pars_oi)
-            lbls <- c(paste0('Class ', 1:n.classes, ' size') , lbls)
+        if ("class_weights" %in% fit$stan.fit@sim$pars_oi)
+            lbls <- c(paste0("Class ", 1:n.classes, " size"), lbls)
         else
-            lbls <- c(paste0(fit$covariate.names, " (Covariate Coefficient)") , lbls)
+            lbls <- c(paste0(par.names$covariates, " (Covariate Coefficient)"), lbls)
     }
     lbls
 }
+
+hasGroupedCovariate <- function(fit)
+    fit$stan.fit@model_name == "choicemodelRCdiag"
