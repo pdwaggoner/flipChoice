@@ -83,8 +83,8 @@ processDesign <- function(design, attribute.levels, choices, tasks, subset,
     design.attributes <- design[, !colnames(design) %in% .non.attr.col.names, drop = FALSE]
     n.attributes <- ncol(design.attributes)
     if (n.attributes != length(attribute.levels))
-        stop("The number of attributes in the design file is inconsistent ",
-             "with the number of attributes in the attribute levels file.")
+        stop("The number of attributes in the design is inconsistent ",
+             "with the number of attributes in the attribute levels")
 
     n.questions <- max(design[, "Question"])
 
