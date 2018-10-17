@@ -480,6 +480,7 @@ computeRespParsLCA <- function(resp.post.probs, class.parameters,
 #' @return A table of parameter statistics (coefficients, standard errors,
 #'     t-statistics and p-values).
 #' @importFrom stats pt
+#' @noRd
 parameterStatisticsLCA <- function(obj)
 {
     if (is.null(obj$lca.data))
