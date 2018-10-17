@@ -116,6 +116,22 @@
 #'     \item \code{beta.draws} A 3D array containing
 #'     sampling draws of beta for each respondent (only for the HB-Stan
 #'      algorithm).
+#' \item \code{param.names.list} A list containing names for various model parameters
+#' as follows:
+#' \itemize{
+#' \item respondent.pars - names for the (constrained) respondent parameters/coefficients
+#' \item unconstrained.respondent.pars - names for the unconstrained respondent
+#' parameters/coefficients
+#' \item stan.pars - names for the parameters used in the stan code; useful for extracting
+#' samples, using diagnostics, etc. when working with the stan.fit object
+#' \code mean.pars - names for the (population) mean parameters (theta in the stan code) for
+#' the respondent parameters
+#' \item covariates - names for the covariates in the model (i.e. the
+#'       terms in \code{cov.formula})
+#' \item sd.pars - names for the standard deviation (sigma) parameters in the
+#' model. Equal to \code{mean.pars} unless grouped covariates are included in the model
+#' }
+#'
 ##     \item \code{parameter.names} Character vector of parameter names
 ##     for the mean parameters in the model.
 #'     \item \code{in.sample.accuracy} The in-sample prediction accuracy.
