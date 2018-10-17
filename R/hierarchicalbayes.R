@@ -26,8 +26,6 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 
     keep.beta <- beta.draws.to.keep > 0
 
-    ##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@5@"]]));##:ess-bp-end:##
     InterceptExceptions(
     {
         stan.fit <- RunStanSampling(stan.dat, n.iterations, n.chains,
