@@ -11,7 +11,7 @@ is.rserver <- node.name == "reusdev" || grepl("^reustest.*", node.name) ||
                   grepl("^reusprod.*", node.name)
 if (!is.rserver){
     devtools::load_all("~/flip/flipChoice")
-    save.dir <- "../../Documents/Features/ChoiceModelCovariates/simres/"
+    save.dir <- "~/Documents/Features/ChoiceModelCovariates/simres/"
 }else{
     save.dir <- "./"
     .libPaths("/usr/lib/opencpu/library")
@@ -43,25 +43,25 @@ GetStats <- function(res){
     rhats.s <- chain.stats[, "Rhat"]
     neffs.s <- chain.stats[, "n_eff"]
     c(mean.rhat.theta = mean(rhats.t), mean.neff.theta = mean(neffs.t),
-                            mean.neff.per.sec.theta = mean(neffs.t)/res$time.take,
-                            mean.rhat.sigma = mean(rhats.s), mean.neff.sigma = mean(neffs.s),
-             mean.neff.per.sec.sigma = mean(neffs.s)/res$time.take,
-             max.rhat = max(rhats.t, rhats.s), min.neff = min(neffs.t, neffs.s),
-             min.neff.per.sec = min(neffs.t, neffs.s)/res$time.take,
-             in.acc = res$in.sample.accuracy,
-             out.acc = res$out.sample.accuracy, time = res$time.take)
+      mean.neff.per.sec.theta = mean(neffs.t)/res$time.take,
+      mean.rhat.sigma = mean(rhats.s), mean.neff.sigma = mean(neffs.s),
+      mean.neff.per.sec.sigma = mean(neffs.s)/res$time.take,
+      max.rhat = max(rhats.t, rhats.s), min.neff = min(neffs.t, neffs.s),
+      min.neff.per.sec = min(neffs.t, neffs.s)/res$time.take,
+      in.acc = res$in.sample.accuracy,
+      out.acc = res$out.sample.accuracy, time = res$time.take)
 }
 
-reduced <- TRUE
-include.choice.parameters <- FALSE  # indicator for alternative number
+reduced <- FALSE
+include.choice.parameters <- TRUE  # indicator for alternative number
 ## sim.setting <- if (is.rserver){
 ##                    as.integer(commandArgs(trailingOnly = TRUE)[[2L]])
 ##                }else
 ##                    1
 sim.settings <- 1:3
 
-n.iter <- 750
-n.sims <- 3
+n.iter <- 1500
+n.sims <- 1
 n.leave.out.q <- c(14, 7, 1)
 n.chains <- parallel::detectCores()
 sseed <- c(1111, 77, 145)
@@ -90,14 +90,14 @@ for (sim.setting in sim.settings){
     }else if (sim.setting == 2){  # zero correlation
         hb.sigma.prior.shape <- 1.394357
         hb.sigma.prior.scale <- 0.394357
-        hb.lkj.prior.shape <- 1e8
+        hb.lkj.prior.shape <- 1e6
     }else{  # zero corr. and near-zero var.
         hb.sigma.prior.shape <- 10
         hb.sigma.prior.scale <- 10000
-        hb.lkj.prior.shape <- 1e8
+        hb.lkj.prior.shape <- 1e6
     }
 
-    for (j in seq_along(n.leave.out.q))
+    for (j in 3)
     {
       for (i in 1:n.sims)
       {
@@ -112,6 +112,7 @@ for (sim.setting in sim.settings){
                                        seed = i + sseed[j]))
           if (!inherits(result, "try-error"))
               comp.stats[i, 1, ] <- GetStats(result)
+
           utils::setTxtProgressBar(pb,
                        length(sim.settings)*(sim.setting-1)+length(n.leave.out.q)*(j-1)+3*(i-1)+1)
 
@@ -130,7 +131,8 @@ for (sim.setting in sim.settings){
         ## samps <- do.call(cbind, samps)
         if (!inherits(result, "try-error"))
             comp.stats[i, 2, ] <- GetStats(result)
-          utils::setTxtProgressBar(pb,
+
+        utils::setTxtProgressBar(pb,
                        length(sim.settings)*(sim.setting-1)+length(n.leave.out.q)*(j-1)+3*(i-1)+2)
 
         ## body(flipChoice:::stanModel)[[3]] <- origin.stanModel.b
@@ -151,7 +153,8 @@ for (sim.setting in sim.settings){
 
         if (!inherits(result, "try-error"))
             comp.stats[i, 3, ] <- GetStats(result)
-        utils::setTxtProgressBar(pb,
+
+          utils::setTxtProgressBar(pb,
                     length(sim.settings)*(sim.setting-1)+length(n.leave.out.q)*(j-1)+3*(i-1))
         flush.console()
       }
@@ -177,12 +180,13 @@ for (sim.setting in sim.settings){
 
   }
 }
-dimnames(comp.stats.all) <- list(NULL, c("default", "zero corr", "zero var"),
-                             paste0("left.out", n.leave.out.q, "q"),
+dimnames(comp.stats.all) <- list(c("default", "zero corr", "zero var"),
+                                 paste0("left.out", n.leave.out.q, "q"),
+                                 NULL,
                              c("NoCov", "Fixed", "Random"),
                                    c("mean.rhat.theta", "mean.neff.theta",
                                      "mean.neff.per.sec.theta", "mean.rhat.sigma", "mean.neff.sigma",
                                      "mean.neff.per.sec.sigma", "max.rhat", "min.neff",
                                      "min.neff.per.sec", "in.acc", "out.acc", "time"))
-
+saveRDS(comp.stats.all, "./cruiseAllFull1sim.rds")
 colMeans(comp.stats, dim = 1)

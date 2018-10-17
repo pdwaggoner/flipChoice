@@ -180,19 +180,19 @@ if (sim.setting == 1){  # defaults
 }else if (sim.setting == 2){  # zero correlation
     hb.sigma.prior.shape <- 1.394357
     hb.sigma.prior.scale <- 0.394357
-    hb.lkj.prior.shape <- 1e8
+    hb.lkj.prior.shape <- 1e6
 }else{  # zero corr. and near-zero var.
     hb.sigma.prior.shape <- 10
     hb.sigma.prior.scale <- 10000
-    hb.lkj.prior.shape <- 1e8
+    hb.lkj.prior.shape <- 1e6
 }
 
 n.iter <- 1000
 n.sims <- 3
 n.leave.out.q <- 5
 n.chains <- parallel::detectCores()  # 1
-sseed <- 38911
-
+sseed <- switch(as.character(n.leave.out.q),
+                "1" = 852L, "3" = 675L, "5" = 38911L)
 
 if (reduced){
     attr.name <- "Sugar"
@@ -215,11 +215,13 @@ if (createSawtoothDualCSV){
                  respondent.file = paste0(save.dir, fname, "_data.csv"),
                  respondent.out.file = paste0(save.dir, fname, "_data_out.csv"),
                  covariates.file = paste0(save.dir, fname, "_covariates.csv"),
-                 n.questions.left.out = n.leave.out.q, subset = rep(TRUE, nrow(fast.food)),
+                 n.questions.left.out = n.leave.out.q, subset = rep(TRUE, nrow(chocolate)),
                  include.choice.parameters = include.choice.parameters,
                  seed = sseed+i)
     }
-    zip(paste0(attr.name, ".zip"), list.files(save.dir, pattern = fprefix))
+    zip(paste0(attr.name, ".zip"), list.files(save.dir, pattern = fprefix, full.names = TRUE))
+    remove.files(list.files(save.dir, pattern = paste0(fprefix, "[A-z0-9._-]*[.]csv$",
+                                                       full.names = TRUE)))
 }
 
 
