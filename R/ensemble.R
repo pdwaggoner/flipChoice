@@ -130,5 +130,3 @@ ExtractChartData.ChoiceEnsemble <- function(x)
 {
     return(x$respondent.parameters)
 }
-
-

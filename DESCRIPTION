@@ -26,7 +26,8 @@ Imports: flipData,
          ggplot2,
          rstan (>= 2.17.2),	 
          rstantools (>= 1.4.0),
-         pracma	 
+         pracma,
+	     lme4
 Suggests: testthat,
          withr,
          choiceDes	 

@@ -57,10 +57,14 @@ test.design.none <- ChoiceModelDesign(design.algorithm = "Partial profiles",
                                             none.positions = 2,
                                             seed = 1)
 
-small.levels <- list(car = list(time = c("10", "20", "30"), comfort = c("H", "M", "L")),
-                     bus = list(time = c("20", "30", "40"), crowded = c("Y", "N"), wait = c("5", "10", "15")),
-                     walk = list(time = c("30", "45", "60"), weather = c("Rain", "Sun", "Cloud")),
-                     bike = list(time = c("15", "25", "35"), weather = c("Rain", "Sun", "Cloud")))
+small.levels <- list(car = list(time = c("10", "20", "30"),
+                                comfort = c("H", "M", "L")),
+                     bus = list(time = c("20", "30", "40"),
+                                crowded = c("Y", "N"), wait = c("5", "10", "15")),
+                     walk = list(time = c("30", "45", "60"),
+                                 weather = c("Rain", "Sun", "Cloud")),
+                     bike = list(time = c("15", "25", "35"),
+                                 weather = c("Rain", "Sun", "Cloud")))
 asd <- ChoiceModelDesign(attribute.levels = small.levels,
                          n.questions = 6,
                          n.versions = 10,
@@ -68,6 +72,7 @@ asd <- ChoiceModelDesign(attribute.levels = small.levels,
                          none.alternatives = 2,
                          none.position = c(2, 4),
                          design.algorithm = "Alternative specific - Federov")
+
 
 test_that("experiment question simulated data", {
     exp.simulated.prior <- structure(c("Alt", "a", "b", "c", "", "mean", "0", "0", "0",
@@ -143,6 +148,7 @@ test_that("design object simulated data entered priors", {
                              simulated.sample.size = 1000),
         paste0("Prior standard deviations were not supplied for one or more attributes. ",
                "Their standard deviations have been assummed to be 0."))
+
     expect_error(print(result), NA)
 })
 

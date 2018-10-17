@@ -4,23 +4,23 @@
 \alias{FitChoiceModel}
 \title{FitChoiceModel}
 \usage{
-FitChoiceModel(design = NULL, experiment.data = NULL,
-  cho.lines = NULL, cho.file = NULL, design.variables = NULL,
-  design.file = NULL, attribute.levels = NULL,
-  attribute.levels.file = NULL, cov.formula = NULL, cov.data = NULL,
-  choices = NULL, questions = NULL, tasks = NULL,
-  simulated.priors = NULL, simulated.priors.from.design = FALSE,
-  simulated.sample.size = 300, synthetic.priors = NULL,
-  synthetic.priors.from.design = NULL, synthetic.sample.size = NULL,
-  n.classes = 1, subset = NULL, weights = NULL,
-  missing = "Use partial data", seed = 123, tasks.left.out = 0,
-  algorithm = "HB-Stan", lc.tolerance = 1e-04,
+FitChoiceModel(design = NULL, experiment.data = NULL, cho.lines = NULL,
+  cho.file = NULL, design.variables = NULL, design.file = NULL,
+  attribute.levels = NULL, attribute.levels.file = NULL,
+  cov.formula = NULL, cov.data = NULL, choices = NULL, questions = NULL,
+  tasks = NULL, simulated.priors = NULL,
+  simulated.priors.from.design = FALSE, simulated.sample.size = 300,
+  synthetic.priors = NULL, synthetic.priors.from.design = NULL,
+  synthetic.sample.size = NULL, n.classes = 1, subset = NULL,
+  weights = NULL, missing = "Use partial data", seed = 123,
+  tasks.left.out = 0, algorithm = "HB-Stan", lc.tolerance = 1e-04,
   initial.parameters = NULL, normal.covariance = "Full",
   hb.iterations = 100, hb.chains = 8, hb.max.tree.depth = 10,
   hb.adapt.delta = 0.8, hb.keep.samples = FALSE, hb.stanfit = TRUE,
-  hb.prior.mean = 0, hb.prior.sd = 5, hb.warnings = TRUE,
-  hb.beta.draws.to.keep = 0, include.choice.parameters = TRUE,
-  respondent.ids = NULL, ...)
+  hb.prior.mean = 0, hb.prior.sd = 5, hb.sigma.prior.shape = 1.394357,
+  hb.sigma.prior.scale = 0.394357, hb.lkj.prior.shape = 4,
+  hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
+  include.choice.parameters = TRUE, respondent.ids = NULL, ...)
 }
 \arguments{
 \item{design}{A design object produced by ChoiceModelDesign}
@@ -34,21 +34,22 @@ FitChoiceModel(design = NULL, experiment.data = NULL,
 \item{design.variables}{A list of variables of columns from a Sawtooth
 design file (dual file format) or a JMP design file.}
 
-\item{design.file}{The file path to a Sawtooth design file (dual file
-format) or a JMP design file.}
+\item{design.file}{The file path to a Sawtooth design file (dual
+file format) or a JMP design file.}
 
 \item{attribute.levels}{A list of attribute levels (with attribute names as
 names) or a character matrix with the first row containing attribute
 names and subsequent rows containing attribute levels.}
 
-\item{attribute.levels.file}{The file path to an Excel file containing the
-level names of each attribute.}
+\item{attribute.levels.file}{The file path to an Excel file
+containing the level names of each attribute.}
 
 \item{cov.formula}{An optional \code{\link{formula}} for any fixed
 (respondent-specific) covariates to be included in the model.
-When only 1 class is specified, covariates are applied to the mean
-parameter theta (fixed covariates). When more than 1 class is
-specified, covariates are applied to the class weight parameters.}
+When only 1 class is specified, covariates are applied to the
+mean parameter theta (fixed covariates). When more than 1 class
+is specified, covariates are applied to the class weight
+parameters.}
 
 \item{cov.data}{An optional \code{\link{data.frame}} containing the
 variables present in \code{cov.formula}.}
@@ -61,13 +62,13 @@ question.}
 \item{tasks}{A data.frame of IDs of tasks presented to the
 respondents.}
 
-\item{simulated.priors}{A 2-column matrix whose columns correspond to the
-mean and standard deviations of the parameters; or a character matrix
-with attribute levels and corresponding mean and sd columns after each
-attribute level column.}
+\item{simulated.priors}{A 2-column matrix whose columns correspond
+to the mean and standard deviations of the parameters; or a
+character matrix with attribute levels and corresponding mean
+and sd columns after each attribute level column.}
 
-\item{simulated.priors.from.design}{Whether simulated priors from the design
-object are to be used.}
+\item{simulated.priors.from.design}{Whether simulated priors from
+the design object are to be used.}
 
 \item{simulated.sample.size}{The number of simulated respondents to
 generate.}
@@ -86,8 +87,8 @@ observations to be used in the fitting process.}
 
 \item{weights}{An optional vector of sampling or frequency weights.}
 
-\item{missing}{How missing data is to be treated in the regression. Options:
-\code{"Error if missing data"},
+\item{missing}{How missing data is to be treated in the
+regression. Options: \code{"Error if missing data"},
 \code{"Exclude cases with missing data"}, and
 \code{"Use partial data"}.}
 
@@ -96,17 +97,18 @@ observations to be used in the fitting process.}
 \item{tasks.left.out}{Number of questions to leave out for
 cross-validation.}
 
-\item{algorithm}{Either "HB-Stan" for Hierarchical Bayes or "LCA" for
-latent class analysis.}
+\item{algorithm}{Either "HB-Stan" for Hierarchical Bayes or "LCA"
+for latent class analysis.}
 
 \item{lc.tolerance}{The tolerance used for defining convergence in
 latent class analysis.}
 
 \item{initial.parameters}{Specify initial parameters intead of
-starting at random in latent class analysis. The initial parameters
-need to be supplied as list consisting of a matrix called
-class.parameters whose columns are the parameters of the classes, and a
-vector called class.sizes containing the class size parameters.}
+starting at random in latent class analysis. The initial
+parameters need to be supplied as list consisting of a matrix
+called class.parameters whose columns are the parameters of the
+classes, and a vector called class.sizes containing the class
+size parameters.}
 
 \item{normal.covariance}{The form of the covariance matrix for
 Hierarchical Bayes. Can be 'Full, 'Spherical', 'Diagonal'.}
@@ -141,6 +143,20 @@ attribute, the attribute is treated as ordered categorical and
 hb.prior.sd controls the standard deviations of the offsets
 from the base attribute.}
 
+\item{hb.sigma.prior.shape}{Postive real number; the shape
+hyperparameter for the gamma priors used for the scale
+parameters of the respondent coefficients covariance matrix.}
+
+\item{hb.sigma.prior.scale}{Postive real number; the rate
+hyperparameter for the gamma priors used for the scale
+parameters of the respondent coefficients covariance matrix.}
+
+\item{hb.lkj.prior.shape}{Real number greater than one; the shape
+    hyperparameter for the LKJ prior used for the correlation matrix
+    of the respondent coefficients distribution. A value of one gives
+equal probability weight to all possible correlation matrices. Larger values
+favour less correlation (draws closer to the identity matrix).}
+
 \item{hb.warnings}{Whether to show warnings from Stan.}
 
 \item{hb.beta.draws.to.keep}{Maximum number of beta draws per
@@ -149,8 +165,8 @@ respondent to return in beta.draws.}
 \item{include.choice.parameters}{Whether to include
 alternative-specific parameters.}
 
-\item{respondent.ids}{If a cho file is supplied, this is the vector of the
-respondent IDs to use.}
+\item{respondent.ids}{If a cho file is supplied, this is the vector
+of the respondent IDs to use.}
 
 \item{...}{Additional parameters to pass on to \code{rstan::stan}
 and \code{rstan::sampling}.}
@@ -173,8 +189,22 @@ A list with the following components:
     \item \code{beta.draws} A 3D array containing
     sampling draws of beta for each respondent (only for the HB-Stan
      algorithm).
-    \item \code{parameter.names} Character vector of parameter names
-    for the mean parameters in the model.
+\item \code{param.names.list} A list containing names for various model parameters
+as follows:
+\itemize{
+\item respondent.pars - names for the (constrained) respondent parameters/coefficients
+\item unconstrained.respondent.pars - names for the unconstrained respondent
+parameters/coefficients
+\item stan.pars - names for the parameters used in the stan code; useful for extracting
+samples, using diagnostics, etc. when working with the stan.fit object
+\code mean.pars - names for the (population) mean parameters (theta in the stan code) for
+the respondent parameters
+\item covariates - names for the covariates in the model (i.e. the
+      terms in \code{cov.formula})
+\item sd.pars - names for the standard deviation (sigma) parameters in the
+model. Equal to \code{mean.pars} unless grouped covariates are included in the model
+}
+
     \item \code{in.sample.accuracy} The in-sample prediction accuracy.
     \item \code{out.sample.accuracy} The out-of-sample prediction
     accuracy.

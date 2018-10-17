@@ -6,10 +6,9 @@
 \usage{
 SawtoothDualCsv(design, respondent.data, covariates.data = NULL,
   subset = NULL, dual.response.none = FALSE,
-  dual.response.none.as.none = FALSE, design.file,
-  design.out.file = NULL, respondent.file, respondent.out.file = NULL,
-  covariates.file = NULL, include.choice.parameters = TRUE,
-  n.questions.left.out = 0, seed = 123)
+  dual.response.none.as.none = FALSE, design.file, design.out.file = NULL,
+  respondent.file, respondent.out.file = NULL, covariates.file = NULL,
+  include.choice.parameters = TRUE, n.questions.left.out = 0, seed = 123)
 }
 \arguments{
 \item{design}{A choice model design object.}

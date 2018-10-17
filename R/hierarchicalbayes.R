@@ -16,8 +16,10 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 
     stan.dat <- createStanData(dat, n.classes, normal.covariance)
 
+    has.covariates <- !is.null(dat$covariates)
     stan.model <- stanModel(n.classes, normal.covariance,
-                            !is.null(dat$covariates))
+                            has.covariates,
+                            has.covariates && dat$total_rc > 0)
 
     on.warnings <- GetStanWarningHandler(show.stan.warnings)
     on.error <- GetStanErrorHandler()
@@ -35,23 +37,25 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
     stan.fit <- matched$stan.fit
     class.match.fail <- matched$match.fail
 
-    result <- list()
+    param.names <- createNamesList(dat, keep.beta, stan.model)
+    result <- list(param.names.list = param.names)
 
     result$reduced.respondent.parameters <- ComputeRespPars(stan.fit,
-                                                        dat$beta.names,
+                                                        param.names$respondent.pars,
                                                         dat$subset,
                                                         dat$parameter.scales)
     result$respondent.parameters <- ComputeRespPars(stan.fit,
-                                                    dat$beta.names,
-                                                    dat$subset,
-                                                    dat$parameter.scales,
-                                                    dat$all.beta.names)
+                                          param.names$respondent.pars,
+                                          dat$subset,
+                                          dat$parameter.scales,
+                                          param.names$unconstrained.respondent.pars)
     result$class.match.fail <- class.match.fail
+
     if (!class.match.fail)
         result$parameter.statistics <- GetParameterStatistics(stan.fit,
-                                                              dat$par.names,
+                                                              param.names$mean.pars,
                                                               n.classes,
-                                                              dat$beta.names)
+                                                              param.names$sd.pars)
     if (include.stanfit)
     {
         result$stan.fit <- if (keep.samples)
@@ -62,6 +66,9 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
             result$beta.draws <- ExtractBetaDraws(stan.fit,
                                                   beta.draws.to.keep)
     }
+
+
+
 
     n.hb.parameters <- numberOfHBParameters(stan.dat)
     result <- c(result, LogLikelihoodAndBIC(stan.fit, n.hb.parameters,
@@ -90,9 +97,8 @@ RunStanSampling <- function(stan.dat, n.iterations, n.chains,
                             max.tree.depth, adapt.delta,
                             seed, stan.model, keep.beta, ...)
 {
-    pars <- stanParameters(stan.dat, keep.beta)
+    pars <- stanParameters(stan.dat, keep.beta, stan.model)
     init <- initialParameterValues(stan.dat)
-
     sampling(stan.model, data = stan.dat, chains = n.chains,
                        pars = pars, iter = n.iterations, seed = seed,
                        control = list(max_treedepth = max.tree.depth,
@@ -100,22 +106,26 @@ RunStanSampling <- function(stan.dat, n.iterations, n.chains,
                        init = init, ...)
 }
 
-stanParameters <- function(stan.dat, keep.beta)
+stanParameters <- function(stan.dat, keep.beta, stan.model)
 {
     full.covariance <- is.null(stan.dat$U)
     multiple.classes <- !is.null(stan.dat$P)
     has.covariates <- !is.null(stan.dat$covariates)
 
     pars <- c("theta", "sigma", "log_likelihood")
-    if (keep.beta)
-        pars <- c(pars, "beta")
+
     if (multiple.classes)
     {
         if (has.covariates)
             pars <- c(pars, "covariates_beta")
         else
             pars <- c(pars, "class_weights")
-    }
+    }else if (stan.model@model_name == "choicemodelRCdiag")
+        pars <- c("resp_fixed_coef", "sigma", "sig_rc",
+                  "log_likelihood")
+    if (keep.beta)
+        pars <- c(pars, "beta")
+
     pars
 }
 
@@ -163,7 +173,11 @@ createStanData <- function(dat, n.classes, normal.covariance)
                      V_covariates = dat$n.covariates,
                      covariates = dat$covariates,
                      prior_mean = dat$prior.mean,
-                     prior_sd = dat$prior.sd)
+                     prior_sd = dat$prior.sd,
+                     gamma_shape = dat$hb.sigma.prior.shape,
+                     gamma_scale = dat$hb.sigma.prior.scale,
+                     lkj_shape = dat$hb.lkj.prior.shape
+                     )
 
     if (n.classes > 1)
         stan.dat$P <- n.classes
@@ -172,6 +186,16 @@ createStanData <- function(dat, n.classes, normal.covariance)
         stan.dat$U <- dat$n.parameters
     else if (normal.covariance == "Spherical")
         stan.dat$U <- 1
+
+    if (length(dat$covariates))
+    {
+        stan.dat$V_fc <- dat$V_fc
+        stan.dat$Xmat <- dat$Xmat
+        stan.dat$V_rc <- dat$V_rc
+        stan.dat$Zmat <- dat$Zmat
+        stan.dat$rc_dims <- dat$rc_dims
+        stan.dat$total_rc <- dat$total_rc
+    }
 
     stan.dat
 }
@@ -251,21 +275,23 @@ ComputeRespPars <- function(stan.fit, par.names, subset,
     result
 }
 
-stanModel <- function(n.classes, normal.covariance, has.covariates)
+stanModel <- function(n.classes, normal.covariance, has.covariates, has.grouped.cov)
 {
-    covariates.error.msg <- paste0("Covariates is not currently implemented ",
+    covariates.error.msg <- paste0("Covariates are not currently implemented ",
                                    "for the specified settings.")
     if (n.classes == 1)
     {
         if (normal.covariance == "Full")
         {
-            if (has.covariates)
+            if (has.covariates && !has.grouped.cov)
                 stanmodels$choicemodelFC
+            else if (has.covariates)
+                stanmodels$choicemodelRC
             else
                 stanmodels$choicemodel
         }
         else if (has.covariates)
-            stop(covariates.error.msg)
+            stop(covariates.error.msg, call. = FALSE)
         else
             stanmodels$diagonal
     }
@@ -273,13 +299,15 @@ stanModel <- function(n.classes, normal.covariance, has.covariates)
     {
         if (normal.covariance == "Full")
         {
-            if (has.covariates)
+            if (has.covariates && !has.grouped.cov)
                 stanmodels$mixtureofnormalsC
+            else if (has.covarites)
+                stop(covariates.error.msg, call. = FALSE)
             else
                 stanmodels$mixtureofnormals
         }
         else if (has.covariates)
-            stop(covariates.error.msg)
+            stop(covariates.error.msg, call. = FALSE)
         else
             stanmodels$diagonalmixture
     }
@@ -399,6 +427,7 @@ onStanWarning <- function(warn)
     else
         warning(warn)
     message(msg)
+    invisible()
 }
 
 #' @title GetParameterStatistics
@@ -413,7 +442,10 @@ onStanWarning <- function(warn)
 GetParameterStatistics <- function(stan.fit, parameter.names, n.classes,
                                    sigma.parameter.names = parameter.names)
 {
-    pars <- c('theta', 'sigma')
+    if ("theta" %in% stan.fit@model_pars)
+        pars <- c('theta', 'sigma')
+    else  # model has grouped covariates; choicemodelRC.stan used
+        pars <- c("resp_fixed_coef", "sigma", "sig_rc")
 
     ex <- extract(stan.fit, pars = pars, permuted = FALSE,
                          inc_warmup = FALSE)
@@ -590,4 +622,33 @@ numberOfHBParameters <- function(stan.dat)
         else
             n.classes * (n.coef + stan.dat$U) + n.classes - 1
     }
+}
+
+#' Creates a list of all model parameter names for use
+#' in print methods and diagnostic functions
+#' @return A list with components
+#' \itemize{
+#' \item respondent.pars - names for the (constrained) respondent parameters/coefficients
+#' \item unconstrained.respondent.pars - names for the unconstrained respondent
+#' parameters/coefficients
+#' \item stan.pars - names for the parameters used in the stan code; useful for extracting
+#' samples, using diagnostics, etc. when working with the stan.fit object
+#' \code mean.pars - names for the (population) mean parameters (theta in the stan code) for
+#' the respondent parameters
+#' \item covariates - names for the covariates in the model (i.e. the
+#'       terms in \code{cov.formula})
+#' \item sd.pars - names for the standard deviation (sigma) parameters in the
+#' model. Equal to \code{mean.pars} unless grouped covariates are included in the model
+#' }
+#' @noRd
+createNamesList <- function(stan.dat, keep.beta, stan.model)
+{
+    if (is.null(stan.dat$sd.names))
+        stan.dat$sd.names <- stan.dat$par.names
+    list(respondent.pars = stan.dat$beta.names,
+         unconstrained.respondent.pars = stan.dat$all.beta.names,
+         stan.pars = stanParameters(stan.dat, keep.beta, stan.model),
+         mean.pars = stan.dat$par.names,
+         covariates = colnames(stan.dat$covariates),
+         sd.pars = stan.dat$sd.names)
 }

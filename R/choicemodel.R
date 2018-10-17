@@ -7,18 +7,19 @@
 #' @param cho.file The file path to a cho file.
 #' @param design.variables A list of variables of columns from a Sawtooth
 #'     design file (dual file format) or a JMP design file.
-#' @param design.file The file path to a Sawtooth design file (dual file
-#'     format) or a JMP design file.
+#' @param design.file The file path to a Sawtooth design file (dual
+#'     file format) or a JMP design file.
 #' @param attribute.levels A list of attribute levels (with attribute names as
 #'     names) or a character matrix with the first row containing attribute
 #'     names and subsequent rows containing attribute levels.
-#' @param attribute.levels.file The file path to an Excel file containing the
-#'     level names of each attribute.
+#' @param attribute.levels.file The file path to an Excel file
+#'     containing the level names of each attribute.
 #' @param cov.formula An optional \code{\link{formula}} for any fixed
 #'     (respondent-specific) covariates to be included in the model.
-#'     When only 1 class is specified, covariates are applied to the mean
-#'     parameter theta (fixed covariates). When more than 1 class is
-#'     specified, covariates are applied to the class weight parameters.
+#'     When only 1 class is specified, covariates are applied to the
+#'     mean parameter theta (fixed covariates). When more than 1 class
+#'     is specified, covariates are applied to the class weight
+#'     parameters.
 #' @param cov.data An optional \code{\link{data.frame}} containing the
 #'     variables present in \code{cov.formula}.
 #' @param choices A data.frame of choices made by respondents for each
@@ -26,12 +27,12 @@
 #' @param tasks A data.frame of IDs of tasks presented to the
 #'     respondents.
 #' @param questions Deprecated. Replaced by tasks.
-#' @param simulated.priors A 2-column matrix whose columns correspond to the
-#'     mean and standard deviations of the parameters; or a character matrix
-#'     with attribute levels and corresponding mean and sd columns after each
-#'     attribute level column.
-#' @param simulated.priors.from.design Whether simulated priors from the design
-#'     object are to be used.
+#' @param simulated.priors A 2-column matrix whose columns correspond
+#'     to the mean and standard deviations of the parameters; or a
+#'     character matrix with attribute levels and corresponding mean
+#'     and sd columns after each attribute level column.
+#' @param simulated.priors.from.design Whether simulated priors from
+#'     the design object are to be used.
 #' @param simulated.sample.size The number of simulated respondents to
 #'     generate.
 #' @param synthetic.priors Deprecated. see simulated.priors.
@@ -42,22 +43,23 @@
 #' @param subset An optional vector specifying a subset of
 #'     observations to be used in the fitting process.
 #' @param weights An optional vector of sampling or frequency weights.
-#' @param missing How missing data is to be treated in the regression. Options:
-#'   \code{"Error if missing data"},
-#'   \code{"Exclude cases with missing data"}, and
-#'   \code{"Use partial data"}.
+#' @param missing How missing data is to be treated in the
+#'     regression. Options: \code{"Error if missing data"},
+#'     \code{"Exclude cases with missing data"}, and
+#'     \code{"Use partial data"}.
 #' @param seed Random seed.
 #' @param tasks.left.out Number of questions to leave out for
 #'     cross-validation.
-#' @param algorithm Either "HB-Stan" for Hierarchical Bayes or "LCA" for
-#'     latent class analysis.
+#' @param algorithm Either "HB-Stan" for Hierarchical Bayes or "LCA"
+#'     for latent class analysis.
 #' @param lc.tolerance The tolerance used for defining convergence in
 #'     latent class analysis.
 #' @param initial.parameters Specify initial parameters intead of
-#'     starting at random in latent class analysis. The initial parameters
-#'     need to be supplied as list consisting of a matrix called
-#'     class.parameters whose columns are the parameters of the classes, and a
-#'     vector called class.sizes containing the class size parameters.
+#'     starting at random in latent class analysis. The initial
+#'     parameters need to be supplied as list consisting of a matrix
+#'     called class.parameters whose columns are the parameters of the
+#'     classes, and a vector called class.sizes containing the class
+#'     size parameters.
 #' @param normal.covariance The form of the covariance matrix for
 #'     Hierarchical Bayes. Can be 'Full, 'Spherical', 'Diagonal'.
 #' @param hb.iterations The number of iterations in Hierarchical
@@ -84,13 +86,24 @@
 #'     attribute, the attribute is treated as ordered categorical and
 #'     hb.prior.sd controls the standard deviations of the offsets
 #'     from the base attribute.
+#' @param hb.sigma.prior.shape Postive real number; the shape
+#'     hyperparameter for the gamma priors used for the scale
+#'     parameters of the respondent coefficients covariance matrix.
+#' @param hb.sigma.prior.scale Postive real number; the rate
+#'     hyperparameter for the gamma priors used for the scale
+#'     parameters of the respondent coefficients covariance matrix.
+#' @param hb.lkj.prior.shape Real number greater than one; the shape
+#'     hyperparameter for the LKJ prior used for the correlation matrix
+#'     of the respondent coefficients distribution. A value of one gives
+#' equal probability weight to all possible correlation matrices. Larger values
+#' favour less correlation (draws closer to the identity matrix).
 #' @param hb.warnings Whether to show warnings from Stan.
 #' @param hb.beta.draws.to.keep Maximum number of beta draws per
 #'     respondent to return in beta.draws.
 #' @param include.choice.parameters Whether to include
 #'     alternative-specific parameters.
-#' @param respondent.ids If a cho file is supplied, this is the vector of the
-#'     respondent IDs to use.
+#' @param respondent.ids If a cho file is supplied, this is the vector
+#'     of the respondent IDs to use.
 #' @param ... Additional parameters to pass on to \code{rstan::stan}
 #'     and \code{rstan::sampling}.
 #' @return A list with the following components:
@@ -110,8 +123,24 @@
 #'     \item \code{beta.draws} A 3D array containing
 #'     sampling draws of beta for each respondent (only for the HB-Stan
 #'      algorithm).
-#'     \item \code{parameter.names} Character vector of parameter names
-#'     for the mean parameters in the model.
+#' \item \code{param.names.list} A list containing names for various model parameters
+#' as follows:
+#' \itemize{
+#' \item respondent.pars - names for the (constrained) respondent parameters/coefficients
+#' \item unconstrained.respondent.pars - names for the unconstrained respondent
+#' parameters/coefficients
+#' \item stan.pars - names for the parameters used in the stan code; useful for extracting
+#' samples, using diagnostics, etc. when working with the stan.fit object
+#' \code mean.pars - names for the (population) mean parameters (theta in the stan code) for
+#' the respondent parameters
+#' \item covariates - names for the covariates in the model (i.e. the
+#'       terms in \code{cov.formula})
+#' \item sd.pars - names for the standard deviation (sigma) parameters in the
+#' model. Equal to \code{mean.pars} unless grouped covariates are included in the model
+#' }
+#'
+##     \item \code{parameter.names} Character vector of parameter names
+##     for the mean parameters in the model.
 #'     \item \code{in.sample.accuracy} The in-sample prediction accuracy.
 #'     \item \code{out.sample.accuracy} The out-of-sample prediction
 #'     accuracy.
@@ -154,6 +183,7 @@
 #' }
 #' @importFrom flipFormat Labels
 #' @importFrom stats model.matrix.default
+#' @importFrom lme4 nobars
 #' @export
 #'
 FitChoiceModel <- function(design = NULL, experiment.data = NULL,
@@ -182,6 +212,9 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                            hb.max.tree.depth = 10, hb.adapt.delta = 0.8,
                            hb.keep.samples = FALSE, hb.stanfit = TRUE,
                            hb.prior.mean = 0, hb.prior.sd = 5,
+                           hb.sigma.prior.shape = 1.394357,
+                           hb.sigma.prior.scale = 0.394357,
+                           hb.lkj.prior.shape = 4,
                            hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
                            include.choice.parameters = TRUE,
                            respondent.ids = NULL, ...)
@@ -221,7 +254,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     start.time <- proc.time()
 
     covariates <- if (!is.null(cov.formula))
-        model.matrix.default(cov.formula, cov.data)
+        model.matrix(lme4::nobars(cov.formula), cov.data)  # model.matrix.default(cov.formula, cov.data)
     else
         NULL
 
@@ -264,7 +297,12 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
         stop("Insufficient data was supplied.")
 
     if (!is.null(dat$covariates))
-        dat <- processCovariateData(dat, n.classes)
+        dat <- processCovariateData(dat, n.classes, cov.formula, cov.data)
+
+    dat$hb.sigma.prior.shape <- hb.sigma.prior.shape
+    dat$hb.sigma.prior.scale <- hb.sigma.prior.scale
+    dat$hb.lkj.prior.shape <- hb.lkj.prior.shape
+
 
     if (algorithm == "HB-Stan")
     {
@@ -304,11 +342,6 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     result$n.attributes <- dat$n.attributes
     result$n.parameters <- dat$n.parameters
     result$n.total <- length(dat$subset)
-    result$parameter.names <- dat$par.names
-    result$covariate.names <- if (is.null(cov.formula))
-                                  NULL
-                              else
-                                  colnames(dat$covariates)
     result$simulated.respondent.parameters <- simulated.resp.pars
     result$synthetic.respondent.parameters <- simulated.resp.pars # deprecated
     result$time.taken <- (end.time - start.time)[3]
@@ -375,6 +408,120 @@ accuracyResults <- function(dat, result, n.questions.left.out)
     }
     result
 }
+
+predict.FitChoice <- function(object, data,  n.reps = 10000, ...)
+{
+    if (missing(data))
+        data <- object$processed.data
+    n.respondents <- length(data$n.questions.left.in)
+#    resp.pars <- result$reduced.respondent.parameters[dat$subset, ]
+
+    n.rs <- dim(data$X.in)[1]  # n.q*n.resp
+    n.alternatives <- dim(data$X.in)[2]
+    is.q.const <- length(unique(data$n.questions.left.in)) == 1L
+    if (!is.q.const)
+        stop("Number of questions per respondent needs to be constant")
+
+    n.questions <- data$n.questions.left.in[1L]
+    resp.pars <- extract(object$stan.fit, pars = "beta")[[1L]]
+
+    ## in.sample.accuracies <- rep(NA, n.respondents)
+    y.pred <- matrix(nrow = n.respondents, ncol = n.questions)
+    y.rep <- matrix(nrow = n.reps, ncol = n.rs)
+    if ("theta" %in% stan.fit@model_pars)
+        pars <- "theta"
+    else
+        pars <- c("resp_fixed_coef", "resp_rand_eff")
+
+
+    mean.par.samps <- extract(object$stan.fit, pars = pars, permuted = TRUE,
+                              inc_warmup = FALSE)[[1L]]
+    mean.new.samps <- lapply(mean.par.samps, function(x) apply(x, 2:3, sample,
+                                                               replace = TRUE, size = n.reps))
+    ## new.dat <- processCovariateData(object$processed.data,
+    ##                                 object$n.classes,
+    ##                                 object$processed.data$cov.formula,
+    ##                                 data$cov.data)
+    ## design matrices for the covariates are already formed since we
+    ##   fit the model to all respondents and only hold out a subset of
+    ##   questions for each respondent
+
+    rs <- 1
+    for (i in 1:n.respondents)
+    {
+        pars <- resp.pars[, i, ]
+        pars <- apply(pars, 2, sample, size = n.reps, replace = TRUE)
+        ## n.questions <- data$n.questions.left.in[i]
+        ## score <- rep(NA, n.questions)
+        for (j in 1:n.questions)
+        {
+            ## u <- rep(NA, n.alternatives)
+            lp <- tcrossprod(pars, data$X.in[rs, , ])
+            probs <- t(apply(lp, 1, flipChoice:::softmax))
+            y.preds <- apply(probs, 1, which.max)
+            y.pred[i, j] <- which.max(table(y.preds))
+            ## for (k in 1:n.alternatives)
+            ##     u[k] <- sum(pars * dat$X.in[rs, k, ])
+
+            ## score[j] <- if(which.max(u) == dat$Y.in[rs]) 1 else 0
+            y.rep[, rs] <- y.preds
+            rs <- rs + 1
+        }
+        ## in.sample.accuracies[i] <- mean(score)
+    }
+
+    ## w <- dat$weights
+    ## result$in.sample.accuracy <- sum(in.sample.accuracies * w) / sum(w)
+
+    ## if (n.questions.left.out > 0)
+    ## {
+    ##     out.sample.accuracies <- rep(NA, n.respondents)
+    ##     rs <- 1
+    ##     for (i in 1:n.respondents)
+    ##     {
+    ##         pars <- resp.pars[i, ]
+    ##         score <- rep(NA, n.questions.left.out)
+    ##         for (j in 1:n.questions.left.out)
+    ##         {
+    ##             u <- rep(NA, n.alternatives)
+    ##             for (k in 1:n.alternatives)
+    ##                 u[k] <- sum(pars * dat$X.out[rs, k, ])
+    ##             score[j] <- if(which.max(u) == dat$Y.out[rs]) 1 else 0
+    ##             rs <- rs + 1
+    ##         }
+    ##         out.sample.accuracies[i] <- mean(score)
+    ##     }
+    ##     result$prediction.accuracies <- rep(NA, length(dat$subset))
+    ##     result$prediction.accuracies[dat$subset] <- out.sample.accuracies
+    ##     result$out.sample.accuracy <- sum(out.sample.accuracies * w) / sum(w)
+    ## }
+    ## else
+    ## {
+    ##     result$prediction.accuracies <- rep(NA, length(dat$subset))
+    ##     result$prediction.accuracies[dat$subset] <- in.sample.accuracies
+    ##     result$out.sample.accuracy <- NA
+    ## }
+    ## result
+    list(y.rep = y.rep, y.pred = y.pred)
+}
+
+computeAccuracy <- function(object, data, ...)
+{
+    y.pred.in <- predict(object, data, ...)
+    n.resp <- length(data$n.questions.left.in)
+    y.in <- matrix(data$Y.in, nrow = n.resp, byrow = TRUE)
+    in.correct <- y.in == y.pred.in$y.pred
+
+    y.pred.out <- predict(object,
+                          data = list(Y.in = data$Y.out, X.in = data$X.out,
+                                      n.questions.left.in = rep(data$n.questions.left.out, n.resp)),
+                          ...)
+
+    y.out <- matrix(data$Y.out, nrow = n.resp, byrow = TRUE)
+    out.correct <- y.out == y.pred.out$y.pred
+    list(y.pred.in, y.pred.out, in.acc = mean(in.correct), out.acc = mean(out.correct))
+}
+
 
 #' @title RespondentParameters
 #' @description The parameters for each respondent.
