@@ -584,7 +584,7 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
                                 decimals = 1)
     theta.rhat.ind <- which.max(theta.statistics[, 5])
     theta.rhat <- FormatAsReal(theta.statistics[theta.rhat.ind, 5],
-                               decimals = 1)
+                               decimals = 2)
 
     sigma.statistics <- parameter.statistics[(n.rows / 2 + 1):n.rows, ]
     sigma.n.eff.ind <- which.min(sigma.statistics[, 4])
@@ -592,7 +592,7 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
                                 decimals = 1)
     sigma.rhat.ind <- which.max(sigma.statistics[, 5])
     sigma.rhat <- FormatAsReal(sigma.statistics[sigma.rhat.ind, 5],
-                               decimals = 1)
+                               decimals = 2)
 
     if (n.classes > 1)
         nms <- rep(paste0(rep(parameter.names, each = n.classes), ", Class ",
@@ -655,19 +655,8 @@ print.FitChoice <- function(x, ...)
 
     footer <- choiceModelFooter(x)
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
-    footer <- paste0(footer, "mean RLH: ",
-                     FormatAsReal(mean(x$rlh), decimals = 2), "; ")
-    if (x$n.questions.left.out > 0)
-        footer <- paste0(footer, "mean holdout RLH: ",
-                         FormatAsReal(mean(x$rlh.out), decimals = 2), "; ")
-    footer <- paste0(footer, "log-likelihood: ",
-                     FormatAsReal(x$log.likelihood, decimals = 0), "; ")
-    if (x$n.questions.left.out > 0)
-        footer <- paste0(footer, "holdout log-likelihood: ",
-                         FormatAsReal(x$log.likelihood.out, decimals = 0),
-                         "; ")
-
-    footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 0), "; ")
+    footer <- paste0(footer, "log-likelihood: ", FormatAsReal(x$log.likelihood, decimals = 2), "; ")
+    footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 2), "; ")
 
     if (!is.null(x$class.match.fail)) # HB-Stan only
     {

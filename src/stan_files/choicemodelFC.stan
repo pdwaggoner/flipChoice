@@ -3,16 +3,12 @@ data {
     int<lower=1> R; // Number of respondents
     int<lower=1> V_covariates; // Number of respondent-specific covariates
     int<lower=1> S[R]; // Number of questions per respondent
-    int<lower=0> S_out; // Number of holdout questions
     int<lower=1> RS; // sum(S)
-    int<lower=1> RS_out; // R * S_out
     int<lower=1> A; // Number of attributes
     int<lower=1> V; // Number of parameters
     int<lower=1> V_attribute[A]; // Number of parameters in each attribute
     int<lower=1,upper=C> Y[RS]; // choices
-    int<lower=1,upper=C> Y_out[RS_out]; // holdout choices
     matrix[C, V] X[RS]; // matrix of attributes for each obs
-    matrix[C, V] X_out[RS_out]; // matrix of holdout attributes for each obs
     matrix[R,V_covariates] covariates;  // matrix of respondent characteristics
     vector[V] prior_mean; // Prior mean for theta
     vector[V] prior_sd; // Prior sd for theta
@@ -42,7 +38,7 @@ model {
     // gamma distribution with mode = 1 and p(x < 20) = 0.999
     /* sigma ~ gamma(1.39435729464721, 0.39435729464721); */
     sigma ~ gamma(gamma_shape, gamma_scale);
-
+  
     for(v in 1:V_covariates)
         theta[v] ~ normal(prior_mean, prior_sd);
     L_omega ~ lkj_corr_cholesky(lkj_shape);
@@ -61,39 +57,14 @@ model {
 
 generated quantities {
     real log_likelihood = 0;
-    real log_likelihood_out = 0;
-    vector[R] rlh;
-    vector[R] rlh_out;
+    int rs = 1;
 
-    // Add braces to exclude rs from exported values
+    for (r in 1:R)
     {
-        int rs = 1;
-        for (r in 1:R)
+        for (s in 1:S[r])
         {
-            real resp_ll = 0;
-            for (s in 1:S[r])
-            {
-                resp_ll += categorical_logit_lpmf(Y[rs] | X[rs] * to_vector(beta[r]));
-                rs += 1;
-            }
-            log_likelihood += resp_ll;
-            rlh[r] = exp(resp_ll / S[r]);
-        }
-    }
-
-    if (S_out > 0)
-    {
-        int rs = 1;
-        for (r in 1:R)
-        {
-            real resp_ll = 0;
-            for (s in 1:S_out)
-            {
-                resp_ll += categorical_logit_lpmf(Y_out[rs] | X_out[rs] * to_vector(beta[r]));
-                rs += 1;
-            }
-            log_likelihood_out += resp_ll;
-            rlh_out[r] = exp(resp_ll / S_out);
+            log_likelihood += categorical_logit_lpmf(Y[rs] | X[rs] * to_vector(beta[r]));
+            rs += 1;
         }
     }
 }

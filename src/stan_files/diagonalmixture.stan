@@ -2,22 +2,16 @@ data {
     int<lower=2> C; // Number of alternatives (choices) in each question
     int<lower=1> R; // Number of respondents
     int<lower=1> S[R]; // Number of questions per respondent
-    int<lower=0> S_out; // Number of holdout questions
     int<lower=1> RS; // sum(S)
-    int<lower=1> RS_out; // R * S_out
     int<lower=1> P; // Number of classes
     int<lower=1> A; // Number of attributes
     int<lower=1> V; // Number of parameters
     int<lower=1> V_attribute[A]; // Number of parameters in each attribute
     int<lower=1,upper=C> Y[RS]; // choices
-    int<lower=1,upper=C> Y_out[RS_out]; // holdout choices
     matrix[C, V] X[RS]; // matrix of attributes for each obs
-    matrix[C, V] X_out[RS_out]; // matrix of holdout attributes for each obs
     int<lower=1> U; // Number of standard deviation parameters
     vector[V] prior_mean; // Prior mean for theta
     vector[V] prior_sd; // Prior sd for theta
-    real<lower=0> gamma_shape; // shape parameter for gamma prior for sigma
-    real<lower=0> gamma_scale; // scale parameter for gamma prior for sigma
 }
 
 parameters {
@@ -53,8 +47,7 @@ model {
     for (p in 1:P)
     {
         // gamma distribution with mode = 1 and p(x < 20) = 0.999
-        // sigma_unique[p] ~ gamma(1.39435729464721, 0.39435729464721);
-        sigma_unique[p] ~ gamma(gamma_shape, gamma_scale);
+        sigma_unique[p] ~ gamma(1.39435729464721, 0.39435729464721);
 
         theta[p] ~ normal(prior_mean, prior_sd);
         for (r in 1:R)
@@ -80,85 +73,33 @@ model {
 generated quantities {
     vector[V] beta[R];
     real log_likelihood = 0;
-    real log_likelihood_out = 0;
-    vector[R] rlh;
-    vector[R] rlh_out;
+    vector[P] posterior_prob;
+    vector[P] respondent_class_weights;
+    real log_sum_exp_pp;
+    int rs = 1;
 
-    // Add braces to exclude rs from exported values
+    for (r in 1:R)
     {
-        int rs = 1;
-        for (r in 1:R)
+        for (s in 1:S[r])
         {
-            vector[P] posterior_prob;
-            real log_sum_exp_pp;
-            vector[P] respondent_class_weights;
-
-            for (p in 1:P)
-                posterior_prob[p] = 0;
-
-            for (s in 1:S[r])
-            {
-                for (p in 1:P)
-                    posterior_prob[p] += categorical_logit_lpmf(Y[rs] | X[rs] * class_beta[r, p]);
-                rs += 1;
-            }
-
-            rlh[r] = 0;
             for (p in 1:P)
             {
-                rlh[r] += class_weights[p] * exp(posterior_prob[p] / S[r]);
-                posterior_prob[p] += log(class_weights[p]);
+                if (s == 1)
+                    posterior_prob[p] = log(class_weights[p]);
+                posterior_prob[p] = posterior_prob[p] + categorical_logit_lpmf(Y[rs] | X[rs] * class_beta[r, p]);
             }
-
-            log_sum_exp_pp = log_sum_exp(posterior_prob);
-            log_likelihood += log_sum_exp_pp;
-
-            respondent_class_weights = exp(posterior_prob - log_sum_exp_pp);
-            for (v in 1:V)
-            {
-                beta[r, v] = 0;
-                for (p in 1:P)
-                    beta[r, v] += class_beta[r, p, v] * respondent_class_weights[p];
-            }
+            rs += 1;
         }
-    }
 
-    if (S_out > 0)
-    {
-        int rs = 1;
-        for (r in 1:R)
+        log_sum_exp_pp = log_sum_exp(posterior_prob);
+        log_likelihood += log_sum_exp_pp;
+
+        respondent_class_weights = exp(posterior_prob - log_sum_exp_pp);
+        for (v in 1:V)
         {
-            vector[P] posterior_prob;
-            real log_sum_exp_pp;
-            vector[P] respondent_class_weights;
-
+            beta[r, v] = 0;
             for (p in 1:P)
-                posterior_prob[p] = 0;
-
-            for (s in 1:S_out)
-            {
-                for (p in 1:P)
-                    posterior_prob[p] += categorical_logit_lpmf(Y_out[rs] | X_out[rs] * class_beta[r, p]);
-                rs += 1;
-            }
-
-            rlh_out[r] = 0;
-            for (p in 1:P)
-            {
-                rlh_out[r] += class_weights[p] * exp(posterior_prob[p] / S_out);
-                posterior_prob[p] += log(class_weights[p]);
-            }
-
-            log_sum_exp_pp = log_sum_exp(posterior_prob);
-            log_likelihood_out += log_sum_exp_pp;
-
-            respondent_class_weights = exp(posterior_prob - log_sum_exp_pp);
-            for (v in 1:V)
-            {
-                beta[r, v] = 0;
-                for (p in 1:P)
-                    beta[r, v] += class_beta[r, p, v] * respondent_class_weights[p];
-            }
+                beta[r, v] = beta[r, v] + class_beta[r, p, v] * respondent_class_weights[p];
         }
     }
 }

@@ -151,13 +151,19 @@ test_that("HB with grouped covariates", {
 })
 
 
-test_that("HB with multi-class covariates", {
+test_that("HB with fixed covariates", {
     data("eggs.cov", package = "flipChoice")
     result <- FitChoiceModel(experiment.data = eggs.data,
                              cov.formula = ~gender, cov.data = eggs.cov,
-                             hb.iterations = 10, n.classes = 2,
+                             hb.iterations = 10,
                              hb.chains = 1, hb.warnings = FALSE)
     expect_error(print(result), NA)
+
+    stat.names <- rownames(result$parameter.statistics)
+    expect_equal(sum(grepl("Intercept", stat.names)),
+                 sum(grepl("St. Dev", stat.names)))
+    expect_equal(sum(grepl("gender", stat.names)),
+                 sum(grepl("St. Dev", stat.names)))
 
     ExtractParameterStats(result)
     PlotPosteriorIntervals(result)
