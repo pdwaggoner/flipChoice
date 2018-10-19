@@ -72,7 +72,8 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 
     n.hb.parameters <- numberOfHBParameters(stan.dat)
     result <- c(result, LogLikelihoodAndBIC(stan.fit, n.hb.parameters,
-                                            stan.dat$R))
+                                            stan.dat$R,
+                                            dat$n.questions.left.out))
     result
 }
 
@@ -112,7 +113,7 @@ stanParameters <- function(stan.dat, keep.beta, stan.model)
     multiple.classes <- !is.null(stan.dat$P)
     has.covariates <- !is.null(stan.dat$covariates)
 
-    pars <- c("theta", "sigma", "log_likelihood")
+    pars <- c("theta", "sigma")
 
     if (multiple.classes)
     {
@@ -160,16 +161,35 @@ initialParameterValues <- function(stan.dat)
 
 createStanData <- function(dat, n.classes, normal.covariance)
 {
+    if (dat$n.questions.left.out == 0)
+    {
+        Y.out <- as.array(1)
+        dim.X.out <- dim(dat$X.in)
+        dim.X.out[1] <- 1
+        X.out <- array(data = 0, dim = dim.X.out)
+        RS.out <- 1
+    }
+    else
+    {
+        Y.out <- dat$Y.out
+        X.out <- dat$X.out
+        RS.out <- dat$n.respondents * dat$n.questions.left.out
+    }
+
     stan.dat <- list(C = dat$n.alternatives,
                      R = dat$n.respondents,
                      S = dat$n.questions.left.in,
+                     S_out = dat$n.questions.left.out,
                      RS = nrow(dat$X.in),
+                     RS_out = RS.out,
                      A = dat$n.attributes,
                      V = dat$n.parameters,
                      ## as.array necessary for one attribute, no alt. specific const case.
                      V_attribute = as.array(dat$n.attribute.parameters),
                      Y = dat$Y.in,
+                     Y_out = Y.out,
                      X = dat$X.in,
+                     X_out = X.out,
                      V_covariates = dat$n.covariates,
                      covariates = dat$covariates,
                      prior_mean = dat$prior.mean,
@@ -301,7 +321,7 @@ stanModel <- function(n.classes, normal.covariance, has.covariates, has.grouped.
         {
             if (has.covariates && !has.grouped.cov)
                 stanmodels$mixtureofnormalsC
-            else if (has.covarites)
+            else if (has.covariates)
                 stop(covariates.error.msg, call. = FALSE)
             else
                 stanmodels$mixtureofnormals
@@ -575,10 +595,12 @@ pkgCxxFlags <- function()
 #' @param stan.fit A stanfit object.
 #' @param n.parameters The number of HB model parameters.
 #' @param sample.size The sample size of the analysis.
+#' @param n.questions.left.out The number of questions left out.
 #' @return A list containing the log likelihood and BIC.
 #' @importFrom rstan get_posterior_mean
 #' @export
-LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size)
+LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size,
+                                n.questions.left.out)
 {
     ind <- if (stan.fit@sim$chains == 1)
         1
@@ -586,8 +608,18 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size)
         stan.fit@sim$chains + 1
     log.likelihood <- get_posterior_mean(stan.fit,
                                          pars = "log_likelihood")[ind]
-    list(log.likelihood = log.likelihood,
-         bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+    rlh <- get_posterior_mean(stan.fit, pars = "rlh")[, ind]
+
+    result <- list(log.likelihood = log.likelihood,
+                   rlh = rlh,
+                   bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+    if (n.questions.left.out > 0)
+    {
+        result$rlh.out <- get_posterior_mean(stan.fit, pars = "rlh_out")[, ind]
+        result$log.likelihood.out <- get_posterior_mean(stan.fit,
+                                            pars = "log_likelihood_out")[ind]
+    }
+    result
 }
 
 # The number of HB parameters is:
