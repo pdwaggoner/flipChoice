@@ -23,8 +23,8 @@ ExtractParameterStats <- function(fit)
 {
     checkValidFit(fit, require.hb = FALSE)
 
-    pars <- fit$param.names.list$stan.pars
-    pars <- pars[pars != "log_likelihood"]
+    par.names <- fit$param.names.list$stan.pars
+    par.names <- par.names[par.names != "log_likelihood"]
 
     if (!is.null(fit$algorithm) && fit$algorithm == "LCA")
         return(parameterStatisticsLCA(fit))
