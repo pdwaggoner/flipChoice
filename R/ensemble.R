@@ -104,6 +104,7 @@ extractCommonData <- function(models, underlying.class) {
 
 #' @importFrom flipFormat ComparisonTable FormatAsPercent
 #' @export
+#' @method print ChoiceEnsemble
 print.ChoiceEnsemble <- function(x, ...) {
 
     if (x$output == "Ensemble")
