@@ -661,17 +661,17 @@ print.FitChoice <- function(x, ...)
 
     footer <- choiceModelFooter(x)
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
-    footer <- paste0(footer, "mean RLH: ",
-                     FormatAsReal(mean(x$rlh), decimals = 2), "; ")
-    if (x$n.questions.left.out > 0)
-        footer <- paste0(footer, "mean holdout RLH: ",
-                         FormatAsReal(mean(x$rlh.out), decimals = 2), "; ")
+    # footer <- paste0(footer, "mean RLH: ",
+    #                  FormatAsReal(mean(x$rlh), decimals = 2), "; ")
+    # if (x$n.questions.left.out > 0)
+    #     footer <- paste0(footer, "mean holdout RLH: ",
+    #                      FormatAsReal(mean(x$rlh.out), decimals = 2), "; ")
     footer <- paste0(footer, "log-likelihood: ",
                      FormatAsReal(x$log.likelihood, decimals = 0), "; ")
-    if (x$n.questions.left.out > 0)
-        footer <- paste0(footer, "holdout log-likelihood: ",
-                         FormatAsReal(x$log.likelihood.out, decimals = 0),
-                         "; ")
+    # if (x$n.questions.left.out > 0)
+    #     footer <- paste0(footer, "holdout log-likelihood: ",
+    #                      FormatAsReal(x$log.likelihood.out, decimals = 0),
+    #                      "; ")
 
     footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 0), "; ")
 
