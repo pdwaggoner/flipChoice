@@ -413,6 +413,7 @@ accuracyResults <- function(dat, result, n.questions.left.out)
     result
 }
 
+#' @importFrom stats predict
 predict.FitChoice <- function(object, data,  n.reps = 10000, ...)
 {
     if (missing(data))
@@ -422,12 +423,13 @@ predict.FitChoice <- function(object, data,  n.reps = 10000, ...)
 
     n.rs <- dim(data$X.in)[1]  # n.q*n.resp
     n.alternatives <- dim(data$X.in)[2]
+    n.questions <- data$n.questions.left.in[1L]
     is.q.const <- length(unique(data$n.questions.left.in)) == 1L
     if (!is.q.const)
         stop("Number of questions per respondent needs to be constant")
 
-    n.questions <- data$n.questions.left.in[1L]
-    resp.pars <- extract(object$stan.fit, pars = "beta")[[1L]]
+    stan.fit <- object$stan.fit
+    resp.pars <- extract(stan.fit, pars = "beta")[[1L]]
 
     ## in.sample.accuracies <- rep(NA, n.respondents)
     y.pred <- matrix(nrow = n.respondents, ncol = n.questions)
@@ -438,7 +440,7 @@ predict.FitChoice <- function(object, data,  n.reps = 10000, ...)
         pars <- c("resp_fixed_coef", "resp_rand_eff")
 
 
-    mean.par.samps <- extract(object$stan.fit, pars = pars, permuted = TRUE,
+    mean.par.samps <- extract(stan.fit, pars = pars, permuted = TRUE,
                               inc_warmup = FALSE)[[1L]]
     mean.new.samps <- lapply(mean.par.samps, function(x) apply(x, 2:3, sample,
                                                                replace = TRUE, size = n.reps))
@@ -461,7 +463,7 @@ predict.FitChoice <- function(object, data,  n.reps = 10000, ...)
         {
             ## u <- rep(NA, n.alternatives)
             lp <- tcrossprod(pars, data$X.in[rs, , ])
-            probs <- t(apply(lp, 1, flipChoice:::softmax))
+            probs <- t(apply(lp, 1, flipChoice::softmax))
             y.preds <- apply(probs, 1, which.max)
             y.pred[i, j] <- which.max(table(y.preds))
             ## for (k in 1:n.alternatives)
