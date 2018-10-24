@@ -64,7 +64,24 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
     pars$class.parameters <- pars$class.parameters / dat$parameter.scales
 
     result <- list()
+
     result$log.likelihood <- log.likelihood
+    result$rlh <- rootLikelihood(pars, X, ind.levels, n.classes,
+                                 n.alternatives, n.parameters)
+    n.questions.out <- dat$n.questions.left.out
+    if (n.questions.out > 0)
+    {
+        X.out <- transformDataForLCA(dat$X.out, dat$Y.out)
+        ind.levels.out <- lapply(0:(dat$n.respondents - 1), function(x)
+                                 x * n.questions.out + 1:n.questions.out)
+        result$log.likelihood.out <- logLikelihood(pars, X.out, weights,
+                                                   ind.levels.out, n.classes,
+                                                   n.alternatives,
+                                                   n.parameters)
+        result$rlh.out <- rootLikelihood(pars, X.out, ind.levels.out,
+                                         n.classes, n.alternatives,
+                                         n.parameters)
+    }
     result$posterior.probabilities <- resp.post.probs
     result$effective.sample.size <- ess <- sum(weights)
     n.lca.parameters <- n.classes * n.parameters + n.classes - 1
@@ -176,6 +193,19 @@ logLikelihood <- function(pars, X, weights, ind.levels, n.classes,
     for (l in 1:n.levels)
         res <- res + logSumExp(log.class.weights + log.densities[l, ]) *
                weights[l]
+    res
+}
+
+rootLikelihood <- function(pars, X, ind.levels, n.classes, n.alternatives,
+                           n.parameters)
+{
+    log.class.weights <- log(pars$class.sizes)
+    log.densities <- logDensities(pars$class.parameters, X, ind.levels,
+                                  n.classes, n.alternatives, n.parameters)
+    n.levels <- length(ind.levels)
+    res <- rep(NA, n.levels)
+    for (l in 1:n.levels)
+        res[l] <- exp(logSumExp(log.class.weights + log.densities[l, ]) / length(ind.levels[[l]]))
     res
 }
 

@@ -27,11 +27,11 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
     keep.beta <- beta.draws.to.keep > 0
 
     InterceptExceptions(
-    {
-        stan.fit <- RunStanSampling(stan.dat, n.iterations, n.chains,
-                                    max.tree.depth, adapt.delta, seed,
-                            stan.model, keep.beta, ...)
-    }, warning.handler = on.warnings, error.handler = on.error)
+        {
+            stan.fit <- RunStanSampling(stan.dat, n.iterations, n.chains,
+                                        max.tree.depth, adapt.delta, seed,
+                                        stan.model, keep.beta, ...)
+        }, warning.handler = on.warnings, error.handler = on.error)
 
     matched <- MatchChainClasses(stan.fit, n.chains, n.classes, stan.dat$V)
     stan.fit <- matched$stan.fit
@@ -41,14 +41,14 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
     result <- list(param.names.list = param.names)
 
     result$reduced.respondent.parameters <- ComputeRespPars(stan.fit,
-                                                        param.names$respondent.pars,
-                                                        dat$subset,
-                                                        dat$parameter.scales)
+                                                    param.names$respondent.pars,
+                                                    dat$subset,
+                                                    dat$parameter.scales)
     result$respondent.parameters <- ComputeRespPars(stan.fit,
-                                          param.names$respondent.pars,
-                                          dat$subset,
-                                          dat$parameter.scales,
-                                          param.names$unconstrained.respondent.pars)
+                                                param.names$respondent.pars,
+                                                dat$subset,
+                                                dat$parameter.scales,
+                                    param.names$unconstrained.respondent.pars)
     result$class.match.fail <- class.match.fail
 
     if (!class.match.fail)
@@ -72,7 +72,8 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 
     n.hb.parameters <- numberOfHBParameters(stan.dat)
     result <- c(result, LogLikelihoodAndBIC(stan.fit, n.hb.parameters,
-                                            stan.dat$R))
+                                            stan.dat$R,
+                                            dat$n.questions.left.out))
     result
 }
 
@@ -100,10 +101,10 @@ RunStanSampling <- function(stan.dat, n.iterations, n.chains,
     pars <- stanParameters(stan.dat, keep.beta, stan.model)
     init <- initialParameterValues(stan.dat)
     sampling(stan.model, data = stan.dat, chains = n.chains,
-                       pars = pars, iter = n.iterations, seed = seed,
-                       control = list(max_treedepth = max.tree.depth,
-                                      adapt_delta = adapt.delta),
-                       init = init, ...)
+             pars = pars, iter = n.iterations, seed = seed,
+             control = list(max_treedepth = max.tree.depth,
+                            adapt_delta = adapt.delta),
+             init = init, ...)
 }
 
 stanParameters <- function(stan.dat, keep.beta, stan.model)
@@ -112,7 +113,7 @@ stanParameters <- function(stan.dat, keep.beta, stan.model)
     multiple.classes <- !is.null(stan.dat$P)
     has.covariates <- !is.null(stan.dat$covariates)
 
-    pars <- c("theta", "sigma", "log_likelihood")
+    pars <- c("theta", "sigma")
 
     if (multiple.classes)
     {
@@ -160,16 +161,35 @@ initialParameterValues <- function(stan.dat)
 
 createStanData <- function(dat, n.classes, normal.covariance)
 {
+    if (dat$n.questions.left.out == 0)
+    {
+        Y.out <- as.array(1)
+        dim.X.out <- dim(dat$X.in)
+        dim.X.out[1] <- 1
+        X.out <- array(data = 0, dim = dim.X.out)
+        RS.out <- 1
+    }
+    else
+    {
+        Y.out <- dat$Y.out
+        X.out <- dat$X.out
+        RS.out <- dat$n.respondents * dat$n.questions.left.out
+    }
+
     stan.dat <- list(C = dat$n.alternatives,
                      R = dat$n.respondents,
                      S = dat$n.questions.left.in,
+                     S_out = dat$n.questions.left.out,
                      RS = nrow(dat$X.in),
+                     RS_out = RS.out,
                      A = dat$n.attributes,
                      V = dat$n.parameters,
                      ## as.array necessary for one attribute, no alt. specific const case.
                      V_attribute = as.array(dat$n.attribute.parameters),
                      Y = dat$Y.in,
+                     Y_out = Y.out,
                      X = dat$X.in,
+                     X_out = X.out,
                      V_covariates = dat$n.covariates,
                      covariates = dat$covariates,
                      prior_mean = dat$prior.mean,
@@ -177,7 +197,7 @@ createStanData <- function(dat, n.classes, normal.covariance)
                      gamma_shape = dat$hb.sigma.prior.shape,
                      gamma_scale = dat$hb.sigma.prior.scale,
                      lkj_shape = dat$hb.lkj.prior.shape
-                     )
+    )
 
     if (n.classes > 1)
         stan.dat$P <- n.classes
@@ -409,12 +429,12 @@ onStanWarning <- function(warn)
 {
     msg <- warn$message
     support.msg <-
-    if (grepl("divergent transitions after warmup", msg) ||
-        grepl("Bayesian Fraction of Missing Information was low", msg))
-        warning("Results may be inaccurate due to insufficient iterations. ",
-                "Rerun the analysis with more iterations. Please contact ",
-                "support@q-researchsoftware.com if increasing the number of ",
-                "iterations does not resolve this warning.", call. = FALSE)
+        if (grepl("divergent transitions after warmup", msg) ||
+            grepl("Bayesian Fraction of Missing Information was low", msg))
+            warning("Results may be inaccurate due to insufficient iterations. ",
+                    "Rerun the analysis with more iterations. Please contact ",
+                    "support@q-researchsoftware.com if increasing the number of ",
+                    "iterations does not resolve this warning.", call. = FALSE)
     else if (grepl("Examine the pairs\\(\\) plot", msg))
         warning("Examine the Diagnostic plots to diagnose sampling problems",
                 call. = FALSE)
@@ -448,7 +468,7 @@ GetParameterStatistics <- function(stan.fit, parameter.names, n.classes,
         pars <- c("resp_fixed_coef", "sigma", "sig_rc")
 
     ex <- extract(stan.fit, pars = pars, permuted = FALSE,
-                         inc_warmup = FALSE)
+                  inc_warmup = FALSE)
     result <- suppressWarnings(monitor(ex, probs = c(), print = FALSE))
     lbls <- c(rep(paste0(parameter.names, ' (Mean)'), each = n.classes),
               rep(paste0(sigma.parameter.names, ' (St. Dev.)'),
@@ -575,10 +595,12 @@ pkgCxxFlags <- function()
 #' @param stan.fit A stanfit object.
 #' @param n.parameters The number of HB model parameters.
 #' @param sample.size The sample size of the analysis.
+#' @param n.questions.left.out The number of questions left out.
 #' @return A list containing the log likelihood and BIC.
 #' @importFrom rstan get_posterior_mean
 #' @export
-LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size)
+LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size,
+                                n.questions.left.out)
 {
     ind <- if (stan.fit@sim$chains == 1)
         1
@@ -586,8 +608,18 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size)
         stan.fit@sim$chains + 1
     log.likelihood <- get_posterior_mean(stan.fit,
                                          pars = "log_likelihood")[ind]
-    list(log.likelihood = log.likelihood,
-         bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+    rlh <- get_posterior_mean(stan.fit, pars = "rlh")[, ind]
+
+    result <- list(log.likelihood = log.likelihood,
+                   rlh = rlh,
+                   bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+    if (n.questions.left.out > 0)
+    {
+        result$rlh.out <- get_posterior_mean(stan.fit, pars = "rlh_out")[, ind]
+        result$log.likelihood.out <- get_posterior_mean(stan.fit,
+                                            pars = "log_likelihood_out")[ind]
+    }
+    result
 }
 
 # The number of HB parameters is:

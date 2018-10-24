@@ -131,7 +131,7 @@
 #' parameters/coefficients
 #' \item stan.pars - names for the parameters used in the stan code; useful for extracting
 #' samples, using diagnostics, etc. when working with the stan.fit object
-#' \code mean.pars - names for the (population) mean parameters (theta in the stan code) for
+#' \code{mean.pars} - names for the (population) mean parameters (theta in the stan code) for
 #' the respondent parameters
 #' \item covariates - names for the covariates in the model (i.e. the
 #'       terms in \code{cov.formula})
@@ -259,7 +259,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
         NULL
 
     dat <- if (!is.null(design) && (!is.null(simulated.priors) ||
-                                (!is.null(choices) && !is.null(tasks))))
+                                    (!is.null(choices) && !is.null(tasks))))
         processDesignObject(design, choices, tasks, subset, weights,
                             tasks.left.out, seed, hb.prior.mean, hb.prior.sd,
                             include.choice.parameters, missing, covariates,
@@ -281,7 +281,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                        include.choice.parameters, respondent.ids, missing,
                        covariates, simulated.priors, simulated.sample.size)
     else if (!is.null(design.variables) && (!is.null(simulated.priors) ||
-                                (!is.null(choices) && !is.null(tasks))))
+                                            (!is.null(choices) && !is.null(tasks))))
         processDesignVariables(design.variables, attribute.levels, choices,
                                tasks, subset, weights, tasks.left.out, seed,
                                hb.prior.mean, hb.prior.sd,
@@ -414,7 +414,7 @@ predict.FitChoice <- function(object, data,  n.reps = 10000, ...)
     if (missing(data))
         data <- object$processed.data
     n.respondents <- length(data$n.questions.left.in)
-#    resp.pars <- result$reduced.respondent.parameters[dat$subset, ]
+    #    resp.pars <- result$reduced.respondent.parameters[dat$subset, ]
 
     n.rs <- dim(data$X.in)[1]  # n.q*n.resp
     n.alternatives <- dim(data$X.in)[2]
@@ -584,7 +584,7 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
                                 decimals = 1)
     theta.rhat.ind <- which.max(theta.statistics[, 5])
     theta.rhat <- FormatAsReal(theta.statistics[theta.rhat.ind, 5],
-                               decimals = 2)
+                               decimals = 1)
 
     sigma.statistics <- parameter.statistics[(n.rows / 2 + 1):n.rows, ]
     sigma.n.eff.ind <- which.min(sigma.statistics[, 4])
@@ -592,7 +592,7 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
                                 decimals = 1)
     sigma.rhat.ind <- which.max(sigma.statistics[, 5])
     sigma.rhat <- FormatAsReal(sigma.statistics[sigma.rhat.ind, 5],
-                               decimals = 2)
+                               decimals = 1)
 
     if (n.classes > 1)
         nms <- rep(paste0(rep(parameter.names, each = n.classes), ", Class ",
@@ -655,8 +655,19 @@ print.FitChoice <- function(x, ...)
 
     footer <- choiceModelFooter(x)
     footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
-    footer <- paste0(footer, "log-likelihood: ", FormatAsReal(x$log.likelihood, decimals = 2), "; ")
-    footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 2), "; ")
+    footer <- paste0(footer, "mean RLH: ",
+                     FormatAsReal(mean(x$rlh), decimals = 2), "; ")
+    if (x$n.questions.left.out > 0)
+        footer <- paste0(footer, "mean holdout RLH: ",
+                         FormatAsReal(mean(x$rlh.out), decimals = 2), "; ")
+    footer <- paste0(footer, "log-likelihood: ",
+                     FormatAsReal(x$log.likelihood, decimals = 0), "; ")
+    if (x$n.questions.left.out > 0)
+        footer <- paste0(footer, "holdout log-likelihood: ",
+                         FormatAsReal(x$log.likelihood.out, decimals = 0),
+                         "; ")
+
+    footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 0), "; ")
 
     if (!is.null(x$class.match.fail)) # HB-Stan only
     {
@@ -665,7 +676,7 @@ print.FitChoice <- function(x, ...)
         else
         {
             info <- ParameterStatisticsInfo(x$parameter.statistics,
-                                    colnames(x$reduced.respondent.parameters),
+                                            colnames(x$reduced.respondent.parameters),
                                             x$n.classes)
             footer <- paste0(footer, info)
         }
@@ -696,10 +707,10 @@ choiceModelSubtitle <- function(x)
 {
     subtitle <- if (!is.na(x$out.sample.accuracy))
         paste0("Prediction accuracy (leave-", x$n.questions.left.out , "-out cross-validation): ",
-            FormatAsPercent(x$out.sample.accuracy, decimals = 1))
+               FormatAsPercent(x$out.sample.accuracy, decimals = 1))
     else
         paste0("Prediction accuracy (in-sample): ",
-            FormatAsPercent(x$in.sample.accuracy, decimals = 1))
+               FormatAsPercent(x$in.sample.accuracy, decimals = 1))
 }
 
 #' @importFrom flipFormat SampleDescription

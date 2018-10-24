@@ -109,14 +109,8 @@ d0Criterion <- function(coded.design, n.questions, alternatives.per.question,
         det.info.matrix
 }
 
-logsumexp <- function(x)
-{
-   xmax <- which.max(x)
-   log1p(sum(exp(x[-xmax]-x[xmax])))+x[xmax]
-}
-
 softmax <- function(x)
-    exp(x - logsumexp(x))
+    exp(x - logSumExp(x))
 
 logitChoiceProbs <- function(coded.matrix, prior, number.alternatives, number.tasks)
 {

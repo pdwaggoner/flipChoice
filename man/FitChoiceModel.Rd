@@ -199,7 +199,7 @@ as follows:
 parameters/coefficients
 \item stan.pars - names for the parameters used in the stan code; useful for extracting
 samples, using diagnostics, etc. when working with the stan.fit object
-\code mean.pars - names for the (population) mean parameters (theta in the stan code) for
+\code{mean.pars} - names for the (population) mean parameters (theta in the stan code) for
 the respondent parameters
 \item covariates - names for the covariates in the model (i.e. the
       terms in \code{cov.formula})

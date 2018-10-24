@@ -4,7 +4,8 @@
 \alias{LogLikelihoodAndBIC}
 \title{LogLikelihoodAndBIC}
 \usage{
-LogLikelihoodAndBIC(stan.fit, n.parameters, sample.size)
+LogLikelihoodAndBIC(stan.fit, n.parameters, sample.size,
+  n.questions.left.out)
 }
 \arguments{
 \item{stan.fit}{A stanfit object.}
@@ -12,6 +13,8 @@ LogLikelihoodAndBIC(stan.fit, n.parameters, sample.size)
 \item{n.parameters}{The number of HB model parameters.}
 
 \item{sample.size}{The sample size of the analysis.}
+
+\item{n.questions.left.out}{The number of questions left out.}
 }
 \value{
 A list containing the log likelihood and BIC.
