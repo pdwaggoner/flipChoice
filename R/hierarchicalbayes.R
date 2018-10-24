@@ -301,7 +301,7 @@ stanModel <- function(n.classes, normal.covariance, has.covariates, has.grouped.
         {
             if (has.covariates && !has.grouped.cov)
                 stanmodels$mixtureofnormalsC
-            else if (has.covarites)
+            else if (has.covariates)
                 stop(covariates.error.msg, call. = FALSE)
             else
                 stanmodels$mixtureofnormals
