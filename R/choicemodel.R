@@ -182,7 +182,7 @@
 #' print(fit.with.prior)
 #' }
 #' @importFrom flipFormat Labels
-#' @importFrom stats model.matrix.default
+#' @importFrom stats model.matrix.default model.frame.default
 #' @importFrom lme4 nobars
 #' @export
 #'
@@ -253,10 +253,14 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
 
     start.time <- proc.time()
 
-    covariates <- if (!is.null(cov.formula))
-        model.matrix(lme4::nobars(cov.formula), cov.data)  # model.matrix.default(cov.formula, cov.data)
-    else
-        NULL
+    if (!is.null(cov.formula))
+    {
+        if (is.null(cov.data))
+            cov.data <- model.frame(cov.formula)
+
+        covariates <- model.matrix(lme4::nobars(cov.formula), cov.data)
+    }else
+        covariates <- NULL
 
     dat <- if (!is.null(design) && (!is.null(simulated.priors) ||
                                     (!is.null(choices) && !is.null(tasks))))
