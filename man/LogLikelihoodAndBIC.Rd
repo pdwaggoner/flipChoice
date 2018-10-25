@@ -5,7 +5,7 @@
 \title{LogLikelihoodAndBIC}
 \usage{
 LogLikelihoodAndBIC(stan.fit, n.parameters, sample.size,
-  n.questions.left.out)
+  n.questions.left.out, subset)
 }
 \arguments{
 \item{stan.fit}{A stanfit object.}
@@ -15,6 +15,8 @@ LogLikelihoodAndBIC(stan.fit, n.parameters, sample.size,
 \item{sample.size}{The sample size of the analysis.}
 
 \item{n.questions.left.out}{The number of questions left out.}
+
+\item{subset}{The subset used on the data.}
 }
 \value{
 A list containing the log likelihood and BIC.

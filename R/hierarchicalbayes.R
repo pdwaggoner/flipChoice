@@ -73,7 +73,8 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
     n.hb.parameters <- numberOfHBParameters(stan.dat)
     result <- c(result, LogLikelihoodAndBIC(stan.fit, n.hb.parameters,
                                             stan.dat$R,
-                                            dat$n.questions.left.out))
+                                            dat$n.questions.left.out,
+                                            dat$subset))
     result
 }
 
@@ -596,11 +597,12 @@ pkgCxxFlags <- function()
 #' @param n.parameters The number of HB model parameters.
 #' @param sample.size The sample size of the analysis.
 #' @param n.questions.left.out The number of questions left out.
+#' @param subset The subset used on the data.
 #' @return A list containing the log likelihood and BIC.
 #' @importFrom rstan get_posterior_mean
 #' @export
 LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size,
-                                n.questions.left.out)
+                                n.questions.left.out, subset)
 {
     # If there are multiple chains, get_posterior_mean returns a vector of
     # length n.chains + 1, where the last value in the vector is the average
@@ -613,14 +615,17 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size,
 
     log.likelihood <- get_posterior_mean(stan.fit,
                                          pars = "log_likelihood")[ind]
-    rlh <- get_posterior_mean(stan.fit, pars = "rlh")[, ind]
+    rlh <- rep(NA, length(subset))
+    rlh[subset] <- get_posterior_mean(stan.fit, pars = "rlh")[, ind]
 
     result <- list(log.likelihood = log.likelihood,
                    rlh = rlh,
                    bic = log(sample.size) * n.parameters - 2 * log.likelihood)
     if (n.questions.left.out > 0)
     {
-        result$rlh.out <- get_posterior_mean(stan.fit, pars = "rlh_out")[, ind]
+        result$rlh.out <- rep(NA, length(subset))
+        result$rlh.out[subset] <- get_posterior_mean(stan.fit,
+                                                     pars = "rlh_out")[, ind]
         result$log.likelihood.out <- get_posterior_mean(stan.fit,
                                             pars = "log_likelihood_out")[ind]
     }
