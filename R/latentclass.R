@@ -175,7 +175,7 @@ PosteriorProbsFromDensities <- function(log.densities, log.class.weights,
 
     repsondents.log.densities <- vector("numeric", n.levels)
     for (l in 1:n.levels)
-        repsondents.log.densities[l] <- logSumExp(log.class.weights +
+        repsondents.log.densities[l] <- LogSumExp(log.class.weights +
                                                       log.densities[l, ])
     res <- exp(t(matrix(rep(log.class.weights, n.levels), n.classes)) + log.densities
         - t(matrix(rep(repsondents.log.densities, each = n.classes), n.classes)))
@@ -191,7 +191,7 @@ logLikelihood <- function(pars, X, weights, ind.levels, n.classes,
     n.levels <- length(ind.levels)
     res <- 0
     for (l in 1:n.levels)
-        res <- res + logSumExp(log.class.weights + log.densities[l, ]) *
+        res <- res + LogSumExp(log.class.weights + log.densities[l, ]) *
                weights[l]
     res
 }
@@ -205,7 +205,7 @@ rootLikelihood <- function(pars, X, ind.levels, n.classes, n.alternatives,
     n.levels <- length(ind.levels)
     res <- rep(NA, n.levels)
     for (l in 1:n.levels)
-        res[l] <- exp(logSumExp(log.class.weights + log.densities[l, ]) / length(ind.levels[[l]]))
+        res[l] <- exp(LogSumExp(log.class.weights + log.densities[l, ]) / length(ind.levels[[l]]))
     res
 }
 

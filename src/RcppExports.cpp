@@ -6,17 +6,6 @@
 
 using namespace Rcpp;
 
-// logSumExp
-double logSumExp(NumericVector x);
-RcppExport SEXP _flipChoice_logSumExp(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(logSumExp(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 // logDensitiesChoice
 NumericVector logDensitiesChoice(NumericVector b, NumericMatrix X, NumericVector weights, int n_alternatives, int n_parameters);
 RcppExport SEXP _flipChoice_logDensitiesChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP) {

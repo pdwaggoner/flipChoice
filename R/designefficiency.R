@@ -109,8 +109,17 @@ d0Criterion <- function(coded.design, n.questions, alternatives.per.question,
         det.info.matrix
 }
 
+#' Computes log(sum(exp(x))) in a numerically-stable way.
+#' @param x A numeric vector
+#' @export
+LogSumExp <- function(x)
+{
+    xmax <- which.max(x)
+    log1p(sum(exp(x[-xmax]-x[xmax])))+x[xmax]
+}
+
 softmax <- function(x)
-    exp(x - logSumExp(x))
+    exp(x - LogSumExp(x))
 
 logitChoiceProbs <- function(coded.matrix, prior, number.alternatives, number.tasks)
 {

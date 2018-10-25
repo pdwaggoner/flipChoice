@@ -3,7 +3,6 @@
 using namespace Rcpp;
 
 // A numerically stable way of calculating log(sum(exp(x)))
-// [[Rcpp::export]]
 double logSumExp(NumericVector x)
 {
     double max_log = max(x);

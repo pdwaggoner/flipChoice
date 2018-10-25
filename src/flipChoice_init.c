@@ -5,7 +5,6 @@
 
 #include <R_ext/Rdynload.h>
 
-SEXP _flipChoice_logSumExp(SEXP xSEXP);
 SEXP _flipChoice_logDensitiesChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP);
 SEXP _flipChoice_logDensityChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP);
 SEXP _flipChoice_gradientChoice(SEXP bSEXP, SEXP XSEXP, SEXP weightsSEXP, SEXP n_alternativesSEXP, SEXP n_parametersSEXP);
@@ -21,7 +20,6 @@ SEXP _flipChoice_setLevelAllRows(SEXP question_designSEXP, SEXP attribute_indexS
 SEXP _flipChoice_getLevel(SEXP question_designSEXP, SEXP row_indexSEXP, SEXP attribute_indexSEXP, SEXP levels_per_attributeSEXP, SEXP start_indicesSEXP);
 
 R_CallMethodDef callMethods[]  = {
-  {"_flipChoice_logSumExp", (DL_FUNC) &_flipChoice_logSumExp, 1},
   {"_flipChoice_logDensitiesChoice", (DL_FUNC) &_flipChoice_logDensitiesChoice, 5},
   {"_flipChoice_logDensityChoice", (DL_FUNC) &_flipChoice_logDensityChoice, 5},
   {"_flipChoice_gradientChoice", (DL_FUNC) &_flipChoice_gradientChoice, 5},
