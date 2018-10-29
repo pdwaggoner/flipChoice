@@ -160,6 +160,10 @@
 #'     \item \code{log.likelihood} The log likelihood.
 #'     \item \code{bic} The Bayesian Information Criterion.
 #'     \item \code{coef} A vector/matrix of parameter estimates (LCA only).
+#'     \item \code{rlh} A vector of respondent RLH (in-sample).
+#'     \item \code{mean.rlh} RLH over all respondent questions (in-sample).
+#'     \item \code{rlh.out} A vector of respondent RLH (holdout).
+#'     \item \code{mean.rlh.out} RLH over all respondent questions (holdout).
 #' }
 #' @examples
 #' \dontrun{
