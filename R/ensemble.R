@@ -74,6 +74,8 @@ ChoiceEnsemble <- function(models,
     colnames(comparison) <- statistic.names
     if (all(is.na(comparison$`Out-sample accuracy`)))
         comparison$`Out-sample accuracy` <- NULL
+    if (IsTestRServer())
+        comparison$`Time taken (s)` <- rep(NA, nrow(comparison))
 
     result$comparison <- comparison
     result$ensemble <- !compare.only
