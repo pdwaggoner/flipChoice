@@ -5,7 +5,7 @@
 \title{RunStanSampling}
 \usage{
 RunStanSampling(stan.dat, n.iterations, n.chains, max.tree.depth,
-  adapt.delta, seed, stan.model, keep.beta, ...)
+  adapt.delta, seed, stan.model, keep.beta, pars = NULL, ...)
 }
 \arguments{
 \item{stan.dat}{The data to be passed to Stan.}
@@ -23,6 +23,9 @@ RunStanSampling(stan.dat, n.iterations, n.chains, max.tree.depth,
 \item{stan.model}{Complied Stan model}
 
 \item{keep.beta}{Whether retain the beta draws in the output.}
+
+\item{pars}{Stan parameters whose draws to retain. If NULL, a default
+selection of parameters is used instead.}
 
 \item{...}{Additional parameters to pass on to \code{rstan::stan} and
 \code{rstan::sampling}.}

@@ -89,17 +89,20 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 #' @param seed Random seed.
 #' @param stan.model Complied Stan model
 #' @param keep.beta Whether retain the beta draws in the output.
+#' @param pars Stan parameters whose draws to retain. If NULL, a default
+#'     selection of parameters is used instead.
 #' @param ... Additional parameters to pass on to \code{rstan::stan} and
 #' \code{rstan::sampling}.
 #' @return A stanfit object.
 #' @importFrom rstan stan sampling
 #' @import Rcpp
 #' @export
-RunStanSampling <- function(stan.dat, n.iterations, n.chains,
-                            max.tree.depth, adapt.delta,
-                            seed, stan.model, keep.beta, ...)
+RunStanSampling <- function(stan.dat, n.iterations, n.chains, max.tree.depth,
+                            adapt.delta, seed, stan.model, keep.beta,
+                            pars = NULL, ...)
 {
-    pars <- stanParameters(stan.dat, keep.beta, stan.model)
+    if (is.null(pars))
+        pars <- stanParameters(stan.dat, keep.beta, stan.model)
     init <- initialParameterValues(stan.dat)
     sampling(stan.model, data = stan.dat, chains = n.chains,
              pars = pars, iter = n.iterations, seed = seed,
