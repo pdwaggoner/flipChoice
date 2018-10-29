@@ -615,19 +615,34 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size,
 
     log.likelihood <- get_posterior_mean(stan.fit,
                                          pars = "log_likelihood")[ind]
+    result <- list(log.likelihood = log.likelihood,
+                   bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+
     rlh <- rep(NA, length(subset))
     rlh[subset] <- get_posterior_mean(stan.fit, pars = "rlh")[, ind]
+    mean.rlh <- get_posterior_mean(stan.fit, pars = "mean_rlh")[, ind]
 
-    result <- list(log.likelihood = log.likelihood,
-                   rlh = rlh,
-                   bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+    if (!is.na(mean.rlh)) # rank-ordered logit MaxDiff has no RLH
+    {
+        result$rlh <- rlh
+        result$mean.rlh <- mean.rlh
+    }
+
     if (n.questions.left.out > 0)
     {
-        result$rlh.out <- rep(NA, length(subset))
-        result$rlh.out[subset] <- get_posterior_mean(stan.fit,
-                                                     pars = "rlh_out")[, ind]
-        result$log.likelihood.out <- get_posterior_mean(stan.fit,
-                                            pars = "log_likelihood_out")[ind]
+        log.likelihood.out <- get_posterior_mean(stan.fit,
+                                             pars = "log_likelihood_out")[ind]
+        result$log.likelihood.out <- log.likelihood.out
+        rlh.out <- rep(NA, length(subset))
+        rlh.out[subset] <- get_posterior_mean(stan.fit,
+                                              pars = "rlh_out")[, ind]
+        mean.rlh.out <- get_posterior_mean(stan.fit,
+                                           pars = "mean_rlh_out")[, ind]
+        if (!is.na(mean.rlh.out)) # rank-ordered logit has no RLH
+        {
+            result$rlh.out <- rlh.out
+            result$mean.rlh.out <- mean.rlh.out
+        }
     }
     result
 }
