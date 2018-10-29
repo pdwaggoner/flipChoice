@@ -79,7 +79,7 @@ model {
             {
                 if (s == 1)
                     posterior_prob[p] = log(covariates_class_weights[r, p]);
-                posterior_prob[p] = posterior_prob[p] + categorical_logit_lpmf(Y[rs] | X[rs] * class_beta[r, p]);
+                posterior_prob[p] += categorical_logit_lpmf(Y[rs] | X[rs] * class_beta[r, p]);
             }
             rs += 1;
         }

@@ -38,6 +38,7 @@ transformed parameters {
 
 model {
     int rs = 1;
+    vector[V * R] vector_normal;
 
     // gamma distribution with mode = 1 and p(x < 20) = 0.999
     /* sigma ~ gamma(1.39435729464721, 0.39435729464721); */
@@ -47,7 +48,8 @@ model {
         theta[v] ~ normal(prior_mean, prior_sd);
     L_omega ~ lkj_corr_cholesky(lkj_shape);
 
-    to_vector(standard_normal) ~ normal(0, 1);
+    vector_normal = to_vector(standard_normal);
+    vector_normal ~ normal(0, 1);
 
     for (r in 1:R)
     {
