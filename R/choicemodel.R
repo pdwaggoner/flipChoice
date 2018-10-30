@@ -534,7 +534,8 @@ computeAccuracy <- function(object, data, ...)
 
 #' @title RespondentParameters
 #' @description The parameters for each respondent.
-#' @param fit A \code{FitChoice} or \code{FitMaxDiff} object.
+#' @param fit A \code{FitChoice}, \code{FitMaxDiff},
+#'  \code{ChoiceEnsemble} or \code{MaxDiffEnsemble} object.
 #' @export
 RespondentParameters <- function(fit)
 {
@@ -543,6 +544,12 @@ RespondentParameters <- function(fit)
 
 #' @export
 RespondentParameters.FitChoice <- function(fit)
+{
+    as.data.frame(fit$respondent.parameters)
+}
+
+#' @export
+RespondentParameters.ChoiceEnsemble <- function(fit)
 {
     as.data.frame(fit$respondent.parameters)
 }

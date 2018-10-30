@@ -7,7 +7,8 @@
 RespondentParameters(fit)
 }
 \arguments{
-\item{fit}{A \code{FitChoice} or \code{FitMaxDiff} object.}
+\item{fit}{A \code{FitChoice}, \code{FitMaxDiff},
+\code{ChoiceEnsemble} or \code{MaxDiffEnsemble} object.}
 }
 \description{
 The parameters for each respondent.
