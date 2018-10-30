@@ -613,12 +613,18 @@ createCoefOutput <- function(pars, par.names, all.names)
 #' @title Memberships
 #' @description Produces a vector of respondent class memberships based on
 #'     the maximum posterior probability.
-#' @param obj A FitChoice object from running LCA.
+#' @param fit A FitChoice object from running LCA.
 #' @return A vector containing respondent class memberships.
 #' @export
-Memberships <- function(obj)
+Memberships <- function(fit)
 {
-    pp <- obj$posterior.probabilities
+    UseMethod("Memberships")
+}
+
+#' @export
+Memberships.FitChoice <- function(fit)
+{
+    pp <- fit$posterior.probabilities
     .fun <- function(x)
     {
         if (any(is.na(x)))
@@ -631,17 +637,23 @@ Memberships <- function(obj)
 
 #' @title ExtractClassParameters
 #' @description Produces a matrix of parameters from LCA.
-#' @param obj A FitChoice object from running LCA.
+#' @param fit A FitChoice object from running LCA.
 #' @return A matrix of parameters where each column corresponds to a class.
 #'     If there is only one class, this is a vector of parameters.
 #' @export
-ExtractClassParameters <- function(obj)
+ExtractClassParameters <- function(fit)
 {
-    if (is.null(obj$lca.data))
+    UseMethod("ExtractClassParameters")
+}
+
+#' @export
+ExtractClassParameters.FitChoice <- function(fit)
+{
+    if (is.null(fit$lca.data))
         stop("The selected output was not from a Latent Class Analysis ",
              "Choice Model. Please select such an output before running this ",
              "script.")
-    obj$coef
+    fit$coef
 }
 
 compressNumericMatrix <- function(mat)

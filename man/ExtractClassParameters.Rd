@@ -4,10 +4,10 @@
 \alias{ExtractClassParameters}
 \title{ExtractClassParameters}
 \usage{
-ExtractClassParameters(obj)
+ExtractClassParameters(fit)
 }
 \arguments{
-\item{obj}{A FitChoice object from running LCA.}
+\item{fit}{A FitChoice object from running LCA.}
 }
 \value{
 A matrix of parameters where each column corresponds to a class.

@@ -15,6 +15,12 @@
 #' @export
 TracePlots <- function(fit)
 {
+    UseMethod("TracePlots")
+}
+
+#' @export
+TracePlots <- function(fit)
+{
     checkValidFit(fit)
 
     is.multi.class <- fit$n.classes > 1L

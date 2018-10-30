@@ -17,6 +17,12 @@
 #' @export
 PlotPosteriorIntervals <- function(fit)
 {
+    UseMethod("PlotPosteriorIntervals")
+}
+
+#' @export
+PlotPosteriorIntervals.FitChoice <- function(fit)
+{
     checkValidFit(fit)
 
     is.multi.class <- fit$n.classes > 1L

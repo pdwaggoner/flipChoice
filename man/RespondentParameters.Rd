@@ -4,10 +4,10 @@
 \alias{RespondentParameters}
 \title{RespondentParameters}
 \usage{
-RespondentParameters(object)
+RespondentParameters(fit)
 }
 \arguments{
-\item{object}{A \code{FitChoice} or \code{FitMaxDiff} object.}
+\item{fit}{A \code{FitChoice} or \code{FitMaxDiff} object.}
 }
 \description{
 The parameters for each respondent.

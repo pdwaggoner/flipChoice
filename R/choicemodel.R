@@ -532,14 +532,19 @@ computeAccuracy <- function(object, data, ...)
     list(y.pred.in, y.pred.out, in.acc = mean(in.correct), out.acc = mean(out.correct))
 }
 
-
 #' @title RespondentParameters
 #' @description The parameters for each respondent.
-#' @param object A \code{FitChoice} or \code{FitMaxDiff} object.
+#' @param fit A \code{FitChoice} or \code{FitMaxDiff} object.
 #' @export
-RespondentParameters <- function(object)
+RespondentParameters <- function(fit)
 {
-    as.data.frame(object$respondent.parameters)
+    UseMethod("RespondentParameters")
+}
+
+#' @export
+RespondentParameters.FitChoice <- function(fit)
+{
+    as.data.frame(fit$respondent.parameters)
 }
 
 #' @title RespondentParametersTable

@@ -21,6 +21,12 @@
 #' @export
 ExtractParameterStats <- function(fit)
 {
+    UseMethod("ExtractParameterStats")
+}
+
+#' @export
+ExtractParameterStats.FitChoice <- function(fit)
+{
     checkValidFit(fit, require.hb = FALSE)
 
     par.names <- fit$param.names.list$stan.pars

@@ -4,10 +4,10 @@
 \alias{Memberships}
 \title{Memberships}
 \usage{
-Memberships(obj)
+Memberships(fit)
 }
 \arguments{
-\item{obj}{A FitChoice object from running LCA.}
+\item{fit}{A FitChoice object from running LCA.}
 }
 \value{
 A vector containing respondent class memberships.
