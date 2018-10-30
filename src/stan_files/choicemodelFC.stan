@@ -38,6 +38,7 @@ transformed parameters {
 
 model {
     int rs = 1;
+    vector[V * R] vector_normal;
 
     // gamma distribution with mode = 1 and p(x < 20) = 0.999
     /* sigma ~ gamma(1.39435729464721, 0.39435729464721); */
@@ -47,7 +48,8 @@ model {
         theta[v] ~ normal(prior_mean, prior_sd);
     L_omega ~ lkj_corr_cholesky(lkj_shape);
 
-    to_vector(standard_normal) ~ normal(0, 1);
+    vector_normal = to_vector(standard_normal);
+    vector_normal ~ normal(0, 1);
 
     for (r in 1:R)
     {
@@ -64,6 +66,8 @@ generated quantities {
     real log_likelihood_out = 0;
     vector[R] rlh;
     vector[R] rlh_out;
+    real mean_rlh;
+    real mean_rlh_out;
 
     // Add braces to exclude rs from exported values
     {
@@ -79,6 +83,7 @@ generated quantities {
             log_likelihood += resp_ll;
             rlh[r] = exp(resp_ll / S[r]);
         }
+        mean_rlh = exp(log_likelihood / sum(S));
     }
 
     if (S_out > 0)
@@ -95,5 +100,6 @@ generated quantities {
             log_likelihood_out += resp_ll;
             rlh_out[r] = exp(resp_ll / S_out);
         }
+        mean_rlh_out = exp(log_likelihood_out / (R * S_out));
     }
 }

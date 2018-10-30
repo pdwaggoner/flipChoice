@@ -67,20 +67,22 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
 
     result$log.likelihood <- log.likelihood
     result$rlh <- rootLikelihood(pars, X, ind.levels, n.classes,
-                                 n.alternatives, n.parameters)
+                                            n.alternatives, n.parameters)
+    result$mean.rlh <- exp(log.likelihood / nrow(X))
     n.questions.out <- dat$n.questions.left.out
     if (n.questions.out > 0)
     {
         X.out <- transformDataForLCA(dat$X.out, dat$Y.out)
         ind.levels.out <- lapply(0:(dat$n.respondents - 1), function(x)
                                  x * n.questions.out + 1:n.questions.out)
-        result$log.likelihood.out <- logLikelihood(pars, X.out, weights,
-                                                   ind.levels.out, n.classes,
-                                                   n.alternatives,
-                                                   n.parameters)
+        log.likelihood.out <- logLikelihood(pars, X.out, weights,
+                                            ind.levels.out, n.classes,
+                                            n.alternatives, n.parameters)
+        result$log.likelihood.out <- log.likelihood.out
         result$rlh.out <- rootLikelihood(pars, X.out, ind.levels.out,
                                          n.classes, n.alternatives,
                                          n.parameters)
+        result$mean.rlh.out <- exp(log.likelihood.out / nrow(X.out))
     }
     result$posterior.probabilities <- resp.post.probs
     result$effective.sample.size <- ess <- sum(weights)

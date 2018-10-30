@@ -79,6 +79,8 @@ generated quantities {
     real log_likelihood_out = 0;
     vector[R] rlh;
     vector[R] rlh_out;
+    real mean_rlh;
+    real mean_rlh_out;
 
     // Add braces to exclude rs from exported values
     {
@@ -114,6 +116,7 @@ generated quantities {
                     beta[r, v] += class_beta[r, p, v] * respondent_class_weights[p];
             }
         }
+        mean_rlh = exp(log_likelihood / sum(S));
     }
 
     if (S_out > 0)
@@ -141,5 +144,6 @@ generated quantities {
             log_likelihood_out += log_sum_exp_pp;
             rlh_out[r] = exp(log_sum_exp_pp / S_out);
         }
+        mean_rlh_out = exp(log_likelihood_out / (R * S_out));
     }
 }

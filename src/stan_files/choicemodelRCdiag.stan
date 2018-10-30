@@ -49,6 +49,8 @@ transformed parameters {
 model {
     int rs = 1;
     int start_idx; /* for updating random effects */
+    vector[V * R] vector_normal;
+    vector[V_rc * V] vector_sig_rc;
 
     // gamma distribution with mode = 1 and p(x < 20) = 0.999
     /* sigma ~ gamma(1.39435729464721, 0.39435729464721); */
@@ -56,7 +58,8 @@ model {
     /* mu0 ~ normal(prior_mean, prior_sd); */
     /* sig_fc ~ gamma(1.39435729464721, 0.39435729464721); */
   /* sig_fc ~ gamma(10,10000); */
-    to_vector(sig_rc) ~ gamma(1.39435729464721, 0.39435729464721);
+    vector_sig_rc = to_vector(sig_rc);
+    vector_sig_rc ~ gamma(1.39435729464721, 0.39435729464721);
   /* to_vector(sig_rc) ~ gamma(10,10000); */
     /* to_vector(sig_theta) ~ cauchy(0,5); */
 
@@ -75,7 +78,8 @@ model {
 
     L_omega ~ lkj_corr_cholesky(lkj_shape);
 
-    to_vector(standard_normal) ~ normal(0, 1);
+    vector_normal = to_vector(standard_normal);
+    vector_normal ~ normal(0, 1);
 
     for (r in 1:R)
     {
@@ -92,6 +96,8 @@ generated quantities {
     real log_likelihood_out = 0;
     vector[R] rlh;
     vector[R] rlh_out;
+    real mean_rlh;
+    real mean_rlh_out;
 
     // Add braces to exclude rs from exported values
     {
@@ -107,6 +113,7 @@ generated quantities {
             log_likelihood += resp_ll;
             rlh[r] = exp(resp_ll / S[r]);
         }
+        mean_rlh = exp(log_likelihood / sum(S));
     }
 
     if (S_out > 0)
@@ -123,5 +130,6 @@ generated quantities {
             log_likelihood_out += resp_ll;
             rlh_out[r] = exp(resp_ll / S_out);
         }
+        mean_rlh_out = exp(log_likelihood_out / (R * S_out));
     }
 }

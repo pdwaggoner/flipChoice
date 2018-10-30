@@ -89,17 +89,20 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
 #' @param seed Random seed.
 #' @param stan.model Complied Stan model
 #' @param keep.beta Whether retain the beta draws in the output.
+#' @param pars Stan parameters whose draws to retain. If NULL, a default
+#'     selection of parameters is used instead.
 #' @param ... Additional parameters to pass on to \code{rstan::stan} and
 #' \code{rstan::sampling}.
 #' @return A stanfit object.
 #' @importFrom rstan stan sampling
 #' @import Rcpp
 #' @export
-RunStanSampling <- function(stan.dat, n.iterations, n.chains,
-                            max.tree.depth, adapt.delta,
-                            seed, stan.model, keep.beta, ...)
+RunStanSampling <- function(stan.dat, n.iterations, n.chains, max.tree.depth,
+                            adapt.delta, seed, stan.model, keep.beta,
+                            pars = NULL, ...)
 {
-    pars <- stanParameters(stan.dat, keep.beta, stan.model)
+    if (is.null(pars))
+        pars <- stanParameters(stan.dat, keep.beta, stan.model)
     init <- initialParameterValues(stan.dat)
     sampling(stan.model, data = stan.dat, chains = n.chains,
              pars = pars, iter = n.iterations, seed = seed,
@@ -160,6 +163,35 @@ initialParameterValues <- function(stan.dat)
     init
 }
 
+# Stan data variables (copied from Stan files)
+# int<lower=2> C; // Number of alternatives (choices) in each question
+# int<lower=1> R; // Number of respondents
+# int<lower=1> V_fc; // Number of respondent-specific fixed covariate parameters
+# int<lower=0> V_rc; // Number of respondent-specific random effects vectors
+# int<lower=1> rc_dims[V_rc]; // Dimension of each random covariate
+# int<lower=0> total_rc; /* total num. random effects sum(rc_dims) */
+# int<lower=1> S[R]; // Number of questions per respondent
+# int<lower=0> S_out; // Number of holdout questions
+# int<lower=1> RS; // sum(S)
+# int<lower=1> RS_out; // R * S_out
+# int<lower=1> P; // Number of classes
+# int<lower=1> A; // Number of attributes
+# int<lower=1> V; // Number of parameters
+# int<lower=1> V_attribute[A]; // Number of parameters in each attribute
+# int<lower=0> V_covariates; // Number of respondent-specific covariates
+# int<lower=1,upper=C> Y[RS]; // choices
+# int<lower=1,upper=C> Y_out[RS_out]; // holdout choices
+# matrix[C, V] X[RS]; // matrix of attributes for each obs
+# matrix[C, V] X_out[RS_out]; // matrix of holdout attributes for each obs
+# matrix[R, V_covariates] covariates; // matrix of respondent characteristics
+# matrix[R,V_fc] Xmat;  // design matrix of resp. characteristics fixed effects
+# matrix[R,total_rc] Zmat;  // design matrix of resp. characteristics fixed effects
+# int<lower=1> U; // Number of standard deviation parameters
+# vector[V] prior_mean; // Prior mean for theta
+# vector[V] prior_sd; // Prior sd for theta
+# real<lower=1> lkj_shape; // shape parameter for LKJ prior
+# real<lower=0> gamma_shape; // shape parameter for gamma prior for sigma
+# real<lower=0> gamma_scale; // scale parameter for gamma prior for sigma
 createStanData <- function(dat, n.classes, normal.covariance)
 {
     if (dat$n.questions.left.out == 0)
@@ -615,19 +647,34 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size,
 
     log.likelihood <- get_posterior_mean(stan.fit,
                                          pars = "log_likelihood")[ind]
+    result <- list(log.likelihood = log.likelihood,
+                   bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+
     rlh <- rep(NA, length(subset))
     rlh[subset] <- get_posterior_mean(stan.fit, pars = "rlh")[, ind]
+    mean.rlh <- get_posterior_mean(stan.fit, pars = "mean_rlh")[, ind]
 
-    result <- list(log.likelihood = log.likelihood,
-                   rlh = rlh,
-                   bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+    if (!is.na(mean.rlh)) # rank-ordered logit MaxDiff has no RLH
+    {
+        result$rlh <- rlh
+        result$mean.rlh <- mean.rlh
+    }
+
     if (n.questions.left.out > 0)
     {
-        result$rlh.out <- rep(NA, length(subset))
-        result$rlh.out[subset] <- get_posterior_mean(stan.fit,
-                                                     pars = "rlh_out")[, ind]
-        result$log.likelihood.out <- get_posterior_mean(stan.fit,
-                                            pars = "log_likelihood_out")[ind]
+        log.likelihood.out <- get_posterior_mean(stan.fit,
+                                             pars = "log_likelihood_out")[ind]
+        result$log.likelihood.out <- log.likelihood.out
+        rlh.out <- rep(NA, length(subset))
+        rlh.out[subset] <- get_posterior_mean(stan.fit,
+                                              pars = "rlh_out")[, ind]
+        mean.rlh.out <- get_posterior_mean(stan.fit,
+                                           pars = "mean_rlh_out")[, ind]
+        if (!is.na(mean.rlh.out)) # rank-ordered logit has no RLH
+        {
+            result$rlh.out <- rlh.out
+            result$mean.rlh.out <- mean.rlh.out
+        }
     }
     result
 }
