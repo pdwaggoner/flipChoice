@@ -19,7 +19,7 @@ TracePlots <- function(fit)
 }
 
 #' @export
-TracePlots <- function(fit)
+TracePlots.FitChoice <- function(fit)
 {
     checkValidFit(fit)
 
