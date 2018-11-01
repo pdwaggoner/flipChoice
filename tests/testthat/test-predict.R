@@ -32,7 +32,7 @@ scen <- list("alt. 1" = c("Brand" = "Dove", "Price" = "$0.99", "Cocoa Strength" 
 test_that("prediction error msg if invalid scenario",
 {
     par.names <- fit$param.names.list$unconstrained.respondent.pars
-    al <- chocolate.design$attribute.list
+    al <- chocolate.design$attribute.levels
     expect_equal(checkValidAlternative(scen[[1]], par.names, al), "")
     expect_equal(checkValidAlternative(scen[[2]], par.names, al), "")
     bad.scen <- scen
@@ -85,10 +85,10 @@ test_that("Prediction with none alternative",
                       "Alt. 2" = c("Att1" = 2, "Att2" = 2, "Att3" = 1),
                       "none 1" = c("Alternative" = "2 (none of these)"))
     out <- predict(fit.none, scen.none)
-    expect_equal(nrow(out), fit$n.respondents)
-    expect_equal(ncol(out), length(scen))
-    expect_equal(colnames(out), names(scen))
-    expect_equal(rowSums(out), rep.int(1, fit$n.respondents))
+    expect_equal(nrow(out), fit.none$n.respondents)
+    expect_equal(ncol(out), length(scen.none))
+    expect_equal(colnames(out), names(scen.none))
+    expect_equal(rowSums(out), rep.int(1, fit.none$n.respondents))
 })
 
 utilities <- array(0, dim = c(2, 1, 6))  # 2 iter, 1 resp, 6 alt
