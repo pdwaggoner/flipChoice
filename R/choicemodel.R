@@ -397,8 +397,7 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
 {
     subset <- !is.na(rowSums(resp.pars))
     resp.pars <- resp.pars[subset, , drop = FALSE]
-    color.classes <- !is.null(class.memberships)
-    if (color.classes)
+    if (!is.null(class.memberships))
         class.memberships <- class.memberships[subset]
 
     bin.max <- max(ceiling(max(resp.pars, na.rm = TRUE)), -floor(min(resp.pars, na.rm = TRUE)))
@@ -423,42 +422,12 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
 
     footer <- paste0(footer, "column width: ", FormatAsReal(bin.size, decimals = 2), "; ")
 
-    class.colors <- if (color.classes)
-        classColors(length(class.sizes))
-    else
-        NULL
-
     HistTable(resp.pars, class.memberships = class.memberships,
-              class.sizes = class.sizes, class.colors = class.colors,
-              title = title, subtitle = subtitle, footer = footer,
-              bin.size = bin.size, bin.min = bin.min, bin.max = bin.max,
-              hist.width = 300, hist.height = 20, color.negative = TRUE,
-              show.tooltips = FALSE,
+              class.sizes = class.sizes, title = title, subtitle = subtitle,
+              footer = footer, bin.size = bin.size, bin.min = bin.min,
+              bin.max = bin.max, hist.width = 300, hist.height = 20,
+              color.negative = TRUE, show.tooltips = FALSE,
               histogram.column.name = "Respondent Coefficients", stats.table)
-}
-
-classColors <- function(n.classes)
-{
-    # Modified from the default plotly palette
-    color.palette <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-                       "#8c564b", "#e377c2", "#bcbd22", "#03E7C5", "#7f7f7f")
-    class.colors <- color.palette
-
-    # If we run out of colors from the palette,
-    # reuse a lighter version of the palette
-    new.colors <- color.palette
-    while (length(class.colors) < n.classes)
-    {
-        new.colors <- lightenColors(new.colors)
-        class.colors <- c(class.colors, new.colors)
-    }
-    class.colors[1:n.classes]
-}
-
-#' @importFrom colorspace hex2RGB
-lightenColors <- function(hex.colors)
-{
-    rgb(1 - ((1 - hex2RGB(hex.colors)@coords) * 0.6))
 }
 
 #' @title print.FitChoice
