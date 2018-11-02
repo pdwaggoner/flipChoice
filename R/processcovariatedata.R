@@ -5,7 +5,7 @@
 #' @importFrom stats model.frame
 #' @importFrom lme4 mkReTrms subbars findbars nobars
 #' @noRd
-processCovariateData <- function(dat, n.classes, cov.formula, cov.data)
+processCovariateData <- function(dat, is.multiclass.or.lca, cov.formula, cov.data)
 {
     covariates <- dat$covariates
     dat$n.covariates <- NCOL(covariates)
@@ -57,7 +57,7 @@ processCovariateData <- function(dat, n.classes, cov.formula, cov.data)
     ## beta.names: respondent.par.names
     ## all.beta.names: unconstrained.respondent.par.names
     ## all.names: mean.and.sd.par.names (theta.and.sigma.names)
-    if (n.classes == 1)  # choicemodelFC or choicemodelRC
+    if (!is.multiclass.or.lca)  # choicemodelFC or choicemodelRC
     {   ## modify par.names to account for covariates
         ## cnames <- colnames(covariates)
         resp.par.names <- dat$par.names

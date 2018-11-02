@@ -305,7 +305,8 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
         stop("Insufficient data was supplied.")
 
     if (!is.null(dat$covariates))
-        dat <- processCovariateData(dat, n.classes, cov.formula, cov.data)
+        dat <- processCovariateData(dat, algorithm == "LCA" || n.classes > 1,
+                                    cov.formula, cov.data)
 
     dat$hb.sigma.prior.shape <- hb.sigma.prior.shape
     dat$hb.sigma.prior.scale <- hb.sigma.prior.scale
