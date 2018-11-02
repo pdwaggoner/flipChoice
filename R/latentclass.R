@@ -98,6 +98,7 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
                                                        dat$par.names,
                                                        dat$all.names)
     result$class.parameters <- pars$class.parameters
+    result$class.sizes <- pars$class.sizes
     result$coef <- createCoefOutput(pars, dat$par.names, dat$all.names)
     result$lca.data <- lca.data
     result

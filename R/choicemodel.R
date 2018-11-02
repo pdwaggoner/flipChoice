@@ -390,10 +390,25 @@ RespondentParameters.ChoiceEnsemble <- function(fit)
 #' @importFrom flipFormat FormatAsReal
 #' @importFrom stats sd
 #' @export
-RespondentParametersTable <- function(resp.pars, title, subtitle, footer)
+RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
+                                      class.sizes = NULL, title, subtitle, footer)
 {
+    subset <- !is.na(rowSums(resp.pars))
+    resp.pars <- resp.pars[subset, , drop = FALSE]
+    color.classes <- !is.null(class.memberships)
+    if (color.classes)
+        class.memberships <- class.memberships[subset]
+
     bin.max <- max(ceiling(max(resp.pars, na.rm = TRUE)), -floor(min(resp.pars, na.rm = TRUE)))
+    if (bin.max > 10)
+    {
+        bin.max <- 10
+        warning("Some respondent parameters have exceeded the maximum range ",
+                "for the histogram and they will appear in the minimum ",
+                "(left-most) and maximum (right-most) bins.")
+    }
     bin.min <- -bin.max
+    bin.size <- (bin.max - bin.min) / 50
 
     n.parameters <- ncol(resp.pars)
     stats.table <- matrix(NA, nrow = n.parameters, ncol = 2)
@@ -404,14 +419,36 @@ RespondentParametersTable <- function(resp.pars, title, subtitle, footer)
     }
     colnames(stats.table) <- c("Mean", "Standard Deviation")
 
-    bin.size <- (bin.max - bin.min) / 50
-
     footer <- paste0(footer, "column width: ", FormatAsReal(bin.size, decimals = 2), "; ")
 
-    HistTable(resp.pars, title = title, subtitle = subtitle, footer = footer,
-              bin.size = bin.size, bin.min = bin.min, bin.max = bin.max, hist.width = 300,
-              hist.height = 20, color.negative = TRUE, show.tooltips = FALSE,
+    class.colors <- if (color.classes)
+        classColors(length(class.sizes))
+    else
+        NULL
+
+    HistTable(resp.pars, class.memberships = class.memberships,
+              class.sizes = class.sizes, class.colors = class.colors,
+              title = title, subtitle = subtitle, footer = footer,
+              bin.size = bin.size, bin.min = bin.min, bin.max = bin.max,
+              hist.width = 300, hist.height = 20, color.negative = TRUE,
+              show.tooltips = FALSE,
               histogram.column.name = "Respondent Coefficients", stats.table)
+}
+
+classColors <- function(n.classes)
+{
+    # Modified from the default plotly palette
+    color.palette <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+                       "#8c564b", "#e377c2", "#bcbd22", "#03E7C5", "#7f7f7f")
+    class.colors <- color.palette
+    while (length(class.colors) < n.classes)
+        class.colors <- c(class.colors, lightenColors(color.palette))
+    class.colors[1:n.classes]
+}
+
+lightenColors <- function(hex.colors)
+{
+    rgb(1 - ((1 - hex2RGB(hex.colors)@coords) * 0.6))
 }
 
 #' @title print.FitChoice
@@ -503,7 +540,6 @@ print.FitChoice <- function(x, ...)
         paste0("Choice Model: ", x$n.classes, "-class Latent Class Analysis")
 
     footer <- choiceModelFooter(x)
-    footer <- paste0(footer, "number of classes: ", x$n.classes, "; ")
     footer <- paste0(footer, "mean RLH: ",
                      FormatAsReal(x$mean.rlh, decimals = 2), "; ")
     if (x$n.questions.left.out > 0)
@@ -538,8 +574,18 @@ print.FitChoice <- function(x, ...)
 
     subtitle <- choiceModelSubtitle(x)
 
-    RespondentParametersTable(x$respondent.parameters, title, subtitle, footer)
+    if (x$algorithm == "LCA")
+        RespondentParametersTable(x$respondent.parameters,
+                                  class.memberships = Memberships(x),
+                                  class.sizes = x$class.sizes,
+                                  title = title, subtitle = subtitle,
+                                  footer = footer)
+    else
+        RespondentParametersTable(x$respondent.parameters, title = title,
+                                  subtitle = subtitle, footer = footer)
 }
+
+
 
 #' @importFrom flipFormat ExtractChartData
 #' @export
