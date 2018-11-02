@@ -1,7 +1,7 @@
 Package: flipChoice
 Type: Package
 Title: Choice-based Conjoint experiment analysis
-Version: 1.5.0
+Version: 1.5.1
 Author: Displayr <opensource@displayr.com>
 Maintainer: Displayr <opensource@displayr.com>
 Description: Choice-based Conjoint experiment analysis using Hierarchical Bayes.
@@ -12,7 +12,7 @@ Depends: R (>= 3.3.0),
          Rcpp (>= 0.12.15),
 	     methods
 Imports: flipData,
-         flipFormat (>= 1.0.1),
+         flipFormat (>= 1.0.4),
          flipTime (>= 2.7.3),
          flipU (>= 1.2.2),
          AlgDesign,
