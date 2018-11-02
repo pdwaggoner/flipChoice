@@ -384,6 +384,8 @@ RespondentParameters.ChoiceEnsemble <- function(fit)
 #' @title RespondentParametersTable
 #' @description Produces a formattable table with histograms of respondent parameters.
 #' @param resp.pars A matrix of respondent parameters
+#' @param class.memberships A vector of respondent class memberships
+#' @param class.sizes A vector of class proportions
 #' @param title Table title.
 #' @param subtitle Table subtitle.
 #' @param footer Table footer.
@@ -441,11 +443,19 @@ classColors <- function(n.classes)
     color.palette <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
                        "#8c564b", "#e377c2", "#bcbd22", "#03E7C5", "#7f7f7f")
     class.colors <- color.palette
+
+    # If we run out of colors from the palette,
+    # reuse a lighter version of the palette
+    new.colors <- color.palette
     while (length(class.colors) < n.classes)
-        class.colors <- c(class.colors, lightenColors(color.palette))
+    {
+        new.colors <- lightenColors(new.colors)
+        class.colors <- c(class.colors, new.colors)
+    }
     class.colors[1:n.classes]
 }
 
+#' @importFrom colorspace hex2RGB
 lightenColors <- function(hex.colors)
 {
     rgb(1 - ((1 - hex2RGB(hex.colors)@coords) * 0.6))

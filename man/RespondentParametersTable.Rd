@@ -4,10 +4,15 @@
 \alias{RespondentParametersTable}
 \title{RespondentParametersTable}
 \usage{
-RespondentParametersTable(resp.pars, title, subtitle, footer)
+RespondentParametersTable(resp.pars, class.memberships = NULL,
+  class.sizes = NULL, title, subtitle, footer)
 }
 \arguments{
 \item{resp.pars}{A matrix of respondent parameters}
+
+\item{class.memberships}{A vector of respondent class memberships}
+
+\item{class.sizes}{A vector of class proportions}
 
 \item{title}{Table title.}
 
