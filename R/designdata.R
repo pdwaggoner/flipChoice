@@ -107,7 +107,11 @@ processDesign <- function(design, attribute.levels, choices, tasks, subset,
         choices <- if (is.matrix(choices))
             data.frame(choices)
         else
-            data.frame(sapply(choices, as.numeric))
+        {
+            data.frame(sapply(choices, function(x) {
+                as.numeric(as.character(x))
+            }))
+        }
 
         tasks <- if (is.matrix(tasks))
             data.frame(tasks)
