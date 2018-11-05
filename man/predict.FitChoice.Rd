@@ -22,7 +22,8 @@ See the examples.}
 \item{rule}{Character string, currently, one of
 \code{"logit respondent"}, \code{"logit draw"},
 \code{"first choice draw"}, or \code{"first choice respondent"}
-specifying how to compute the choice probabilities. See the
+specifying how to compute the choice probabilities. Ignored if
+\code{object} was fit with \code{algorithm = "LCA"}. See the
 details. Defaults to \code{"logit respondent"}.}
 
 \item{scale}{A numeric vector with length equal to \code{number of
@@ -65,6 +66,11 @@ averaged over HB iterations and their choice is computed based on this average
 utility. Thus, the output matrix will contain one \code{1} in each row with all
 other entries \code{0}.
 }
+
+For a choice model fit using latent class analysis
+(\code{algorithm = "LCA"} in \code{\link{FitChoiceModel}}), utilites are calculated
+for each class and the calculated probabilities are multipled by the the posterior
+probabilities of class membership for each respondent to obtain the prediction.
 }
 \examples{
 data(fast.food, package = "flipChoice")

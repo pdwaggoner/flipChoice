@@ -502,7 +502,7 @@ computeRespParsLCA <- function(resp.post.probs, class.parameters,
 
     result <- matrix(0, nrow = n.respondents, ncol = n.all.parameters)
     for (i in 1:n.classes)
-        result <- result + resp.post.probs[, i] %*% t(all.class.parameters[, i])
+        result <- result + tcrossprod(resp.post.probs[, i], all.class.parameters[, i])
     colnames(result) <- all.names
 
     result

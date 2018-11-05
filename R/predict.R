@@ -93,7 +93,8 @@ computeAccuracy <- function(object, data, ...)
 #' @param rule Character string, currently, one of
 #'     \code{"logit respondent"}, \code{"logit draw"},
 #'     \code{"first choice draw"}, or \code{"first choice respondent"}
-#'     specifying how to compute the choice probabilities. See the
+#'     specifying how to compute the choice probabilities. Ignored if
+#'     \code{object} was fit with \code{algorithm = "LCA"}. See the
 #'     details. Defaults to \code{"logit respondent"}.
 #' @param scale A numeric vector with length equal to \code{number of
 #'     respondents}, which will be used to weight/multiply the
@@ -124,6 +125,11 @@ computeAccuracy <- function(object, data, ...)
 #' utility. Thus, the output matrix will contain one \code{1} in each row with all
 #' other entries \code{0}.
 #' }
+#'
+#' For a choice model fit using latent class analysis
+#' (\code{algorithm = "LCA"} in \code{\link{FitChoiceModel}}), utilites are calculated
+#' for each class and the calculated probabilities are multipled by the the posterior
+#' probabilities of class membership for each respondent to obtain the prediction.
 #' @examples
 #' data(fast.food, package = "flipChoice")
 #' data(fast.food.design, package = "flipChoice")
@@ -176,13 +182,14 @@ predict.FitChoice <- function(object,
     rule <- match.arg(rule)
 
     is.lca <- object$algorithm != "HB-Stan"
-    if (is.lca)
-        stop("Prediction with choice models fit using LCA is not currently implemented.")
 
     ## form attribute list by parsing fit parameter labels
     ## breaks if attr. names or labels have a ": "!!
     ## fix for DS-2056
-    par.names <- object$param.names.list$unconstrained.respondent.pars
+    if (!is.lca)
+        par.names <- object$param.names.list$unconstrained.respondent.pars
+    else
+        par.names <- colnames(object$respondent.parameters)
     attr.list <- makeAttributeList(par.names)
 
 
@@ -190,7 +197,12 @@ predict.FitChoice <- function(object,
 
     scenario.par.names <- scenarioToParameterNames(scenario)
 
-    if(rule == "first choice draw" || rule == "logit draw")
+    if (is.lca)
+    {
+        rule <- "logit respondent"
+        betas <- array(t(object$coef),
+                       dim = c(1, rev(dim(object$coef))))
+    }else if(!is.lca && (rule == "first choice draw" || rule == "logit draw"))
     {
         if (is.null(object$beta.draw))
             stop("Rule ", sQuote(rule), " is not available since ",
@@ -203,9 +215,16 @@ predict.FitChoice <- function(object,
     }else
         betas <- array(object$reduced.respondent.parameters,
                        dim = c(1, dim(object$reduced.respondent.parameters)))
-    dimnames(betas)[[3]] <- object$param.names.list$respondent.pars
+
+    dimnames(betas)[[3]] <- if (!is.lca)
+                                object$param.names.list$respondent.pars
+                            else rownames(object$coef)
 
     utilities <- calcUtilities(betas, scenario.par.names, scale, offset)
+
+    if (is.lca)  # multiply by post. prob. of class membership for each respondent
+        utilities <- array(object$posterior.probabilities%*%utilities[1, , ],
+                           dim = c(1, nrow(object$posterior.probabilities), dim(utilities)[3]))
     out <- calcPrediction(utilities, rule)
     colnames(out) <- names(scenario)
     return(out)

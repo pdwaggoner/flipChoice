@@ -263,7 +263,6 @@ test_that("Prediction with labelled alternatives",
     expect_equal(ncol(out), length(scen.la))
     expect_equal(colnames(out), names(scen.la))
     expect_equal(rowSums(out), rep.int(1, fit.la$n.respondents))
-
 })
 
 ## DS-1819
@@ -274,9 +273,14 @@ test_that("Prediction for LCA",
     fit.lca <- FitChoiceModel(design = chocolate.design,
                          choices = choices,
                          tasks = tasks,
-                         cov.formula = ~diabetes, cov.data = chocolate,
+#                         cov.formula = ~diabetes, cov.data = chocolate,
                          algorithm = "LCA",
-                         include.choice.parameters = FALSE,
-                         hb.warnings = FALSE)
+                         include.choice.parameters = TRUE,
+                         hb.warnings = FALSE, n.classes = 3)
+    out <- predict(fit.lca, scen)
+    expect_equal(nrow(out), fit.lca$n.respondents)
+    expect_equal(ncol(out), length(scen))
+    expect_equal(colnames(out), names(scen))
+    expect_equal(rowSums(out), rep.int(1, fit.lca$n.respondents))
 
 })
