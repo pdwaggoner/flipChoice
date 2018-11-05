@@ -179,10 +179,10 @@ test_that("prediction with ASCs specified",
                       "Nuts" = "Hazelnuts", "Ethical" = "Fair trade"))
     out <- predict(fit.keep, scen3, rule = "first choice draw")
     ## table(apply(out, 1, which.max))
-    expect_equal(nrow(out), fit$n.respondents)
-    expect_equal(ncol(out), length(scen))
-    expect_equal(colnames(out), names(scen))
-    expect_equal(rowSums(out), rep.int(1, fit$n.respondents))
+    expect_equal(nrow(out), fit.keep$n.respondents)
+    expect_equal(ncol(out), length(scen3))
+    expect_equal(colnames(out), names(scen3))
+    expect_equal(rowSums(out), rep.int(1, fit.keep$n.respondents))
 
 })
 
