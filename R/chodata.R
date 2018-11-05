@@ -96,6 +96,7 @@ processCho <- function(raw.lines, attribute.levels, subset, weights,
     row.i <- 0
     rs <- 0
     respondent.i <- 0
+    max.n.questions <- 0
     while (row.i < n.raw)
     {
         row.i <- row.i + 1 # first respondent row
@@ -104,6 +105,8 @@ processCho <- function(raw.lines, attribute.levels, subset, weights,
         n.questions <- raw.num[[row.i]][4]
         if (!is.na(n.questions.common) && n.questions != n.questions.common)
             n.questions.common <- NA
+        if (n.questions > max.n.questions)
+            max.n.questions <- n.questions
         row.i <- row.i + 1 # second respondent row
         rs.initial <- rs
         for (j in 1:n.questions)
@@ -256,7 +259,7 @@ processCho <- function(raw.lines, attribute.levels, subset, weights,
     prior.sd <- processInputPrior(input.prior.sd, n.parameters, n.attributes,
                                   n.attribute.parameters)
 
-    list(n.questions = n.questions.common,
+    list(n.questions = max.n.questions,
          n.questions.left.out = n.questions.left.out,
          n.alternatives = n.alternatives,
          n.attributes = n.attributes,
