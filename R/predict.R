@@ -493,9 +493,9 @@ checkScenario <- function(scenario, par.names, attr.list)
 
 checkValidAlternative <- function(alternative, par.names, attr.list)
 {
-    alt.attr.names <- tolower(names(alternative))
-    attr.names <- tolower(names(attr.list))
-    bad.idx <- which(!alt.attr.names %in% attr.names)
+    alt.attr.names <- names(alternative)
+    attr.names <- names(attr.list)
+    bad.idx <- which(!tolower(alt.attr.names) %in% tolower(attr.names))
     if (any(bad.idx))
         return(paste0(paste(sQuote(alt.attr.names[bad.idx]), collapse = ","),
                       " needs to be one of ",
