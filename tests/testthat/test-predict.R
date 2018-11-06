@@ -284,3 +284,40 @@ test_that("Prediction for LCA",
     expect_equal(rowSums(out), rep.int(1, fit.lca$n.respondents))
 
 })
+
+test_that("prediction scenario attributes are case-insensitive",
+{
+    scen.bad <- list("alt. 1" = c(brand = "Dove", "PrIce" = "$0.99", "Cocoa Strength" = "Dark",
+                          "Sugar" = "Standard", "Origin" = "Switzerland",
+                          "Nuts" = "Hazelnuts", "Ethical" = "BLANK"),
+             "alt. 2" = c("Brand" = "Hershey", "Price" = "$0.99", "Cocoa Strength" = "Dark",
+                          "Sugar" = "Standard", OrigiN = "UsA",
+                          "Nuts" = "Hazelnuts", "ETHICAL" = "BLANK"))
+    scen <- list("alt. 1" = c(Brand = "Dove", "Price" = "$0.99", "Cocoa strength" = "Dark",
+                          "Sugar" = "Standard", "Origin" = "Switzerland",
+                          "Nuts" = "Hazelnuts", "Ethical" = "BLANK"),
+             "alt. 2" = c("Brand" = "Hershey", "Price" = "$0.99", "Cocoa Strength" = "Dark",
+                          "Sugar" = "Standard", Origin = "USA",
+                          "Nuts" = "Hazelnuts", "Ethical" = "BLANK"))
+    out <- predict(fit, scen)
+    out.bad <- predict(fit, scen.bad)
+    expect_identical(out, out.bad)
+    expect_equal(rowSums(out), rep.int(1, fit$n.respondents))
+})
+
+test_that("predict TB DS-2186 comment",
+{
+
+    scenario = list(Hershey = c(Brand = "Hershey", "Cocoa strength" = cCocoa,
+                                Origin = cOrigin, Sugar = cSugar,
+                                Nuts = cNuts, Ethical = cEthical, Price = cPrice),
+                    Dove = c(brand = "Dove", "Cocoa strength" = cCocoa.2, Origin = cOrigin.2,
+                             Sugar = cSugar.2, Nuts = cNuts.2, Ethical = cEthical.2,
+                             Price = cPrice.2),
+                    Godiva = c(Brand = "Godiva", "Cocoa strength" = cCocoa.3,
+                               Origin = cOrigin.3, Sugar = cSugar.3, Nuts = cNuts.3,
+                               Ethical = cEthical.3, Price = cPrice.3),
+                    Lindt = c(Brand = "Lindt", "Cocoa strength" = cCocoa.4,
+                              Origin = cOrigin.4, Sugar = cSugar.4,
+                              Nuts = cNuts.4, Ethical = cEthical.4, Price = cPrice.4))
+})

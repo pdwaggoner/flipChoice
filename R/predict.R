@@ -335,7 +335,7 @@ applyOffsetAndScale <- function(u, scale, offset)
 
 calcAlternativeUtilities <- function(betas, par.names, scale, offset)
 {
-    return(apply(betas[, , dimnames(betas)[[3]] %in% par.names, drop = FALSE],
+    return(apply(betas[, , tolower(dimnames(betas)[[3]]) %in% tolower(par.names), drop = FALSE],
                  1:2, sum))
 }
 
