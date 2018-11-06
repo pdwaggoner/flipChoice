@@ -429,7 +429,8 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
               footer = footer, bin.size = bin.size, bin.min = bin.min,
               bin.max = bin.max, hist.width = 300, hist.height = 20,
               color.negative = TRUE, show.tooltips = FALSE,
-              histogram.column.name = "Respondent Coefficients", stats.table)
+              histogram.column.name = "Respondent Coefficients",
+              prior.columns = NULL, show.row.names = TRUE, stats.table)
 }
 
 #' @title print.FitChoice
