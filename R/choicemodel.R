@@ -394,7 +394,8 @@ RespondentParameters.ChoiceEnsemble <- function(fit)
 #' @importFrom stats sd
 #' @export
 RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
-                                      class.sizes = NULL, title, subtitle, footer)
+                                      class.sizes = NULL, title, subtitle,
+                                      footer)
 {
     subset <- !is.na(rowSums(resp.pars))
     resp.pars <- resp.pars[subset, , drop = FALSE]
@@ -402,9 +403,9 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
         class.memberships <- class.memberships[subset]
 
     bin.max <- max(ceiling(max(resp.pars, na.rm = TRUE)), -floor(min(resp.pars, na.rm = TRUE)))
-    if (bin.max > 10)
+    if (bin.max > 20)
     {
-        bin.max <- 10
+        bin.max <- 20
         warning("Some respondent parameters have exceeded the maximum range ",
                 "for the histogram and they will appear in the minimum ",
                 "(left-most) and maximum (right-most) bins.")
