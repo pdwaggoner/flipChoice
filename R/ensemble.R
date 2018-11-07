@@ -115,8 +115,10 @@ print.ChoiceEnsemble <- function(x, ...) {
 
         subtitle <- choiceModelSubtitle(x)
         footer <- choiceModelFooter(x)
-        RespondentParametersTable(x$respondent.parameters, title = title,
-                                  subtitle = subtitle, footer = footer)
+        RespondentParametersTable(x$respondent.parameters,
+                                  attribute.levels = x$attribute.levels,
+                                  title = title, subtitle = subtitle,
+                                  footer = footer)
     }
     else
     {

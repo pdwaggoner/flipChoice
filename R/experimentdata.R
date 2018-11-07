@@ -64,6 +64,9 @@ processExperimentData <- function(experiment.data, subset, weights,
                                 n.alternatives, n.parameters)
     all.names <- allNames(attribute.data, n.attributes, n.questions,
                           n.alternatives, n.parameters)
+    attribute.levels <- attributeLevels(attribute.data, n.attributes,
+                                        n.questions, n.alternatives,
+                                        n.parameters)
 
     checkPriorParameters(input.prior.mean, input.prior.sd, n.alternatives,
                          n.attributes, n.parameters)
@@ -102,7 +105,10 @@ processExperimentData <- function(experiment.data, subset, weights,
                                            parameter.scales)
         Y <- output$choices
         simulated.respondent.parameters <- output$respondent.parameters
-
+        alternative.levels <- createAlternativeLevels(n.alternatives,
+                                                      is.none.alternative)
+        attribute.levels <- c(list("Alternative" = alternative.levels),
+                              attribute.levels)
     }
     else
         simulated.respondent.parameters <- NULL
@@ -133,7 +139,8 @@ processExperimentData <- function(experiment.data, subset, weights,
          parameter.scales = parameter.scales,
          prior.mean = prior.mean,
          prior.sd = prior.sd,
-         simulated.respondent.parameters = simulated.respondent.parameters)
+         simulated.respondent.parameters = simulated.respondent.parameters,
+         attribute.levels = attribute.levels)
 }
 
 extractChoices <- function(experiment.data, non.missing.table)
@@ -303,6 +310,25 @@ allNames <- function(attribute.data, n.attributes, n.questions,
             result[ind] <- nms[col]
             ind <- ind + 1
         }
+    }
+    result
+}
+
+# Creates a list of attribute levels. If an attribute is numeric, an empty
+# character vector is provided for that attribute.
+attributeLevels <- function(attribute.data, n.attributes, n.questions,
+                            n.alternatives, n.parameters)
+{
+    nms <- names(attribute.data)
+    result <- list()
+    for (i in 1:n.attributes)
+    {
+        col <- n.questions * n.alternatives * (i - 1) + 1
+        v <- attribute.data[[col]]
+        result[[nms[col]]] <- if (is.factor(v))
+            levels(v)
+        else
+            character(0)
     }
     result
 }

@@ -254,6 +254,10 @@ processDesign <- function(design, attribute.levels, choices, tasks, subset,
         par.names <- output$par.names
         all.names <- output$all.names
         attribute.names <- c("Alternative", attribute.names)
+        alternative.levels <- createAlternativeLevels(n.alternatives,
+                                                      is.none.alternative)
+        attribute.levels <- c(list("Alternative" = alternative.levels),
+                              attribute.levels)
     }
 
     respondent.indices <- constructRespondentIndices(non.missing.table)
@@ -305,7 +309,8 @@ processDesign <- function(design, attribute.levels, choices, tasks, subset,
          parameter.scales = rep(1, n.parameters),
          prior.mean = prior.mean,
          prior.sd = prior.sd,
-         simulated.respondent.parameters = simulated.respondent.parameters)
+         simulated.respondent.parameters = simulated.respondent.parameters,
+         attribute.levels = attribute.levels)
 }
 
 readDesignFile <- function(design.file, attribute.levels.file)

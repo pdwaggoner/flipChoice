@@ -354,6 +354,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     result$simulated.respondent.parameters <- simulated.resp.pars
     result$synthetic.respondent.parameters <- simulated.resp.pars # deprecated
     result$time.taken <- (end.time - start.time)[3]
+    result$attribute.levels <- dat$attribute.levels
     class(result) <- "FitChoice"
     result
 }
@@ -387,6 +388,7 @@ RespondentParameters.ChoiceEnsemble <- function(fit)
 #' @param resp.pars A matrix of respondent parameters
 #' @param class.memberships A vector of respondent class memberships
 #' @param class.sizes A vector of class proportions
+#' @param attribute.levels Attribute levels as a named list of character vectors
 #' @param title Table title.
 #' @param subtitle Table subtitle.
 #' @param footer Table footer.
@@ -394,7 +396,8 @@ RespondentParameters.ChoiceEnsemble <- function(fit)
 #' @importFrom stats sd
 #' @export
 RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
-                                      class.sizes = NULL, title, subtitle,
+                                      class.sizes = NULL,
+                                      attribute.levels = NULL, title, subtitle,
                                       footer)
 {
     subset <- !is.na(rowSums(resp.pars))
@@ -424,13 +427,36 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
 
     footer <- paste0(footer, "column width: ", FormatAsReal(bin.size, decimals = 2), "; ")
 
+    prior.columns <- NULL
+    if (!is.null(attribute.levels))
+    {
+        n.attributes <- length(attribute.levels)
+        attribute.names <- names(attribute.levels)
+        n.parameters <- ncol(resp.pars)
+        attributes.column <- rep("", n.parameters)
+        levels.column <- rep("", n.parameters)
+        j <- 1
+        for (i in 1:n.attributes)
+        {
+            lvls <- attribute.levels[[i]]
+            n.levels <- max(length(lvls), 1)
+            attributes.column[j:(j + n.levels - 1)] <- attribute.names[i]
+            if (length(lvls) > 0)
+                levels.column[j:(j + n.levels - 1)] <- lvls
+            j <- j + n.levels
+        }
+        prior.columns <- data.frame(Attribute = attributes.column,
+                                    Level = levels.column)
+    }
+
     HistTable(resp.pars, class.memberships = class.memberships,
               class.sizes = class.sizes, title = title, subtitle = subtitle,
               footer = footer, bin.size = bin.size, bin.min = bin.min,
               bin.max = bin.max, hist.width = 300, hist.height = 20,
               color.negative = TRUE, show.tooltips = FALSE,
               histogram.column.name = "Respondent Coefficients",
-              prior.columns = NULL, show.row.names = TRUE, stats.table)
+              prior.columns = prior.columns,
+              show.row.names = is.null(prior.columns), stats.table)
 }
 
 #' @title print.FitChoice
@@ -560,11 +586,14 @@ print.FitChoice <- function(x, ...)
         RespondentParametersTable(x$respondent.parameters,
                                   class.memberships = Memberships(x),
                                   class.sizes = x$class.sizes,
+                                  attribute.levels = x$attribute.levels,
                                   title = title, subtitle = subtitle,
                                   footer = footer)
     else
-        RespondentParametersTable(x$respondent.parameters, title = title,
-                                  subtitle = subtitle, footer = footer)
+        RespondentParametersTable(x$respondent.parameters,
+                                  attribute.levels = x$attribute.levels,
+                                  title = title, subtitle = subtitle,
+                                  footer = footer)
 }
 
 

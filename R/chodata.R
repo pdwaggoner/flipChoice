@@ -203,6 +203,10 @@ processCho <- function(raw.lines, attribute.levels, subset, weights,
         par.names <- output$par.names
         all.names <- output$all.names
         attribute.names <- c("Alternative", attribute.names)
+        alternative.levels <- createAlternativeLevels(n.alternatives,
+                                                      is.none.alternative)
+        attribute.levels <- c(list("Alternative" = alternative.levels),
+                              attribute.levels)
     }
 
     checkNumberOfQuestionsLeftOut(max(sapply(respondent.indices, length)),
@@ -281,7 +285,8 @@ processCho <- function(raw.lines, attribute.levels, subset, weights,
          parameter.scales = rep(1, n.parameters),
          prior.mean = prior.mean,
          prior.sd = prior.sd,
-         simulated.respondent.parameters = simulated.respondent.parameters)
+         simulated.respondent.parameters = simulated.respondent.parameters,
+         attribute.levels = attribute.levels)
 }
 
 processAttributeLevelsFile <- function(attribute.levels.file)
@@ -380,6 +385,19 @@ createAlternativeLabels <- function(n.alternatives, is.none.alternative)
             result[i] <- paste0("Alternative: ", i, " (none of these)")
         else
             result[i] <- paste0("Alternative: ", i)
+    }
+    result
+}
+
+createAlternativeLevels <- function(n.alternatives, is.none.alternative)
+{
+    result <- character(n.alternatives)
+    for (i in 1:n.alternatives)
+    {
+        if (is.none.alternative[i])
+            result[i] <- paste0(i, " (none of these)")
+        else
+            result[i] <- i
     }
     result
 }
