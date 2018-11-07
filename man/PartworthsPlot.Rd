@@ -4,7 +4,7 @@
 \alias{PartworthsPlot}
 \title{Partworths plot}
 \usage{
-PartworthsPlot(fit, scaling = c("As is", "Min = 0", "Mean = 0")[1],
+PartworthsPlot(fit, scaling = c("As is", "Min = 0", "Mean = 0")[2],
   order = c("As is", "Increasing", "Decreasing")[2],
   exclude.order = NULL, weights = NULL, subset = NULL,
   exclude.attributes = NULL, chart.type = c("Line", "Column",
@@ -31,7 +31,7 @@ PartworthsPlot(fit, scaling = c("As is", "Min = 0", "Mean = 0")[1],
 \arguments{
 \item{fit}{a FitChoice output from \code{FitChoiceModel}}
 
-\item{scaling}{Controls if the mean utility is scaled. One of "As is" (no scaling), 
+\item{scaling}{Controls if the mean utility is scaled. One of "As is" (no scaling),
 "Min = 0", or "Mean = 0".}
 
 \item{order}{Controls the order in which the levels of each attribute are shown.
@@ -39,7 +39,7 @@ One of "As is", Increasing", or "Decreasing"}
 
 \item{exclude.order}{A comma-separated list of the attributes which should not be ordered.}
 
-\item{weights}{An optional vector of sampling weights which should be the 
+\item{weights}{An optional vector of sampling weights which should be the
 same length as the number of respondents in \code{fit}.}
 
 \item{subset}{An optional vector specifying a subset of respondents used to take
@@ -74,7 +74,7 @@ font attribute for the chart unless specified individually.}
 
 \item{level.label.wrap}{Logical; whether to wrap long attribute level labels.}
 
-\item{level.label.wrap.nchar}{Integer; number of characters in each line 
+\item{level.label.wrap.nchar}{Integer; number of characters in each line
 when \code{level.label.wrap} is \code{TRUE}.}
 
 \item{values.minimum}{The lower bound of the values axis. If not specified it will be

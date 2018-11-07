@@ -3,12 +3,12 @@
 #' Create plot showing mean utility of each attribute level in the Choice model
 #'
 #' @param fit a FitChoice output from \code{FitChoiceModel}
-#' @param scaling Controls if the mean utility is scaled. One of "As is" (no scaling), 
+#' @param scaling Controls if the mean utility is scaled. One of "As is" (no scaling),
 #'  "Min = 0", or "Mean = 0".
 #' @param order Controls the order in which the levels of each attribute are shown.
 #'  One of "As is", Increasing", or "Decreasing"
 #' @param exclude.order A comma-separated list of the attributes which should not be ordered.
-#' @param weights An optional vector of sampling weights which should be the 
+#' @param weights An optional vector of sampling weights which should be the
 #'  same length as the number of respondents in \code{fit}.
 #' @param subset An optional vector specifying a subset of respondents used to take
 #'  the mean utility. It should be the same length as the number of respondents in \code{fit}.
@@ -26,7 +26,7 @@
 #' @param level.label.font.size Integer; Font size for attribute level labels.
 #' @param level.label.font.color Font color as a named color
 #' @param level.label.wrap Logical; whether to wrap long attribute level labels.
-#' @param level.label.wrap.nchar Integer; number of characters in each line 
+#' @param level.label.wrap.nchar Integer; number of characters in each line
 #'  when \code{level.label.wrap} is \code{TRUE}.
 #' @param grid.color The color of the grid lines.
 #' @param grid.width Width of the grid lines in pixels.
@@ -56,14 +56,14 @@
 #' @param margin.left Margin between plot area and the left of the
 #' graphic in pixels
 #' @param margin.right Margin between plot area and the right of the
-#' graphic in pixels 
+#' graphic in pixels
 #' @importFrom flipStatistics Mean
 #' @importFrom flipU ConvertCommaSeparatedStringToVector
 #' @importFrom plotly plot_ly layout add_trace add_text toRGB config
 #' @export
 #'
 PartworthsPlot <- function(fit,
-                           scaling = c("As is", "Min = 0", "Mean = 0")[1],
+                           scaling = c("As is", "Min = 0", "Mean = 0")[2],
                            order = c("As is", "Increasing", "Decreasing")[2],
                            exclude.order = NULL,
                            weights = NULL,
@@ -114,8 +114,8 @@ PartworthsPlot <- function(fit,
         y.tick.font.size <- round(f.scale * y.tick.font.size, 0)
         x.tick.font.size <- round(f.scale * x.tick.font.size, 0)
     }
-   
-    # Filters and weights 
+
+    # Filters and weights
     params <- RespondentParameters(fit)
     if (length(subset) > 1 && length(subset) != nrow(params))
         stop("'subset must have length equal to the number of respondents (", nrow(params), ").")
@@ -227,7 +227,7 @@ PartworthsPlot <- function(fit,
         xvals <- if (chart.type == "Bar") df$utility[ind] else ind
         yvals <- if (chart.type == "Bar") ind else df$utility[ind]
         marker <- list(color = colors[i], line = list(width = 0))
-        
+
         # Main trace
         if (chart.type %in% c("Column", "Bar"))
             p <- add_trace(p, x = xvals, y = yvals, name = attr,
@@ -238,7 +238,7 @@ PartworthsPlot <- function(fit,
                  text = hovertext[ind], hoverinfo = "name+text",
                  type = "scatter", mode = "lines",
                  line = list(color = colors[i], width = line.width))
-        
+
         # Level labels
         if (chart.type == "Bar")
             xvals <- 1.01 * xvals
@@ -248,15 +248,15 @@ PartworthsPlot <- function(fit,
         p <- add_text(p, x = xvals, y = yvals, text = label.text[ind],
                   hoverinfo = "skip", cliponaxis = FALSE,
                   textposition = label.pos[ind],
-                  textfont = list(family = level.label.font.family, 
+                  textfont = list(family = level.label.font.family,
                   size = level.label.font.size, color = level.label.font.color))
     }
-    
+
     val.axis <- list(title = values.title, range = c(values.minimum, values.maximum),
                 autorange = FALSE, showline = FALSE, showgrid = grid.width > 0, color = grid.color,
                 gridwidth = grid.width, zerolinewidth = values.zero.line.width,
                 zerolinecolor = values.zero.line.color, zeroline = values.zero.line.width > 0,
-                titlefont = list(family = values.title.font.family, 
+                titlefont = list(family = values.title.font.family,
                 color = values.title.font.color, size = values.title.font.size),
                 tickfont = list(family = values.tick.font.family,
                 color = values.tick.font.color, size = values.tick.font.size))
@@ -268,7 +268,7 @@ PartworthsPlot <- function(fit,
 
     p <- layout(p, showlegend = FALSE,
                 xaxis = if (chart.type == "Bar") val.axis else attr.axis,
-                yaxis = if (chart.type == "Bar") attr.axis else val.axis, 
+                yaxis = if (chart.type == "Bar") attr.axis else val.axis,
                 hoverlabel = list(namelength = -1),
                 hovermode = if (chart.type == "Bar") "closest" else "x",
                 margin = list(t = margin.top, l = margin.left, r = margin.right, b = margin.bottom, pad = 0),
@@ -276,7 +276,7 @@ PartworthsPlot <- function(fit,
     p <- config(p, displayModeBar = FALSE)
     p$sizingPolicy$browser$padding <- 0
     p
-}   
+}
 
 
 # Takes a single string and puts <br> in place of the closest space preceding the n= value character.
