@@ -109,10 +109,10 @@ PartworthsPlot <- function(fit,
     if (tolower(font.units) %in% c("pt", "points"))
     {
         f.scale <- 1.3333
-        data.label.font.size <- round(f.scale * data.label.font.size, 0)
-        y.title.font.size <- round(f.scale * y.title.font.size, 0)
-        y.tick.font.size <- round(f.scale * y.tick.font.size, 0)
-        x.tick.font.size <- round(f.scale * x.tick.font.size, 0)
+        level.label.font.size <- round(f.scale * level.label.font.size, 0)
+        values.title.font.size <- round(f.scale * values.title.font.size, 0)
+        values.tick.font.size <- round(f.scale * values.tick.font.size, 0)
+        attr.tick.font.size <- round(f.scale * attr.tick.font.size, 0)
     }
 
     # Filters and weights
