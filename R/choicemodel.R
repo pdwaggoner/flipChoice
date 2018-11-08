@@ -428,6 +428,7 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
     footer <- paste0(footer, "column width: ", FormatAsReal(bin.size, decimals = 2), "; ")
 
     prior.columns <- NULL
+    row.lines.to.thicken <- NULL
     if (!is.null(attribute.levels))
     {
         n.attributes <- length(attribute.levels)
@@ -447,6 +448,7 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
         }
         prior.columns <- data.frame(Attribute = attributes.column,
                                     Level = levels.column)
+        row.lines.to.thicken <- which(attributes.column != "")
     }
 
     HistTable(resp.pars, class.memberships = class.memberships,
@@ -456,7 +458,8 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
               color.negative = TRUE, show.tooltips = FALSE,
               histogram.column.name = "Respondent Coefficients",
               prior.columns = prior.columns,
-              show.row.names = is.null(prior.columns), stats.table)
+              show.row.names = is.null(prior.columns),
+              row.lines.to.thicken = row.lines.to.thicken, stats.table)
 }
 
 #' @title print.FitChoice
