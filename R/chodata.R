@@ -389,12 +389,12 @@ createAlternativeLabels <- function(n.alternatives, is.none.alternative)
     result
 }
 
-createAlternativeLevels <- function(n.alternatives, is.none.alternative)
+createAlternativeLevels <- function(n.alternatives, is.none.alternative = NULL)
 {
     result <- character(n.alternatives)
     for (i in 1:n.alternatives)
     {
-        if (is.none.alternative[i])
+        if (!is.null(is.none.alternative) && is.none.alternative[i])
             result[i] <- paste0(i, " (none of these)")
         else
             result[i] <- i
