@@ -57,9 +57,12 @@ processDesignVariables <- function(design.variables, attribute.levels, choices,
 
     if (is.labeled && (is.null(attribute.levels) || max(dim(attribute.levels)) == 0))
     {
+        attribute.labels <- sapply(design[-1:-3],
+                                   function(x) attr(x, "label"))
+        # convert any numeric attributes to factors
+        design[-1:-3] <- data.frame(lapply(design[-1:-3], factor))
         attribute.levels <- sapply(design[-1:-3], levels)
-        names(attribute.levels) <- sapply(design[-1:-3],
-                                          function(x) attr(x, "label"))
+        names(attribute.levels) <- attribute.labels
     }
     else if (is.matrix(attribute.levels) && is.character(attribute.levels))
         attribute.levels <- parseAttributeLevelsMatrix(attribute.levels)

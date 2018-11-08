@@ -5,7 +5,7 @@
 \title{RespondentParametersTable}
 \usage{
 RespondentParametersTable(resp.pars, class.memberships = NULL,
-  class.sizes = NULL, title, subtitle, footer)
+  class.sizes = NULL, attribute.levels = NULL, title, subtitle, footer)
 }
 \arguments{
 \item{resp.pars}{A matrix of respondent parameters}
@@ -13,6 +13,8 @@ RespondentParametersTable(resp.pars, class.memberships = NULL,
 \item{class.memberships}{A vector of respondent class memberships}
 
 \item{class.sizes}{A vector of class proportions}
+
+\item{attribute.levels}{Attribute levels as a named list of character vectors}
 
 \item{title}{Table title.}
 
