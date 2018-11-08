@@ -105,9 +105,6 @@ processExperimentData <- function(experiment.data, subset, weights,
                                            parameter.scales)
         Y <- output$choices
         simulated.respondent.parameters <- output$respondent.parameters
-        alternative.levels <- createAlternativeLevels(n.alternatives)
-        attribute.levels <- c(list("Alternative" = alternative.levels),
-                              attribute.levels)
     }
     else
         simulated.respondent.parameters <- NULL
