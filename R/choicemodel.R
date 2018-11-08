@@ -440,7 +440,7 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
         {
             lvls <- attribute.levels[[i]]
             n.levels <- max(length(lvls), 1)
-            attributes.column[j:(j + n.levels - 1)] <- attribute.names[i]
+            attributes.column[j] <- attribute.names[i]
             if (length(lvls) > 0)
                 levels.column[j:(j + n.levels - 1)] <- lvls
             j <- j + n.levels
