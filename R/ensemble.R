@@ -60,7 +60,11 @@ ChoiceEnsemble <- function(models,
     comparison <- data.frame(matrix(nrow = 0, ncol = length(statistics)))
     for (model in models)
         comparison <- rbind(comparison, model[statistics], stringsAsFactors = FALSE)
-    rownames(comparison) <- paste("Model", seq(nrow(comparison)))
+
+    rownames(comparison) <- if (is.null(names(models)))
+        paste("Model", seq(nrow(comparison)))
+    else
+        names(models)
 
     if (!compare.only)
     {
@@ -96,7 +100,12 @@ checkModelsClass <- function(models) {
 
 extractCommonData <- function(models, underlying.class) {
 
-    processed.data <- unique(lapply(models, function(x) x$processed.data))
+    required <- c("n.questions", "n.questions.left.out", "n.alternatives", "n.attributes",
+                  "n.respondents", "n.parameters", "n.attribute.parameters", "par.names",
+                  "all.names", "beta.names", "all.beta.names", "X.in", "Y.in",
+                  "X.out", "Y.out", "left.out", "n.questions.left.in", "subset",
+                  "weights")
+    processed.data <- unique(lapply(models, function(x) x$processed.data[required]))
     if (length(processed.data) != 1)
         stop("Models must have the same input data including weights, subset and questions left out,",
             " but they do not.")
