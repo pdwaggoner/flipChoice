@@ -111,6 +111,7 @@ processExperimentData <- function(experiment.data, subset, weights,
 
     split.data <- crossValidationSplit(X, Y, n.questions.left.out, seed,
                                        respondent.indices)
+    none.alternatives <- which(apply(split.data$X.in, 2, function(x) nrow(unique(x)) == 1))
 
     list(n.questions = n.questions,
          n.questions.left.out = n.questions.left.out,
@@ -136,7 +137,8 @@ processExperimentData <- function(experiment.data, subset, weights,
          prior.mean = prior.mean,
          prior.sd = prior.sd,
          simulated.respondent.parameters = simulated.respondent.parameters,
-         attribute.levels = attribute.levels)
+         attribute.levels = attribute.levels,
+         none.alternatives = none.alternatives)
 }
 
 extractChoices <- function(experiment.data, non.missing.table)

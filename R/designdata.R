@@ -313,7 +313,8 @@ processDesign <- function(design, attribute.levels, choices, tasks, subset,
          prior.mean = prior.mean,
          prior.sd = prior.sd,
          simulated.respondent.parameters = simulated.respondent.parameters,
-         attribute.levels = attribute.levels)
+         attribute.levels = attribute.levels,
+         none.alternatives = which(is.none.alternative))
 }
 
 readDesignFile <- function(design.file, attribute.levels.file)

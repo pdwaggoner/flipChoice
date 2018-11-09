@@ -104,6 +104,8 @@
 #'     alternative-specific parameters.
 #' @param respondent.ids If a cho file is supplied, this is the vector
 #'     of the respondent IDs to use.
+#' @param simulation.alternatives.excluding.none The number of alternatives
+#'     to be used in the simulator.
 #' @param ... Additional parameters to pass on to \code{rstan::stan}
 #'     and \code{rstan::sampling}.
 #' @return A list with the following components:
@@ -221,7 +223,8 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
                            hb.lkj.prior.shape = 4,
                            hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
                            include.choice.parameters = TRUE,
-                           respondent.ids = NULL, ...)
+                           respondent.ids = NULL,
+                           simulation.alternatives.excluding.none = 0, ...)
 {
     if (algorithm == "HB-Stan" && !is.null(weights))
         stop("Weights are not able to be applied for Hierarchical Bayes.")
@@ -354,7 +357,11 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     result$simulated.respondent.parameters <- simulated.resp.pars
     result$synthetic.respondent.parameters <- simulated.resp.pars # deprecated
     result$time.taken <- (end.time - start.time)[3]
-    result$attribute.levels <- dat$attribute.levels
+    result$attribute.levels <- if (!is.null(dat$attribute.levels)) dat$attribute.levels
+        else makeAttributeList(result$param.names.list$unconstrained.respondent.pars)
+    result$simulation.alternatives.excluding.none <- simulation.alternatives.excluding.none
+    result$none.alternatives <- dat$none.alternatives
+    names(result$none.alternatives) <- result$attribute.levels[[1]][result$none.alternatives]
     class(result) <- "FitChoice"
     result
 }

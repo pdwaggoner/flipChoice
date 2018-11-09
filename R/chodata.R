@@ -286,7 +286,8 @@ processCho <- function(raw.lines, attribute.levels, subset, weights,
          prior.mean = prior.mean,
          prior.sd = prior.sd,
          simulated.respondent.parameters = simulated.respondent.parameters,
-         attribute.levels = attribute.levels)
+         attribute.levels = attribute.levels,
+         none.alternatives = which(is.none.alternative))
 }
 
 processAttributeLevelsFile <- function(attribute.levels.file)
