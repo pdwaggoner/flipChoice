@@ -77,6 +77,7 @@ processExperimentData <- function(experiment.data, subset, weights,
                                  non.missing.table)
     X <- x.list$X
     parameter.scales <- x.list$parameter.scales
+    parameter.range <- calcRange(attribute.data)
     prior.mean <- processInputPrior(input.prior.mean, n.parameters,
                                     n.attributes, n.attribute.parameters,
                                     parameter.scales)
@@ -134,6 +135,7 @@ processExperimentData <- function(experiment.data, subset, weights,
          weights = weights,
          covariates = covariates,
          parameter.scales = parameter.scales,
+         parameter.range = parameter.range,
          prior.mean = prior.mean,
          prior.sd = prior.sd,
          simulated.respondent.parameters = simulated.respondent.parameters,

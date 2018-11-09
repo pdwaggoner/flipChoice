@@ -115,8 +115,27 @@ PartworthsPlot <- function(fit,
         attr.tick.font.size <- round(f.scale * attr.tick.font.size, 0)
     }
 
-    # Filters and weights
+    # Add fake levels for numeric attributes
     params <- RespondentParameters(fit)
+    attributes <- fit$attribute.levels
+    nms <- names(attributes)
+    for (attr in nms)
+    {
+        if (length(attributes[[attr]]) == 0)
+        {
+            param.ind <- which(colnames(params) == attr)
+            rng <- fit$processed.data$parameter.range[attr,]
+            ind2 <- which(fit$processed.data$par.names == attr)
+            sc <- fit$processed.data$parameter.scales[ind2]
+            attributes[[attr]] <- as.character(rng)
+            new.data <- cbind(params[,param.ind] * rng[1], params[,param.ind] * rng[2]) / sc
+            colnames(new.data) <- paste0(attr, ": ", as.character(rng))
+            params <- cbind(params[,-param.ind], new.data)
+        }
+    }
+
+
+    # Filters and weights
     if (length(subset) > 1 && length(subset) != nrow(params))
         stop("'subset must have length equal to the number of respondents (", nrow(params), ").")
     if (length(weights) > 0 && length(weights) != nrow(params))
@@ -130,7 +149,6 @@ PartworthsPlot <- function(fit,
     utilities <- Mean(params, weights = weights)
 
     # Exclude attributes
-    attributes <- makeAttributeList(fit$param.names.list$unconstrained.respondent.pars)
     if (!is.null(exclude.attributes))
         exclude.attributes <- ConvertCommaSeparatedStringToVector(exclude.attributes)
     attr.length <- sapply(attributes, length)
@@ -144,9 +162,6 @@ PartworthsPlot <- function(fit,
         {
             attributes[[ind]] <- NULL
             ind <- which(grepl(paste0("^", attr, ":"), names(utilities)))
-            if (length(ind))
-                utilities <- utilities[-ind]
-            ind <- which(grepl(paste0("^", attr, "$"), names(utilities)))
             if (length(ind))
                 utilities <- utilities[-ind]
         }
@@ -303,4 +318,20 @@ lineBreakEveryN <- function(x, n = 21)
         }
     }
     final
+}
+
+calcRange <- function(data)
+{
+    nms.all <- names(data)
+    nms <- unique(nms.all)
+    nvar <- length(nms)
+    result <- matrix(NA, nrow = nvar, ncol = 2, dimnames = list(nms, c("min", "max")))
+    for (i in 1:nvar)
+    {
+        ind <- which(nms.all == nms[i])
+        tmp.dat <- unlist(data[,ind])
+        if (is.numeric(tmp.dat))
+            result[i,] <- range(tmp.dat, na.rm = TRUE)
+    }
+    return(result)
 }
