@@ -113,17 +113,20 @@ extractCommonData <- function(models, underlying.class) {
 }
 
 
+
 #' @importFrom flipFormat ComparisonTable FormatAsPercent
 #' @export
 #' @method print ChoiceEnsemble
-print.ChoiceEnsemble <- function(x, ...) {
-
+print.ChoiceEnsemble <- function(x, ...)
+{
     if (x$output == "Ensemble")
     {
         title <- paste0("Choice Modeling: Ensemble of ", x$n.models, " models")
 
         subtitle <- choiceModelSubtitle(x)
-        footer <- choiceModelFooter(x)
+        settings.footer <- choiceModelSettingsFooter(x)
+        results.footer <- choiceModelResultsFooter(x)
+        footer <- c(settings.footer, results.footer, "")
         RespondentParametersTable(x$respondent.parameters,
                                   attribute.levels = x$attribute.levels,
                                   title = title, subtitle = subtitle,

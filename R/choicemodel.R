@@ -432,7 +432,9 @@ RespondentParametersTable <- function(resp.pars, class.memberships = NULL,
     }
     colnames(stats.table) <- c("Mean", "Standard Deviation")
 
-    footer <- paste0(footer, "column width: ", FormatAsReal(bin.size, decimals = 2), "; ")
+    footer[length(footer)] <- paste0(footer[length(footer)], "column width: ",
+                                     FormatAsReal(bin.size, decimals = 2),
+                                     "; ")
 
     prior.columns <- NULL
     row.lines.to.thicken <- NULL
@@ -504,10 +506,18 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
     else
         nms <- rep(parameter.names, 2)
 
+    showEff <- function(val, nms, ind)
+    {
+        if (length(ind) == 0)
+            " not available"
+        else
+            paste0(val, " at ", nms[theta.n.eff.ind])
+    }
+
     result <- ""
     if (length(theta.rhat.ind) == 0)
         result <- paste0(result, "lowest effective sample size (Mean): ",
-                         theta.n.eff, " at ", nms[theta.n.eff.ind],
+                         showEff(theta.n.eff, nms, theta.n.eff.ind),
                          "; Rhat (Mean) not available; ")
     else if (theta.n.eff.ind == theta.rhat.ind)
         result <- paste0(result, "lowest effective sample size (Mean): ",
@@ -516,13 +526,13 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
                          "; ")
     else
         result <- paste0(result, "lowest effective sample size (Mean): ",
-                         theta.n.eff, " at ", nms[theta.n.eff.ind],
+                         showEff(theta.n.eff, nms, theta.n.eff.ind),
                          "; ", "highest Rhat (Mean): ", theta.rhat, " at ",
                          nms[theta.rhat.ind], "; ")
 
     if (length(sigma.rhat.ind) == 0)
         result <- paste0(result, "lowest effective sample size (St. Dev.): ",
-                         sigma.n.eff, " at ", nms[sigma.n.eff.ind],
+                         showEff(sigma.n.eff, nms, sigma.n.eff.ind),
                          "; Rhat (St. Dev.) not available; ")
     else if (sigma.n.eff.ind == sigma.rhat.ind)
         result <- paste0(result, "lowest effective sample size (St. Dev.): ",
@@ -531,7 +541,7 @@ ParameterStatisticsInfo <- function(parameter.statistics, parameter.names,
                          "; ")
     else
         result <- paste0(result, "lowest effective sample size (St. Dev.): ",
-                         sigma.n.eff, " at ", nms[sigma.n.eff.ind],
+                         showEff(sigma.n.eff, nms, sigma.n.eff.ind),
                          "; ", "highest Rhat (St. Dev.): ", sigma.rhat, " at ",
                          nms[sigma.rhat.ind], "; ")
     result
@@ -557,40 +567,31 @@ print.FitChoice <- function(x, ...)
     else
         paste0("Choice Model: ", x$n.classes, "-class Latent Class Analysis")
 
-    footer <- choiceModelFooter(x)
-    footer <- paste0(footer, "mean RLH: ",
-                     FormatAsReal(x$mean.rlh, decimals = 2), "; ")
-    if (x$n.questions.left.out > 0)
-        footer <- paste0(footer, "mean holdout RLH: ",
-                         FormatAsReal(x$mean.rlh.out, decimals = 2), "; ")
-    footer <- paste0(footer, "log-likelihood: ",
-                     FormatAsReal(x$log.likelihood, decimals = 0), "; ")
-    if (x$n.questions.left.out > 0)
-        footer <- paste0(footer, "holdout log-likelihood: ",
-                         FormatAsReal(x$log.likelihood.out, decimals = 0),
-                         "; ")
-
-    footer <- paste0(footer, "BIC: ", FormatAsReal(x$bic, decimals = 0), "; ")
+    settings.footer <- choiceModelSettingsFooter(x)
+    results.footer <- choiceModelResultsFooter(x)
 
     if (!is.null(x$class.match.fail)) # HB-Stan only
     {
         if (x$class.match.fail)
-            footer <- paste0(footer, "parameter statistics not available; ")
+            misc.footer <- "parameter statistics not available; "
         else
-        {
-            info <- ParameterStatisticsInfo(x$parameter.statistics,
-                                            colnames(x$reduced.respondent.parameters),
-                                            x$n.classes)
-            footer <- paste0(footer, info)
-        }
+            misc.footer <- ParameterStatisticsInfo(x$parameter.statistics,
+                                    colnames(x$reduced.respondent.parameters),
+                                                 x$n.classes)
     }
-    if (IsTestRServer())
-        footer <- paste0(footer, "time taken to run analysis: [hidden for tests]; ")
     else
-        footer <- paste0(footer, "time taken to run analysis: ",
+        misc.footer <- ""
+
+    if (IsTestRServer())
+        misc.footer <- paste0(misc.footer,
+                          "time taken to run analysis: [hidden for tests]; ")
+    else
+        misc.footer <- paste0(misc.footer, "time taken to run analysis: ",
                          FormatPeriod(x$time.taken), "; ")
 
     subtitle <- choiceModelSubtitle(x)
+
+    footer <- c(settings.footer, results.footer, misc.footer)
 
     if (x$algorithm == "LCA")
         RespondentParametersTable(x$respondent.parameters,
@@ -621,17 +622,32 @@ ExtractChartData.FitChoice <- function(x)
 #' @importFrom flipFormat FormatAsPercent
 choiceModelSubtitle <- function(x)
 {
-    subtitle <- if (!is.na(x$out.sample.accuracy))
-        paste0("Prediction accuracy (leave-", x$n.questions.left.out , "-out cross-validation): ",
-               FormatAsPercent(x$out.sample.accuracy, decimals = 1))
+    if (!is.na(x$out.sample.accuracy))
+    {
+        result <- paste0("Leave-", x$n.questions.left.out,
+                     "-out cross-validation accuracy (in-sample): ",
+                     FormatAsPercent(x$out.sample.accuracy, decimals = 1),
+                     " (",
+                     FormatAsPercent(x$in.sample.accuracy, decimals = 1),
+                     "); ")
+        result <- paste0(result, "mean RLH: ",
+                         FormatAsReal(x$mean.rlh.out, decimals = 2), " (",
+                         FormatAsReal(x$mean.rlh, decimals = 2), ")")
+    }
     else
-        paste0("Prediction accuracy (in-sample): ",
-               FormatAsPercent(x$in.sample.accuracy, decimals = 1))
+    {
+        result <- paste0("In-sample accuracy: ",
+                         FormatAsPercent(x$in.sample.accuracy, decimals = 1),
+                         "; ")
+        result <- paste0(result, "mean RLH: ",
+                         FormatAsReal(x$mean.rlh, decimals = 2))
+    }
+    result
 }
 
 #' @importFrom flipFormat SampleDescription
-choiceModelFooter <- function(x) {
-
+choiceModelSettingsFooter <- function(x)
+{
     n.subset <- if (is.null(x$subset)) x$n.respondents else sum(x$subset)
     footer <- SampleDescription(n.total = x$n.total, n.subset = n.subset,
                                 n.estimation = n.subset,
@@ -650,9 +666,67 @@ choiceModelFooter <- function(x) {
     footer <- paste0(footer, "choices per question: ", x$n.alternatives, "; ")
     footer <- paste0(footer, "number of attributes: ", x$n.attributes, "; ")
     footer <- paste0(footer, "number of parameters: ", x$n.parameters, "; ")
+    footer
+}
+
+choiceModelResultsFooter <- function(x)
+{
     if (!is.na(x$out.sample.accuracy))
-        footer <- paste0(footer, " in-sample accuracy: ",
+    {
+        result <- paste0("accuracy (in-sample): ",
+                         FormatAsPercent(x$out.sample.accuracy, decimals = 1),
+                         " (",
+                         FormatAsPercent(x$in.sample.accuracy, decimals = 1),
+                         "); ")
+        if (!is.null(x$mean.rlh))
+            result <- paste0(result, "mean RLH: ",
+                             FormatAsReal(x$mean.rlh.out, decimals = 2), " (",
+                             FormatAsReal(x$mean.rlh, decimals = 2), "); ")
+        if (!is.null(x$geometric.mean.rlh))
+            result <- paste0(result, "g.mean RLH: ",
+                         FormatAsReal(x$geometric.mean.rlh.out, decimals = 2),
+                         " (",
+                         FormatAsReal(x$geometric.mean.rlh, decimals = 2),
+                         "); ")
+        if (!is.null(x$certainty))
+            result <- paste0(result, "certainty: ",
+                             FormatAsPercent(x$certainty.out, decimals = 0),
+                             " (",
+                             FormatAsPercent(x$certainty, decimals = 0),
+                             "); ")
+        if (!is.null(x$log.likelihood))
+            result <- paste0(result, "log-likelihood: ",
+                             FormatAsReal(x$log.likelihood.out, decimals = 0),
+                             " (",
+                             FormatAsReal(x$log.likelihood, decimals = 0),
+                             "); ")
+        if (!is.null(x$bic))
+            result <- paste0(result, "BIC: ",
+                             FormatAsReal(x$bic.out, decimals = 0), " (",
+                             FormatAsReal(x$bic, decimals = 0), "); ")
+    }
+    else
+    {
+        result <- paste0("Accuracy: ",
                          FormatAsPercent(x$in.sample.accuracy, decimals = 1),
                          "; ")
-    return(footer)
+        if (!is.null(x$mean.rlh))
+            result <- paste0(result, "mean RLH: ",
+                             FormatAsReal(x$mean.rlh, decimals = 2), "; ")
+        if (!is.null(x$geometric.mean.rlh))
+            result <- paste0(result, "g.mean RLH: ",
+                             FormatAsReal(x$geometric.mean.rlh, decimals = 2),
+                             "; ")
+        if (!is.null(x$certainty))
+            result <- paste0(result, "certainty: ",
+                             FormatAsPercent(x$certainty, decimals = 0), "; ")
+        if (!is.null(x$log.likelihood))
+            result <- paste0(result, "log-likelihood: ",
+                             FormatAsReal(x$log.likelihood, decimals = 0),
+                             "; ")
+        if (!is.null(x$bic))
+            result <- paste0(result, "BIC: ",
+                             FormatAsReal(x$bic, decimals = 0), "; ")
+    }
+    result
 }

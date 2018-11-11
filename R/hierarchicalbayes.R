@@ -74,6 +74,7 @@ hierarchicalBayesChoiceModel <- function(dat, n.iterations = 500, n.chains = 8,
     result <- c(result, LogLikelihoodAndBIC(stan.fit, n.hb.parameters,
                                             stan.dat$R,
                                             dat$n.questions.left.out,
+                                            stan.dat$C, stan.dat$RS,
                                             dat$subset))
     result
 }
@@ -627,14 +628,19 @@ pkgCxxFlags <- function()
 #' and computes the BIC.
 #' @param stan.fit A stanfit object.
 #' @param n.parameters The number of HB model parameters.
-#' @param sample.size The sample size of the analysis.
+#' @param n.respondents The number of respondents.
 #' @param n.questions.left.out The number of questions left out.
+#' @param n.alternatives The number of alternatives per question.
+#' @param n.respondent.questions The total number of questions over all
+#'     respondents.
 #' @param subset The subset used on the data.
 #' @return A list containing the log likelihood and BIC.
 #' @importFrom rstan get_posterior_mean
 #' @export
-LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size,
-                                n.questions.left.out, subset)
+LogLikelihoodAndBIC <- function(stan.fit, n.parameters, n.respondents,
+                                n.questions.left.out, n.alternatives,
+                                n.respondent.questions,
+                                subset, has.rlh = TRUE)
 {
     # If there are multiple chains, get_posterior_mean returns a vector of
     # length n.chains + 1, where the last value in the vector is the average
@@ -647,17 +653,18 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size,
 
     log.likelihood <- get_posterior_mean(stan.fit,
                                          pars = "log_likelihood")[ind]
+    null.log.likelihood <- -log(n.alternatives) * n.respondent.questions
     result <- list(log.likelihood = log.likelihood,
-                   bic = log(sample.size) * n.parameters - 2 * log.likelihood)
+                   bic = log(n.respondents) * n.parameters - 2 * log.likelihood,
+                   certainty = 1 - log.likelihood / null.log.likelihood)
 
-    rlh <- rep(NA, length(subset))
-    rlh[subset] <- get_posterior_mean(stan.fit, pars = "rlh")[, ind]
-    mean.rlh <- get_posterior_mean(stan.fit, pars = "mean_rlh")[, ind]
-
-    if (!is.na(mean.rlh)) # rank-ordered logit MaxDiff has no RLH
+    if (has.rlh)
     {
-        result$rlh <- rlh
-        result$mean.rlh <- mean.rlh
+        result$rlh <- rep(NA, length(subset))
+        result$rlh[subset] <- get_posterior_mean(stan.fit, pars = "rlh")[, ind]
+        result$mean.rlh <- mean(result$rlh, na.rm = TRUE)
+        result$geometric.mean.rlh <- get_posterior_mean(stan.fit,
+                                        pars = "geometric_mean_rlh")[, ind]
     }
 
     if (n.questions.left.out > 0)
@@ -665,15 +672,19 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, sample.size,
         log.likelihood.out <- get_posterior_mean(stan.fit,
                                              pars = "log_likelihood_out")[ind]
         result$log.likelihood.out <- log.likelihood.out
-        rlh.out <- rep(NA, length(subset))
-        rlh.out[subset] <- get_posterior_mean(stan.fit,
-                                              pars = "rlh_out")[, ind]
-        mean.rlh.out <- get_posterior_mean(stan.fit,
-                                           pars = "mean_rlh_out")[, ind]
-        if (!is.na(mean.rlh.out)) # rank-ordered logit has no RLH
+        result$bic.out <- log(n.respondents) * n.parameters -
+                            2 * log.likelihood.out
+        null.log.likelihood.out <- -log(n.alternatives) * n.respondents *
+                                    n.questions.left.out
+        result$certainty.out <- 1 - log.likelihood.out / null.log.likelihood.out
+        if (has.rlh)
         {
-            result$rlh.out <- rlh.out
-            result$mean.rlh.out <- mean.rlh.out
+            result$rlh.out <- rep(NA, length(subset))
+            result$rlh.out[subset] <- get_posterior_mean(stan.fit,
+                                                  pars = "rlh_out")[, ind]
+            result$mean.rlh.out <- mean(result$rlh.out, na.rm = TRUE)
+            result$geometric.mean.rlh.out <- get_posterior_mean(stan.fit,
+                                               pars = "geometric_mean_rlh_out")[, ind]
         }
     }
     result

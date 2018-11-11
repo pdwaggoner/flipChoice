@@ -66,9 +66,15 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
     result <- list()
 
     result$log.likelihood <- log.likelihood
+    result$effective.sample.size <- ess <- sum(weights)
+    n.lca.parameters <- n.classes * n.parameters + n.classes - 1
+    result$bic <- -2 * log.likelihood + log(ess) * n.lca.parameters
+    null.log.likelihood <- -log(n.alternatives) * nrow(X)
+    result$certainty <- 1 - log.likelihood / null.log.likelihood
     result$rlh <- rootLikelihood(pars, X, ind.levels, n.classes,
-                                            n.alternatives, n.parameters)
-    result$mean.rlh <- exp(log.likelihood / sum(repeated.weights))
+                                 n.alternatives, n.parameters)
+    result$mean.rlh <- sum(result$rlh * weights) / sum(weights)
+    result$geometric.mean.rlh <- exp(log.likelihood / sum(repeated.weights))
     n.questions.out <- dat$n.questions.left.out
     if (n.questions.out > 0)
     {
@@ -79,20 +85,20 @@ latentClassChoiceModel <- function(dat, n.classes = 1, seed = 123,
                                             ind.levels.out, n.classes,
                                             n.alternatives, n.parameters)
         result$log.likelihood.out <- log.likelihood.out
+        result$bic.out <- -2 * log.likelihood.out + log(ess) * n.lca.parameters
+        null.log.likelihood.out <- -log(n.alternatives) * nrow(X.out)
+        result$certainty.out <- 1 - log.likelihood.out / null.log.likelihood.out
         result$rlh.out <- rootLikelihood(pars, X.out, ind.levels.out,
                                          n.classes, n.alternatives,
                                          n.parameters)
-        result$mean.rlh.out <- exp(log.likelihood.out /
-                                       (sum(weights) * n.questions.out))
+        result$mean.rlh.out <- sum(result$rlh.out * weights) / sum(weights)
+        result$geometric.mean.rlh.out <- exp(log.likelihood.out /
+                                             (sum(weights) * n.questions.out))
     }
     result$posterior.probabilities <- resp.post.probs
-    result$effective.sample.size <- ess <- sum(weights)
-    n.lca.parameters <- n.classes * n.parameters + n.classes - 1
-    result$bic <- -2 * log.likelihood + log(ess) * n.lca.parameters
     result$reduced.respondent.parameters <- computeRespParsLCA(resp.post.probs,
                                                         pars$class.parameters,
                                                         dat$par.names)
-
     result$respondent.parameters <- computeRespParsLCA(resp.post.probs,
                                                        pars$class.parameters,
                                                        dat$par.names,

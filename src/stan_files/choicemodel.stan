@@ -63,8 +63,8 @@ generated quantities {
     real log_likelihood_out = 0;
     vector[R] rlh;
     vector[R] rlh_out;
-    real mean_rlh;
-    real mean_rlh_out;
+    real geometric_mean_rlh;
+    real geometric_mean_rlh_out;
 
     // Add braces to exclude rs from exported values
     {
@@ -80,7 +80,7 @@ generated quantities {
             log_likelihood += resp_ll;
             rlh[r] = exp(resp_ll / S[r]);
         }
-        mean_rlh = exp(log_likelihood / sum(S));
+        geometric_mean_rlh = exp(log_likelihood / sum(S));
     }
 
     if (S_out > 0)
@@ -97,6 +97,6 @@ generated quantities {
             log_likelihood_out += resp_ll;
             rlh_out[r] = exp(resp_ll / S_out);
         }
-        mean_rlh_out = exp(log_likelihood_out / (R * S_out));
+        geometric_mean_rlh_out = exp(log_likelihood_out / (R * S_out));
     }
 }
