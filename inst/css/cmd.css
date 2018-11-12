@@ -1,0 +1,88 @@
+.main-container{
+    overflow: auto;
+    height: 100%;
+}
+
+summary {
+    border-bottom: 3px solid #151A1C;
+    font-family: Circular, Circular-bold,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #FA614B;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+details summary::-webkit-details-marker{
+    color: #8F9DB3;
+}
+
+h1 {
+    text-align: left;
+    font-family: Circular, Circular-bold,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #151A1C;
+    font-size: 24px;
+    color: #3E7DCC;
+}
+
+
+
+h2, h3 {
+    color: #00c8c8;
+}
+
+table {  
+    color: #303A3F;
+    font-family: Circular, Circular-bold,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    /* width: 640px;  */
+    border-collapse: collapse;
+    text-align: center;
+    border-spacing: 0; 
+}
+
+th {  
+    background: #3E7DCC; 
+    font-weight: bold; 
+    text-align: center;
+    color: #F2F4FA;
+    padding: 2px;
+    font-size: 90%;
+}
+
+td {
+    text-align: center;
+    font-size: 90%;
+}
+
+tr:nth-child(even) td { background: #F1F1F1; }   
+
+/* Cells in odd rows (1,3,5...) are another (excludes header cells)  */        
+tr:nth-child(odd) td { background: #FEFEFE; }  
+
+tr td:hover { background: #FA614B; color: #FFF; } 
+
+.pairwise-table td:nth-child(1){
+    background: #3E7DCC;
+    color: #F2F4FA;
+}
+
+#std-err-table td, #prior-table td{
+    border-left: 4px double #151A1C;
+    border-right: 4px double #151A1C;
+}
+
+#std-err-table th:nth-child(even), #prior-table th:nth-child(3n+3){
+    border-right: 4px double #151A1C;
+}
+
+#std-err-table td:last-of-type, #std-err-table th:last-of-type,
+#std-err-table td:nth-child(1), #std-err-table th:nth-child(1){
+    border-left: none;
+    border-right: none;
+}
+
+/* #std-err-table td:nth-child(odd){ */
+/*     text-align: left;  /\* attribute levels *\/ */
+/* } */
+
+/* #std-err-table td:nth-child(even){ */
+/*     text-align: right; /\* std. errs *\/ */
+/* } */
