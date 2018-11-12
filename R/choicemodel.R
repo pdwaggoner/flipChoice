@@ -683,7 +683,7 @@ choiceModelResultsFooter <- function(x)
                              FormatAsReal(x$mean.rlh.out, decimals = 2), " (",
                              FormatAsReal(x$mean.rlh, decimals = 2), "); ")
         if (!is.null(x$geometric.mean.rlh))
-            result <- paste0(result, "g.mean RLH: ",
+            result <- paste0(result, "g. mean RLH: ",
                          FormatAsReal(x$geometric.mean.rlh.out, decimals = 2),
                          " (",
                          FormatAsReal(x$geometric.mean.rlh, decimals = 2),
@@ -714,7 +714,7 @@ choiceModelResultsFooter <- function(x)
             result <- paste0(result, "mean RLH: ",
                              FormatAsReal(x$mean.rlh, decimals = 2), "; ")
         if (!is.null(x$geometric.mean.rlh))
-            result <- paste0(result, "g.mean RLH: ",
+            result <- paste0(result, "g. mean RLH: ",
                              FormatAsReal(x$geometric.mean.rlh, decimals = 2),
                              "; ")
         if (!is.null(x$certainty))
