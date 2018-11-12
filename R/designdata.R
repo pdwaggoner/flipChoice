@@ -63,11 +63,30 @@ processDesignVariables <- function(design.variables, attribute.levels, choices,
         design[-1:-3] <- data.frame(lapply(design[-1:-3], factor))
         attribute.levels <- sapply(design[-1:-3], levels)
         names(attribute.levels) <- attribute.labels
+        design <- sapply(design, as.numeric)
     }
     else if (is.matrix(attribute.levels) && is.character(attribute.levels))
+    {
         attribute.levels <- parseAttributeLevelsMatrix(attribute.levels)
-
-    design <- convertDesign(as.matrix(sapply(design, as.numeric)))
+        if (is.labeled)
+        {
+            n.attributes <- ncol(design) - 3
+            for (i in 1:n.attributes)
+            {
+                if (!all(sort(levels(design[[i + 3]])) ==
+                         sort(attribute.levels[[i]])))
+                    stop("The levels in the design do not match the supplied ",
+                         "attribute levels. Please ensure that the attribute ",
+                         "levels are identical, or remove the attribute ",
+                         "levels as the design is already labeled.")
+                design[[i + 3]] <- as.numeric(factor(as.character(design[[i + 3]]),
+                                                    attribute.levels[[i]]))
+            }
+        }
+        else
+            design <- sapply(design, as.numeric)
+    }
+    design <- convertDesign(as.matrix(design))
 
     processDesign(design, attribute.levels, choices, tasks,
                   subset, weights, n.questions.left.out, seed,
