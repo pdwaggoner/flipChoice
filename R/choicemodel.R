@@ -362,6 +362,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     result$simulation.alternatives.excluding.none <- simulation.alternatives.excluding.none
     result$none.alternatives <- dat$none.alternatives
     names(result$none.alternatives) <- result$attribute.levels[[1]][result$none.alternatives]
+    result$is.labeled <- !is.null(design) && design$labeled.alternatives # TODO handle other design inputs
     class(result) <- "FitChoice"
     result
 }
