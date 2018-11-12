@@ -103,6 +103,7 @@ test_that("Warning when prior given with wrong algorithm",
 
 
 test_that("ChoiceModelDesign print",
+{
     cmd <- suppressWarnings(ChoiceModelDesign(design.algorithm = "Partial profiles",
                                 attribute.levels = has.prior,
                                 n.questions = 6,
@@ -112,4 +113,4 @@ test_that("ChoiceModelDesign print",
     out <- print(cmd)
     expect_is(out, "htmlwidget")
     expect_equal(attr(out, "ChartData"), cmd$labeled.design)
-)
+})
