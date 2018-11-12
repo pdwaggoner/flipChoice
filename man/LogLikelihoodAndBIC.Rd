@@ -4,17 +4,23 @@
 \alias{LogLikelihoodAndBIC}
 \title{LogLikelihoodAndBIC}
 \usage{
-LogLikelihoodAndBIC(stan.fit, n.parameters, sample.size,
-  n.questions.left.out, subset)
+LogLikelihoodAndBIC(stan.fit, n.parameters, n.respondents,
+  n.questions.left.out, n.alternatives, n.respondent.questions, subset,
+  has.rlh = TRUE)
 }
 \arguments{
 \item{stan.fit}{A stanfit object.}
 
 \item{n.parameters}{The number of HB model parameters.}
 
-\item{sample.size}{The sample size of the analysis.}
+\item{n.respondents}{The number of respondents.}
 
 \item{n.questions.left.out}{The number of questions left out.}
+
+\item{n.alternatives}{The number of alternatives per question.}
+
+\item{n.respondent.questions}{The total number of questions over all
+respondents.}
 
 \item{subset}{The subset used on the data.}
 }
