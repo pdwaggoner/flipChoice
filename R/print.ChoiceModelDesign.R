@@ -161,9 +161,14 @@ makeStandardErrorTable <- function(std.err, al, digits, nsmall)
         out[seq_len(n.lvls), 2*i] <- c(zero.str, format1(std.err[idx:(idx+n.lvls - 2), 2]))
         idx <- idx + n.lvls-1
     }
-    knitr::kable(out, format = "html", col.names = cnames, digits = digits,
+    out <- knitr::kable(out, format = "html", col.names = cnames, digits = digits,
                  table.attr = "id=\"std-err-table\"",
                  align = rep(c("l", "r"), length(al)))
+    ## change table headers to span multiple columns
+    out <- gsub("<th style=\"text-align:right;\">  </th>", "", out, fixed = TRUE)
+    out <- gsub("<th style=\"text-align:left;\">",
+                "<th colspan = \"2\">", out, fixed = TRUE)
+    return(out)
 }
 
 #' @importFrom knitr kable
