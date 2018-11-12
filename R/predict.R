@@ -1,80 +1,5 @@
 
-accuracyResults <- function(dat, result, n.questions.left.out)
-{
-    n.respondents <- length(dat$n.questions.left.in)
-    resp.pars <- result$reduced.respondent.parameters[dat$subset, ]
 
-    n.rs <- dim(dat$X.in)[1]
-    n.alternatives <- dim(dat$X.in)[2]
-
-    in.sample.accuracies <- rep(NA, n.respondents)
-    rs <- 1
-    for (i in 1:n.respondents)
-    {
-        pars <- resp.pars[i, ]
-        n.questions <- dat$n.questions.left.in[i]
-        score <- rep(NA, n.questions)
-        for (j in 1:n.questions)
-        {
-            u <- rep(NA, n.alternatives)
-            for (k in 1:n.alternatives)
-                u[k] <- sum(pars * dat$X.in[rs, k, ])
-            score[j] <- if(which.max(u) == dat$Y.in[rs]) 1 else 0
-            rs <- rs + 1
-        }
-        in.sample.accuracies[i] <- mean(score)
-    }
-
-    w <- dat$weights
-    result$in.sample.accuracy <- sum(in.sample.accuracies * w) / sum(w)
-
-    if (n.questions.left.out > 0)
-    {
-        out.sample.accuracies <- rep(NA, n.respondents)
-        rs <- 1
-        for (i in 1:n.respondents)
-        {
-            pars <- resp.pars[i, ]
-            score <- rep(NA, n.questions.left.out)
-            for (j in 1:n.questions.left.out)
-            {
-                u <- rep(NA, n.alternatives)
-                for (k in 1:n.alternatives)
-                    u[k] <- sum(pars * dat$X.out[rs, k, ])
-                score[j] <- if(which.max(u) == dat$Y.out[rs]) 1 else 0
-                rs <- rs + 1
-            }
-            out.sample.accuracies[i] <- mean(score)
-        }
-        result$prediction.accuracies <- rep(NA, length(dat$subset))
-        result$prediction.accuracies[dat$subset] <- out.sample.accuracies
-        result$out.sample.accuracy <- sum(out.sample.accuracies * w) / sum(w)
-    }
-    else
-    {
-        result$prediction.accuracies <- rep(NA, length(dat$subset))
-        result$prediction.accuracies[dat$subset] <- in.sample.accuracies
-        result$out.sample.accuracy <- NA
-    }
-    result
-}
-
-computeAccuracy <- function(object, data, ...)
-{
-    y.pred.in <- predict(object, data, ...)
-    n.resp <- length(data$n.questions.left.in)
-    y.in <- matrix(data$Y.in, nrow = n.resp, byrow = TRUE)
-    in.correct <- y.in == y.pred.in$y.pred
-
-    y.pred.out <- predict(object,
-                          data = list(Y.in = data$Y.out, X.in = data$X.out,
-                                      n.questions.left.in = rep(data$n.questions.left.out, n.resp)),
-                          ...)
-
-    y.out <- matrix(data$Y.out, nrow = n.resp, byrow = TRUE)
-    out.correct <- y.out == y.pred.out$y.pred
-    list(y.pred.in, y.pred.out, in.acc = mean(in.correct), out.acc = mean(out.correct))
-}
 
 
 #' Predict choice probabilities for choice model scenarios
@@ -528,39 +453,79 @@ checkValidAlternative <- function(alternative, par.names, attr.list)
 
 ## }
 
-designToXmat <- function(object, design)
+accuracyResults <- function(dat, result, n.questions.left.out)
 {
-    odat <- object$processed.data
-    n.att <- odat$n.attributes
-    n.par <- odat$n.parameters
+    n.respondents <- length(dat$n.questions.left.in)
+    resp.pars <- result$reduced.respondent.parameters[dat$subset, ]
 
+    n.rs <- dim(dat$X.in)[1]
+    n.alternatives <- dim(dat$X.in)[2]
+
+    in.sample.accuracies <- rep(NA, n.respondents)
+    rs <- 1
     for (i in 1:n.respondents)
     {
+        pars <- resp.pars[i, ]
+        n.questions <- dat$n.questions.left.in[i]
+        score <- rep(NA, n.questions)
         for (j in 1:n.questions)
         {
-            if (non.missing.table[i, j])
+            u <- rep(NA, n.alternatives)
+            for (k in 1:n.alternatives)
+                u[k] <- sum(pars * dat$X.in[rs, k, ])
+            score[j] <- if(which.max(u) == dat$Y.in[rs]) 1 else 0
+            rs <- rs + 1
+        }
+        in.sample.accuracies[i] <- mean(score)
+    }
+
+    w <- dat$weights
+    result$in.sample.accuracy <- sum(in.sample.accuracies * w) / sum(w)
+
+    if (n.questions.left.out > 0)
+    {
+        out.sample.accuracies <- rep(NA, n.respondents)
+        rs <- 1
+        for (i in 1:n.respondents)
+        {
+            pars <- resp.pars[i, ]
+            score <- rep(NA, n.questions.left.out)
+            for (j in 1:n.questions.left.out)
             {
-                question.number <- tasks[i, j]
-                ind <- which(design[, "Task"] == question.number)[1]
+                u <- rep(NA, n.alternatives)
                 for (k in 1:n.alternatives)
-                {
-                    if (is.none.alternative[k])
-                        X[rs, k, ] <- fillXNoneOfThese(n.parameters,
-                                                       n.attributes,
-                                                       n.attribute.parameters)
-                    else
-                    {
-                        question.design <- c(t(design.attributes[ind, ]))
-                        X[rs, k, ] <- fillXAttributes(n.parameters,
-                                                      n.attributes,
-                                                      n.attribute.parameters,
-                                                      ordered.attributes,
-                                                      question.design)
-                    }
-                    ind <- ind + 1
-                }
+                    u[k] <- sum(pars * dat$X.out[rs, k, ])
+                score[j] <- if(which.max(u) == dat$Y.out[rs]) 1 else 0
                 rs <- rs + 1
             }
+            out.sample.accuracies[i] <- mean(score)
         }
+        result$prediction.accuracies <- rep(NA, length(dat$subset))
+        result$prediction.accuracies[dat$subset] <- out.sample.accuracies
+        result$out.sample.accuracy <- sum(out.sample.accuracies * w) / sum(w)
     }
+    else
+    {
+        result$prediction.accuracies <- rep(NA, length(dat$subset))
+        result$prediction.accuracies[dat$subset] <- in.sample.accuracies
+        result$out.sample.accuracy <- NA
+    }
+    result
+}
+
+computeAccuracy <- function(object, data, ...)
+{
+    y.pred.in <- predict(object, data, ...)
+    n.resp <- length(data$n.questions.left.in)
+    y.in <- matrix(data$Y.in, nrow = n.resp, byrow = TRUE)
+    in.correct <- y.in == y.pred.in$y.pred
+
+    y.pred.out <- predict(object,
+                          data = list(Y.in = data$Y.out, X.in = data$X.out,
+                                      n.questions.left.in = rep(data$n.questions.left.out, n.resp)),
+                          ...)
+
+    y.out <- matrix(data$Y.out, nrow = n.resp, byrow = TRUE)
+    out.correct <- y.out == y.pred.out$y.pred
+    list(y.pred.in, y.pred.out, in.acc = mean(in.correct), out.acc = mean(out.correct))
 }
