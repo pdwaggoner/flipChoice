@@ -708,7 +708,7 @@ choiceModelResultsFooter <- function(x)
     }
     else
     {
-        result <- paste0("Accuracy: ",
+        result <- paste0("accuracy: ",
                          FormatAsPercent(x$in.sample.accuracy, decimals = 1),
                          "; ")
         if (!is.null(x$mean.rlh))
