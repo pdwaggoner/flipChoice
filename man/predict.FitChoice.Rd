@@ -36,7 +36,7 @@ respondents x number of alternatives}, containing offsets to be
 applied to each utility. Note, \code{offset} is applied before
 \code{scale}.}
 
-\item{...currently}{ignored}
+\item{...}{currently ignored}
 }
 \value{
 A \code{num. respondents x num. alternatives} matrix of
@@ -73,6 +73,7 @@ for each class and the calculated probabilities are multipled by the the posteri
 probabilities of class membership for each respondent to obtain the prediction.
 }
 \examples{
+\dontrun{
 data(fast.food, package = "flipChoice")
 data(fast.food.design, package = "flipChoice")
 choices <- fast.food[, grepl("^choice", colnames(fast.food))]
@@ -90,6 +91,7 @@ scenario <- list("Alt1" = c("Price per person" = "$15",
                             "Delivery time" =  "40 min",
                             "Average review rating (out of 5 stars)" = "4.7"))
 head(predict(fit, scenario, rule = "logit respondent"))
+}
 \dontrun{
 al <- list(Att1 = 1:2, Att2 = 1:2, Att3 = 1:3)
 des.none <- ChoiceModelDesign(design.algorithm = "Partial profiles",

@@ -29,7 +29,7 @@
 #'     respondents x number of alternatives}, containing offsets to be
 #'     applied to each utility. Note, \code{offset} is applied before
 #'     \code{scale}.
-#' @param ...currently ignored
+#' @param ... currently ignored
 #' @return A \code{num. respondents x num. alternatives} matrix of
 #'     estimated choice probabilites
 #' @details For a choice model fit using Hierarchical Bayes
@@ -56,6 +56,7 @@
 #' for each class and the calculated probabilities are multipled by the the posterior
 #' probabilities of class membership for each respondent to obtain the prediction.
 #' @examples
+#' \dontrun{
 #' data(fast.food, package = "flipChoice")
 #' data(fast.food.design, package = "flipChoice")
 #' choices <- fast.food[, grepl("^choice", colnames(fast.food))]
@@ -73,6 +74,7 @@
 #'                             "Delivery time" =  "40 min",
 #'                             "Average review rating (out of 5 stars)" = "4.7"))
 #' head(predict(fit, scenario, rule = "logit respondent"))
+#' }
 #' \dontrun{
 #' al <- list(Att1 = 1:2, Att2 = 1:2, Att3 = 1:3)
 #' des.none <- ChoiceModelDesign(design.algorithm = "Partial profiles",
