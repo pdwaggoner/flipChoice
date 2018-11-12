@@ -407,25 +407,6 @@ checkDesignColNames <- function(design.matrix)
                  "'.")
 }
 
-#' @export
-#' @method print ChoiceModelDesign
-#' @importFrom flipFormat DataTableWithRItemFormat
-#' @noRd
-print.ChoiceModelDesign <- function(x, ...) {
-
-    # Output a table with attributes along the columns and levels along the rows
-    if (x$output == "Inputs")
-    {
-        max.levels <- max(sapply(x$attribute.levels, length))
-        levels.table <- sapply(x$attribute.levels, function (z) c(z, rep("", max.levels - length(z))))
-        rownames(levels.table) <- paste("Level", seq.int(max.levels))
-        print(list(levels.table = levels.table, prohibitions = x$prohibitions))
-        return()
-    }
-
-    DataTableWithRItemFormat(x$labeled.design)
-}
-
 ######################### HELPER FUNCTIONS ###########################
 
 # Convert prohibitions from labels to indices (numeric levels)
