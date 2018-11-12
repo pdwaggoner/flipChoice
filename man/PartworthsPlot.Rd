@@ -47,7 +47,7 @@ the mean utility. It should be the same length as the number of respondents in \
 
 \item{exclude.attributes}{A comma-separated list of attributes to exclude from the plot.}
 
-\item{chart.type}{One of "Line" (default) or "Column"}
+\item{chart.type}{One of "Line" (default), "Column", "Bar" or "Data".}
 
 \item{colors}{The colors of the line or columns of the chart as a hex code. This can be
 a single color or a vector with length equal to the number of attributes.}

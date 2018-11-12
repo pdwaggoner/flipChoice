@@ -13,7 +13,7 @@
 #' @param subset An optional vector specifying a subset of respondents used to take
 #'  the mean utility. It should be the same length as the number of respondents in \code{fit}.
 #' @param exclude.attributes A comma-separated list of attributes to exclude from the plot.
-#' @param chart.type One of "Line" (default) or "Column"
+#' @param chart.type One of "Line" (default), "Column", "Bar" or "Data".
 #' @param colors The colors of the line or columns of the chart as a hex code. This can be
 #'  a single color or a vector with length equal to the number of attributes.
 #' @param line.width Thickness of line if \code{chart.type} is "Line".
@@ -187,6 +187,8 @@ PartworthsPlot <- function(fit,
     # Scale and reorder
     if (!is.null(exclude.order))
         exclude.order <- ConvertCommaSeparatedStringToVector(exclude.order)
+    na.rows <- 0
+
     for (attr in names(attributes))
     {
         ind <- which(df$attribute == attr)
@@ -204,7 +206,13 @@ PartworthsPlot <- function(fit,
             ind.ord <- ind[order(df$utility[ind], decreasing = order == "Decreasing")]
         df[ind,] <- df[ind.ord,]
         df$utility[ind] <- df$utility[ind] - offset
+
+        params[, ind - na.rows] <- params[, ind - na.rows] - offset # scale individual utilities
+        na.rows <- na.rows + 1
     }
+
+    if (chart.type == "Data")
+        return(params)
 
     # Creating the plot
     if (is.null(values.minimum) && sign(min(df$utility, na.rm = TRUE)) == -1)
