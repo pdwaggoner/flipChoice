@@ -68,7 +68,7 @@ print.ChoiceModelDesign <- function(x, css = NULL, nsmall = 2, digits = 2, ...)
     ## Pairwise frequencies
     cata("<details open =\"true\"><summary>Pairwise Frequencies</summary>\n")
     mapply(addPairwiseFrequencyTable, b.o$pairs, names(b.o$pairs),
-           MoreArgs = list(attr.names = names(cmd$attribute.levels), tfile = tfile))
+           MoreArgs = list(attr.names = names(x$attribute.levels), tfile = tfile))
     cata("</details>")
 
     ## Design
