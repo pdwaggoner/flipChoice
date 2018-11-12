@@ -634,13 +634,16 @@ pkgCxxFlags <- function()
 #' @param n.respondent.questions The total number of questions over all
 #'     respondents.
 #' @param subset The subset used on the data.
+#' @param has.rlh Whether RLH should be calculated.
+#' @param is.tricked.max.diff Whether the model is tricked MaxDiff.
 #' @return A list containing the log likelihood and BIC.
 #' @importFrom rstan get_posterior_mean
 #' @export
 LogLikelihoodAndBIC <- function(stan.fit, n.parameters, n.respondents,
                                 n.questions.left.out, n.alternatives,
                                 n.respondent.questions,
-                                subset, has.rlh = TRUE)
+                                subset, has.rlh = TRUE,
+                                is.tricked.max.diff = FALSE)
 {
     # If there are multiple chains, get_posterior_mean returns a vector of
     # length n.chains + 1, where the last value in the vector is the average
@@ -653,13 +656,17 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, n.respondents,
 
     log.likelihood <- get_posterior_mean(stan.fit,
                                          pars = "log_likelihood")[ind]
-    null.log.likelihood <- -log(n.alternatives) * n.respondent.questions
     result <- list(log.likelihood = log.likelihood,
-                   bic = log(n.respondents) * n.parameters - 2 * log.likelihood,
-                   certainty = 1 - log.likelihood / null.log.likelihood)
+                   bic = log(n.respondents) * n.parameters - 2 * log.likelihood)
 
     if (has.rlh)
     {
+        null.log.likelihood <- -log(n.alternatives) * n.respondent.questions
+        if (is.tricked.max.diff)
+            null.log.likelihood <- null.log.likelihood * 2
+
+        result$certainty <- 1 - log.likelihood / null.log.likelihood
+
         result$rlh <- rep(NA, length(subset))
         result$rlh[subset] <- get_posterior_mean(stan.fit, pars = "rlh")[, ind]
         result$mean.rlh <- mean(result$rlh, na.rm = TRUE)
@@ -676,9 +683,16 @@ LogLikelihoodAndBIC <- function(stan.fit, n.parameters, n.respondents,
                             2 * log.likelihood.out
         null.log.likelihood.out <- -log(n.alternatives) * n.respondents *
                                     n.questions.left.out
-        result$certainty.out <- 1 - log.likelihood.out / null.log.likelihood.out
+
         if (has.rlh)
         {
+            null.log.likelihood.out <- -log(n.alternatives) * n.respondents *
+                                        n.questions.left.out
+            if (is.tricked.max.diff)
+                null.log.likelihood.out <- null.log.likelihood.out * 2
+
+            result$certainty.out <- 1 - log.likelihood.out / null.log.likelihood.out
+
             result$rlh.out <- rep(NA, length(subset))
             result$rlh.out[subset] <- get_posterior_mean(stan.fit,
                                                   pars = "rlh_out")[, ind]

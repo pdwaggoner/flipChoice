@@ -22,7 +22,8 @@ FitChoiceModel(design = NULL, experiment.data = NULL,
   hb.sigma.prior.shape = 1.39435729464721,
   hb.sigma.prior.scale = 0.39435729464721, hb.lkj.prior.shape = 4,
   hb.warnings = TRUE, hb.beta.draws.to.keep = 0,
-  include.choice.parameters = TRUE, respondent.ids = NULL, ...)
+  include.choice.parameters = TRUE, respondent.ids = NULL,
+  simulation.alternatives.excluding.none = 0, ...)
 }
 \arguments{
 \item{design}{A design object produced by ChoiceModelDesign}
@@ -169,6 +170,9 @@ alternative-specific parameters.}
 
 \item{respondent.ids}{If a cho file is supplied, this is the vector
 of the respondent IDs to use.}
+
+\item{simulation.alternatives.excluding.none}{The number of alternatives
+to be used in the simulator.}
 
 \item{...}{Additional parameters to pass on to \code{rstan::stan}
 and \code{rstan::sampling}.}
