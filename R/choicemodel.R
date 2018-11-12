@@ -685,55 +685,45 @@ choiceModelResultsFooter <- function(x)
                          " (",
                          FormatAsPercent(x$in.sample.accuracy, decimals = 1),
                          "); ")
-        if (!is.null(x$mean.rlh))
-            result <- paste0(result, "mean RLH: ",
-                             FormatAsReal(x$mean.rlh.out, decimals = 2), " (",
-                             FormatAsReal(x$mean.rlh, decimals = 2), "); ")
-        if (!is.null(x$geometric.mean.rlh))
-            result <- paste0(result, "g. mean RLH: ",
-                         FormatAsReal(x$geometric.mean.rlh.out, decimals = 2),
+        result <- paste0(result, "mean RLH: ",
+                         FormatAsReal(x$mean.rlh.out, decimals = 2), " (",
+                         FormatAsReal(x$mean.rlh, decimals = 2), "); ")
+        result <- paste0(result, "g. mean RLH: ",
+                     FormatAsReal(x$geometric.mean.rlh.out, decimals = 2),
+                     " (",
+                     FormatAsReal(x$geometric.mean.rlh, decimals = 2),
+                     "); ")
+        result <- paste0(result, "certainty: ",
+                         FormatAsPercent(x$certainty.out, decimals = 0),
                          " (",
-                         FormatAsReal(x$geometric.mean.rlh, decimals = 2),
+                         FormatAsPercent(x$certainty, decimals = 0),
                          "); ")
-        if (!is.null(x$certainty))
-            result <- paste0(result, "certainty: ",
-                             FormatAsPercent(x$certainty.out, decimals = 0),
-                             " (",
-                             FormatAsPercent(x$certainty, decimals = 0),
-                             "); ")
-        if (!is.null(x$log.likelihood))
-            result <- paste0(result, "log-likelihood: ",
-                             FormatAsReal(x$log.likelihood.out, decimals = 0),
-                             " (",
-                             FormatAsReal(x$log.likelihood, decimals = 0),
-                             "); ")
-        if (!is.null(x$bic))
-            result <- paste0(result, "BIC: ",
-                             FormatAsReal(x$bic.out, decimals = 0), " (",
-                             FormatAsReal(x$bic, decimals = 0), "); ")
+        result <- paste0(result, "log-likelihood: ",
+                         FormatAsReal(x$log.likelihood.out, decimals = 0),
+                         " (",
+                         FormatAsReal(x$log.likelihood, decimals = 0),
+                         "); ")
+        result <- paste0(result, "BIC: ",
+                         FormatAsReal(x$bic.out, decimals = 0), " (",
+                         FormatAsReal(x$bic, decimals = 0), "); ")
     }
     else
     {
         result <- paste0("accuracy: ",
                          FormatAsPercent(x$in.sample.accuracy, decimals = 1),
                          "; ")
-        if (!is.null(x$mean.rlh))
-            result <- paste0(result, "mean RLH: ",
-                             FormatAsReal(x$mean.rlh, decimals = 2), "; ")
-        if (!is.null(x$geometric.mean.rlh))
-            result <- paste0(result, "g. mean RLH: ",
-                             FormatAsReal(x$geometric.mean.rlh, decimals = 2),
-                             "; ")
-        if (!is.null(x$certainty))
-            result <- paste0(result, "certainty: ",
-                             FormatAsPercent(x$certainty, decimals = 0), "; ")
-        if (!is.null(x$log.likelihood))
-            result <- paste0(result, "log-likelihood: ",
-                             FormatAsReal(x$log.likelihood, decimals = 0),
-                             "; ")
-        if (!is.null(x$bic))
-            result <- paste0(result, "BIC: ",
-                             FormatAsReal(x$bic, decimals = 0), "; ")
+        result <- paste0(result, "mean RLH: ",
+                         FormatAsReal(x$mean.rlh, decimals = 2), "; ")
+        result <- paste0(result, "g. mean RLH: ",
+                         FormatAsReal(x$geometric.mean.rlh, decimals = 2),
+                         "; ")
+        result <- paste0(result, "certainty: ",
+                         FormatAsPercent(x$certainty, decimals = 0), "; ")
+        result <- paste0(result, "log-likelihood: ",
+                         FormatAsReal(x$log.likelihood, decimals = 0),
+                         "; ")
+        result <- paste0(result, "BIC: ",
+                         FormatAsReal(x$bic, decimals = 0), "; ")
     }
     result
 }
