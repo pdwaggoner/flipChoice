@@ -242,6 +242,11 @@ Utilities <- function(x,
     # Reorder attributes and add NA rows between
     if (!is.null(attr.levels.not.ordered))
         attr.levels.not.ordered <- ConvertCommaSeparatedStringToVector(attr.levels.not.ordered)
+    attr.unknown <- setdiff(attr.levels.not.ordered, names(attributes))
+    if (length(attr.unknown) > 0)
+        warning("Model does not contain attribute '", 
+        paste(attr.unknown, collapse = "', '"), "'.")
+        
     all.indexes <- c()
     a.range <- tapply(df$utility, df$attribute, function(x){diff(range(x))})
     a.ord <- 1:length(a.range)
@@ -250,9 +255,10 @@ Utilities <- function(x,
     for (aai in a.ord)
     {
         lev.ind <- which(df$attribute == names(a.range)[aai])
-        if (levels.order == "Reverse")
+        excl <- any(names(a.range)[aai] %in% attr.levels.not.ordered)
+        if (levels.order == "Reverse" && !excl)
             lev.ind <- rev(lev.ind)
-        else if (levels.order %in% c("Increasing", "Decreasing"))
+        else if (!excl && levels.order %in% c("Increasing", "Decreasing"))
             lev.ind <- lev.ind[order(df$utility[lev.ind], decreasing = levels.order == "Decreasing")]
         all.indexes <- c(all.indexes, NA, lev.ind)
     }
