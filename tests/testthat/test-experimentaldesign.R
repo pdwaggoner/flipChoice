@@ -118,7 +118,7 @@ test_that("ChoiceModelDesign print, none alternative",
 
 test_that("ChoiceModelDesign print, p.p with constant attributes",
 {
-    cmd <- suppressWarnings(ChoiceModelDesign(design.algorithm = "Shortcut",
+    cmd <- suppressWarnings(ChoiceModelDesign(design.algorithm = "Partial profiles",
                                 attribute.levels = has.prior,
                                 n.questions = 6,
                                 n.versions = 3,
@@ -129,5 +129,32 @@ test_that("ChoiceModelDesign print, p.p with constant attributes",
     out <- print(cmd)
     expect_is(out, "htmlwidget")
     expect_equal(attr(out, "ChartData"), cmd$labeled.design)
+
+    ## some diagnostics not available for partial profiles
+    ## only one row in stats table
+    tfile <- tempfile()
+    kt <- addStatistics(tfile, cmd, 2, 2)
+    m <- regexec("<tr>", readLines(tfile), fixed = TRUE)
+    expect_length(unlist(regmatches(readLines(tfile), m)), 1)
 })
+
+test_that("ChoiceModelDesign print, 1 version with prior",
+{
+    cmd1 <- suppressWarnings(ChoiceModelDesign(design.algorithm = "Shortcut",
+                                attribute.levels = has.prior,
+                                n.questions = 20,
+                                n.versions = 1,
+                                none.alternatives = 0,
+                                alternatives.per.question = 6,
+                                seed = 1))
+    out <- print(cmd)
+    expect_is(out, "htmlwidget")
+    expect_equal(attr(out, "ChartData"), cmd$labeled.design)
+
+    ## some diagnostics not available for partial profiles
+    tfile <- tempfile()
+    kt <- addStatistics(tfile, cmd, 2, 2)
+
+})
+
 
