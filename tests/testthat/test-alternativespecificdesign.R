@@ -61,3 +61,14 @@ test_that("Large design", {
     expect_lt(asd.2$d.error, asd.3$d.error)
 })
 
+test_that("ChoiceModelDesign print, alternative specific",
+{
+    asd.3 <- ChoiceModelDesign(attribute.levels = small.levels,
+                               n.questions = 6, n.versions = 10,
+                               design.algorithm = "Alternative specific - Random")
+
+    out <- print(asd.3)
+
+    expect_is(out, "htmlwidget")
+    expect_equal(attr(out, "ChartData"), cmd$labeled.design)
+})
