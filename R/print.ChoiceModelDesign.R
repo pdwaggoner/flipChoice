@@ -69,6 +69,10 @@ print.ChoiceModelDesign <- function(x, css = NULL, nsmall = 3, digits = 2, ...)
            MoreArgs = list(attr.names = names(x$attribute.levels), tfile = tfile))
     cata("</details>")
 
+    ## Overlaps (N/A for alt. specific designs)
+    if (!is.null(b.o$overlaps))
+        addOverlaps(tfile, b.o$overlaps)
+
     ## Design
     cata("<details><summary>Design</summary>\n")
     cata(knitr::kable(x$labeled.design, align = "c",
@@ -219,6 +223,19 @@ addPairwiseFrequencyTable <- function(tfile, ptable, table.name, attr.names)
                       table.attr = "class=\"table-pairwise\""), fill = TRUE)
     cata("</details>")
     invisible()
+}
+
+#' @importFrom knitr kable
+addOverlaps <- function(tfile, overlaps)
+{
+    cata <- function(...)
+        cat(..., file = tfile, append = TRUE)
+    cata("<details open=\"true\">")
+    cata("<summary>Overlaps</summary>")
+    cata(knitr::kable(t(overlaps), cnames = names(overlaps), align = "c",
+                      format = "html", table.attr = "id=\"table-overlaps\""),
+         fill = TRUE)
+    cata("")
 }
 
 #' @importFrom knitr kable
