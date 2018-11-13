@@ -4,15 +4,17 @@
 }
 
 summary {
-    border-bottom: 3px solid #151A1C;
+    /* border-bottom: 3px solid #151A1C; */
+    background: #F1F1F1;
     font-family: Circular, Circular-bold,"Helvetica Neue",Helvetica,Arial,sans-serif;
-    color: #FA614B;
+    color: #151A1C;
     font-size: 14px;
     margin-top: 5px;
 }
 
 details summary::-webkit-details-marker{
     color: #8F9DB3;
+    margin-left: 10px; /* so doesnt overlap with displayr resize tool */
 }
 
 h1 {
@@ -21,12 +23,13 @@ h1 {
     color: #151A1C;
     font-size: 24px;
     color: #3E7DCC;
+    font-weight: 500;
 }
 
 
 
 h2, h3 {
-    color: #00c8c8;
+    color: #151A1C;
 }
 
 table {  
@@ -43,13 +46,16 @@ th {
     font-weight: bold; 
     text-align: center;
     color: #F2F4FA;
-    padding: 2px;
+    margin: 5px;
     font-size: 90%;
+    min-width: 24px;
 }
 
 td {
     text-align: center;
     font-size: 90%;
+    min-width: 30px;
+    margin: 5px;
 }
 
 tr:nth-child(even) td { background: #F1F1F1; }   
