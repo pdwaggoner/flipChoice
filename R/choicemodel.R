@@ -307,6 +307,11 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     else
         stop("Insufficient data was supplied.")
 
+    # alternatives are labeled by first attribute if identical for all tasks
+    first.attribute <- dat$X.in[, , seq(dat$n.attribute.parameters[1] + 1, sum(dat$n.attribute.parameters[1:2])),
+                                drop = FALSE]
+    is.labeled <- all(apply(first.attribute, MARGIN = 1, FUN = function(x) {x == first.attribute[1, , ]}))
+
     if (!is.null(dat$covariates))
         dat <- processCovariateData(dat, algorithm == "LCA" || n.classes > 1,
                                     cov.formula, cov.data)
@@ -362,7 +367,7 @@ FitChoiceModel <- function(design = NULL, experiment.data = NULL,
     result$simulation.alternatives.excluding.none <- simulation.alternatives.excluding.none
     result$none.alternatives <- dat$none.alternatives
     names(result$none.alternatives) <- result$attribute.levels[[1]][result$none.alternatives]
-    result$is.labeled <- !is.null(design) && design$labeled.alternatives # TODO handle other design inputs
+    result$is.labeled <- is.labeled
     class(result) <- "FitChoice"
     result
 }
