@@ -1,3 +1,5 @@
+/* CSS for ChoiceModelDesign outputs in Q and Displayr */
+
 .main-container{
     overflow: auto;
     height: 100%;
@@ -5,22 +7,22 @@
 
 summary {
     /* border-bottom: 3px solid #151A1C; */
-    background: #F1F1F1;
+    background: #F2F5FA;
     font-family: Circular, Circular-bold,"Helvetica Neue",Helvetica,Arial,sans-serif;
     color: #151A1C;
-    font-size: 14px;
-    margin-top: 5px;
+    font-size: 15px;
+    margin-top: 10px;
+    /* margin-bottom: 10px; */
 }
 
 details summary::-webkit-details-marker{
-    color: #8F9DB3;
+    color: #3E7DCC;
     margin-left: 10px; /* so doesnt overlap with displayr resize tool */
 }
 
 h1 {
     text-align: left;
     font-family: Circular, Circular-bold,"Helvetica Neue",Helvetica,Arial,sans-serif;
-    color: #151A1C;
     font-size: 24px;
     color: #3E7DCC;
     font-weight: 500;
@@ -30,6 +32,7 @@ h1 {
 
 h2, h3 {
     color: #151A1C;
+    font-weight: normal;
 }
 
 table {  
@@ -42,53 +45,87 @@ table {
 }
 
 th {  
-    background: #3E7DCC; 
+    background: white; 
     font-weight: bold; 
     text-align: center;
-    color: #F2F4FA;
-    margin: 5px;
+    color: #3E7DCC;
+    /* margin: 25px; */
     font-size: 90%;
     min-width: 24px;
+    min-height: 24px;
+    padding: 10px;
+    vertical-align: middle;
+    /* border-bottom: 2px solid #3E7DCC; */
 }
 
 td {
     text-align: center;
     font-size: 90%;
     min-width: 30px;
-    margin: 5px;
+    /* margin: 5px; */
 }
 
-tr:nth-child(even) td { background: #F1F1F1; }   
+tr:nth-child(even) td { background: #F2F5FA; }   
 
 /* Cells in odd rows (1,3,5...) are another (excludes header cells)  */        
-tr:nth-child(odd) td { background: #FEFEFE; }  
+tr:nth-child(odd) td { background: #E5E8EE; }  
 
 tr td:hover { background: #FA614B; color: #FFF; } 
 
-.pairwise-table td:nth-child(1){
-    background: #3E7DCC;
-    color: #F2F4FA;
+#table-diagnostics{
+    margin-top: 10px;
 }
 
-#std-err-table td, #prior-table td{
-    border-left: 4px double #151A1C;
-    border-right: 4px double #151A1C;
+/************************* Pairwise balance table ***********************/
+
+.table-pairwise{
+    margin-left: 10px;
 }
 
-#std-err-table th:nth-child(even), #prior-table th:nth-child(3n+3){
-    border-right: 4px double #151A1C;
+/* style first column like <th> */
+.table-pairwise td:nth-child(1){
+    color: #3E7DCC;
+    background: white;
+    padding-right: 10px;
 }
 
-#std-err-table td:last-of-type, #std-err-table th:last-of-type,
-#std-err-table td:nth-child(1), #std-err-table th:nth-child(1){
-    border-left: none;
-    border-right: none;
+.table-pairwise th{
+    font-weight: normal;
+    border-bottom: 2px solid white;
 }
 
-/* #std-err-table td:nth-child(odd){ */
-/*     text-align: left;  /\* attribute levels *\/ */
-/* } */
+.table-pairwise td, #table-overlaps td{
+    border: 2px solid white;
+}
 
-/* #std-err-table td:nth-child(even){ */
-/*     text-align: right; /\* std. errs *\/ */
-/* } */
+.summary-pairwise{
+    margin-left: 10px;
+    /* font-weight: lighter; */
+    font-size: 90%;
+}
+
+/************************* End Pairwise table ***********************/
+
+.table-one-stat td:nth-child(even), .table-one-stat th{
+    border-right: 6px solid white;
+}
+
+.table-one-stat td:nth-child(odd){
+    border-right: 2px solid white;
+}
+
+.table-one-stat td{
+    border-top: 2px solid white;
+}
+
+.table-two-stat td:nth-child(3n+3), .table-two-stat th{
+    border-right: 6px solid white;
+}
+
+.table-two-stat td:nth-child(3n+2), .table-two-stat td:nth-child(3n+1){
+    border-right: 2px solid white;
+}
+
+.table-two-stat td{
+    border-top: 2px solid white;
+}

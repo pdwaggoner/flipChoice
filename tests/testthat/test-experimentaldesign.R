@@ -128,7 +128,6 @@ test_that("ChoiceModelDesign print, p.p with constant attributes",
                                 seed = 1))
     out <- print(cmd)
     expect_is(out, "htmlwidget")
-    expect_equal(attr(out, "ChartData"), cmd$labeled.design)
 
     ## some diagnostics not available for partial profiles
     ## only one row in stats table
@@ -140,7 +139,7 @@ test_that("ChoiceModelDesign print, p.p with constant attributes",
 
 test_that("ChoiceModelDesign print, 1 version with prior",
 {
-    cmd1 <- suppressWarnings(ChoiceModelDesign(design.algorithm = "Shortcut",
+    cmd <- suppressWarnings(ChoiceModelDesign(design.algorithm = "Shortcut",
                                 attribute.levels = has.prior,
                                 n.questions = 20,
                                 n.versions = 1,
@@ -149,12 +148,21 @@ test_that("ChoiceModelDesign print, 1 version with prior",
                                 seed = 1))
     out <- print(cmd)
     expect_is(out, "htmlwidget")
-    expect_equal(attr(out, "ChartData"), cmd$labeled.design)
 
-    ## some diagnostics not available for partial profiles
+    ## should have all diagnostics, 3 rows in stats table
     tfile <- tempfile()
-    kt <- addStatistics(tfile, cmd, 2, 2)
-
+    kt <- addStatistics(tfile, cmd1, 2, 2)
+    m <- regexec("<tr>", readLines(tfile), fixed = TRUE)
+    expect_length(unlist(regmatches(readLines(tfile), m)), 3L)
 })
 
 
+test_that("ChoiceModelDesign print prior with sd given",
+{
+    prior <- matrix(c(-0.8, -0.8, -0.8, -0.8, -0.8, -0.8, rep(0.4, 6)), ncol = 2)
+    attr.list <- list(A1 = 1:2, A2 = 1:2, A3 = 1:2, A4 = 1:2,
+                      A5 = 1:2, A6 = 1:2)
+    ## make sure printing with
+    out <- makePriorTable(prior, attr.list, 2, 2)
+    expect_true(grepl("class=\"table-two-stat\"", out, fixed = TRUE))
+})

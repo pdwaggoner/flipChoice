@@ -19,7 +19,7 @@
 #' @export
 #' @method print ChoiceModelDesign
 #' @importFrom knitr kable
-print.ChoiceModelDesign <- function(x, css = NULL, nsmall = 2, digits = 2, ...)
+print.ChoiceModelDesign <- function(x, css = NULL, nsmall = 3, digits = 2, ...)
 {
     tfile <- tempfile(fileext = ".html")
     on.exit(if (file.exists(tfile)) file.remove(tfile))
@@ -33,8 +33,6 @@ print.ChoiceModelDesign <- function(x, css = NULL, nsmall = 2, digits = 2, ...)
     ## add CSS
     cat("<style type=\"text/css\">\n", file = tfile)
     default.css <- readLines(system.file("css", "cmd.css", package = "flipChoice"))
-    if (!is.matrix(x$prior)) ## chg css for prior table if no std. dev. specified
-        default.css <- sub("nth-child(3n+3)", "nth-child(even)", default.css, fixed = TRUE)
     cata(default.css, fill = TRUE)
     cata("</style>\n\n")
 
@@ -81,7 +79,7 @@ print.ChoiceModelDesign <- function(x, css = NULL, nsmall = 2, digits = 2, ...)
     ## Priors
     cata("<details open =\"true\"><summary>Prior</summary>\n")
     if (!is.null(x$prior))
-        cata(makePriorTable(x$prior, x$attribute.levels), fill = TRUE)
+        cata(makePriorTable(x$prior, x$attribute.levels, digits, nsmall), fill = TRUE)
     else
         cata("<p>None specified.</p></details>")
     cata("</div>", fill = TRUE)
@@ -116,7 +114,7 @@ addStatistics <- function(tfile, x, digits, nsmall)
     ##             "<b>Mean version balance: </b>",
     ##             format1(b.o$mean.version.balance),
     ##             "</span></p>\n"))
-    cata("<table><tbody><tr>\n")
+    cata("<table id = \"table-diagnostics\"><tbody><tr>\n")
     cata("<td style=\"text-align: left;\">")
     cata(paste0("<b>Algorithm: </b>", x$design.algorithm, "</td>"))
     cata("<td style=\"text-align: left;\">")
@@ -169,7 +167,7 @@ makeStandardErrorTable <- function(std.err, al, digits, nsmall)
         idx <- idx + n.lvls-1
     }
     out <- knitr::kable(out, format = "html", col.names = cnames, digits = digits,
-                 table.attr = "id=\"std-err-table\"",
+                 table.attr = "class=\"table-one-stat\"",
                  align = rep(c("l", "r"), length(al)))
     ## change table headers to span multiple columns
     out <- gsub("<th style=\"text-align:right;\">  </th>", "", out, fixed = TRUE)
@@ -196,8 +194,12 @@ makeFrequencyTable <- function(freq)
         out[seq_len(n.lvls), 2*i] <- freq[[i]]
         idx <- idx + n.lvls-1
     }
-    knitr::kable(out, format = "html", col.names = cnames, align = "c",
-                        escape = FALSE)
+    out <- knitr::kable(out, format = "html", col.names = cnames, align = "c",
+                        table.attr = "class=\"table-one-stat\"", escape = FALSE)
+    out <- gsub("<th style=\"text-align:center;\">  </th>", "", out, fixed = TRUE)
+    out <- gsub("<th style=\"text-align:center;\">",
+                "<th colspan = \"2\">", out, fixed = TRUE)
+    return(out)
 }
 
 addPairwiseFrequencyTable <- function(tfile, ptable, table.name, attr.names)
@@ -207,20 +209,24 @@ addPairwiseFrequencyTable <- function(tfile, ptable, table.name, attr.names)
 
     ## table.names always has form "attr.name1/attr.name2"
     ## be overly cautious to extract the two names w/o strsplit
-    idx1 <- vapply(attr.names, function(n) grepl(paste0("^", n, "[/]"), table.name), FALSE)
-    idx2 <- vapply(attr.names, function(n) grepl(paste0("[/]", n, "$"), table.name), FALSE)
+    ## idx1 <- vapply(attr.names, function(n) grepl(paste0("^", n, "[/]"), table.name), FALSE)
+    ## idx2 <- vapply(attr.names, function(n) grepl(paste0("[/]", n, "$"), table.name), FALSE)
 
-    cata(paste0("<h3>", table.name, "</h3>\n"))
+    cata("<details open=\"true\">")
+    cata(paste0("<summary class=\"summary-pairwise\">", table.name, "</summary>\n"))
     cata(knitr::kable(ptable, row.names = TRUE, col.names = colnames(ptable),
                       format = "html", align = "c",
-                      table.attr = "class=\"pairwise-table\""), fill = TRUE)
+                      table.attr = "class=\"table-pairwise\""), fill = TRUE)
+    cata("</details>")
     invisible()
 }
 
 #' @importFrom knitr kable
-makePriorTable <- function(prior, al)
+makePriorTable <- function(prior, al, digits = 2, nsmall = 2)
 {
     zero.str <- ".000"
+    format1 <- function(x)
+        sub("^0[.]", ".", format(x, nsmall = nsmall, digits = digits))
     n.lvls <- vapply(al, length, 0L)
     max.len <- max(n.lvls)
     sd.prior.given <- is.matrix(prior)
@@ -234,8 +240,16 @@ makePriorTable <- function(prior, al)
         cnames[seq(1, ncol(out), by = 3)] <- names(al)
         cnames[seq(2, ncol(out), by = 3)] <- "Mean"
         cnames[seq(3, ncol(out), by = 3)] <- "Std. Dev."
+        table.attr <- "class=\"table-two-stat\""
+        col.span <- "3"
+        col.align <- c("l", "r", "r")
     }else
+    {
         cnames[seq(1, ncol(out), by = 2)] <- names(al)
+        table.attr <- "class=\"table-one-stat\""
+        col.span <- "2"
+        col.align <- c("l", "r")
+    }
 
     idx <- 1
     for (i in seq_along(al))
@@ -245,13 +259,20 @@ makePriorTable <- function(prior, al)
         col.idx <- ifelse(sd.prior.given, 3*(i-1)+1, 2*(i-1)+1)
         out[seq_len(n.lvls), col.idx] <- lvls
         col.idx <- ifelse(sd.prior.given, 3*(i-1)+2, 2*i)
-        out[seq_len(n.lvls), col.idx] <- c(zero.str, prior[idx:(idx+n.lvls - 2), 1])
+        out[seq_len(n.lvls), col.idx] <- c(zero.str, format1(prior[idx:(idx+n.lvls - 2), 1]))
         if (sd.prior.given)
-            out[seq_len(n.lvls), 3*i] <- c(zero.str, prior[idx:(idx+n.lvls - 2), 2])
+            out[seq_len(n.lvls), 3*i] <- c(zero.str, format1(prior[idx:(idx+n.lvls - 2), 2]))
         idx <- idx + n.lvls-1
     }
-    knitr::kable(out, format = "html", col.names = cnames,
-                 table.attr = "id=\"prior-table\"",
-                 align = rep(c("l", "r", "r"), length(al)))
+    out <- knitr::kable(out, format = "html", col.names = cnames,
+                 table.attr = table.attr,
+                 align = rep(col.align, length(al)))
+    if (!sd.prior.given)
+    {
+        out <- gsub("<th style=\"text-align:right;\">  </th>", "", out, fixed = TRUE)
+        out <- gsub("<th style=\"text-align:left;\">",
+                    paste0("<th colspan = \"", col.span, "\">"), out, fixed = TRUE)
 
+    }
+    return(out)
 }
