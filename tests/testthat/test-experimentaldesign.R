@@ -102,15 +102,32 @@ test_that("Warning when prior given with wrong algorithm",
 )
 
 
-test_that("ChoiceModelDesign print",
+test_that("ChoiceModelDesign print, none alternative",
 {
-    cmd <- suppressWarnings(ChoiceModelDesign(design.algorithm = "Partial profiles",
+    cmd <- suppressWarnings(ChoiceModelDesign(design.algorithm = "Shortcut",
                                 attribute.levels = has.prior,
                                 n.questions = 6,
                                 n.versions = 3,
+                                none.alternatives = 1,
                                 alternatives.per.question = 4,
                                 seed = 1))
     out <- print(cmd)
     expect_is(out, "htmlwidget")
     expect_equal(attr(out, "ChartData"), cmd$labeled.design)
 })
+
+test_that("ChoiceModelDesign print, p.p with constant attributes",
+{
+    cmd <- suppressWarnings(ChoiceModelDesign(design.algorithm = "Shortcut",
+                                attribute.levels = has.prior,
+                                n.questions = 6,
+                                n.versions = 3,
+                                none.alternatives = 0,
+                                n.constant.attributes = 1,
+                                alternatives.per.question = 2,
+                                seed = 1))
+    out <- print(cmd)
+    expect_is(out, "htmlwidget")
+    expect_equal(attr(out, "ChartData"), cmd$labeled.design)
+})
+

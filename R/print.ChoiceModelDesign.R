@@ -174,20 +174,23 @@ makeStandardErrorTable <- function(std.err, al, digits, nsmall)
 #' @importFrom knitr kable
 makeFrequencyTable <- function(freq, al)
 {
-    max.len <- max(vapply(al, length, 0L))
-    out <- matrix("", nrow = max.len, ncol = 2*length(al))
+    max.len <- max(vapply(freq, length, 0L))
+    out <- matrix("", nrow = max.len, ncol = 2*length(freq))
     cnames <- character(ncol(out))
-    cnames[seq(1, ncol(out), by = 2)] <- names(al)
+    cnames[seq(1, ncol(out), by = 2)] <- names(freq)
     idx <- 1
-    for (i in seq_along(al))
+    for (i in seq_along(freq))
     {
-        lvls <- al[[i]]
+        lvls <- names(freq[[i]])
+        if (lvls[length(lvls)] == "Not shown")
+            lvls[length(lvls)] <- "<em>Not shown</em>"
         n.lvls <- length(lvls)
         out[seq_len(n.lvls), 2*(i-1)+1] <- lvls
         out[seq_len(n.lvls), 2*i] <- freq[[i]]
         idx <- idx + n.lvls-1
     }
-    knitr::kable(out, format = "html", col.names = cnames, align = "c")
+    knitr::kable(out, format = "html", col.names = cnames, align = "c",
+                        escape = FALSE)
 }
 
 addPairwiseFrequencyTable <- function(tfile, ptable, table.name, attr.names)
