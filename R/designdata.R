@@ -86,6 +86,9 @@ processDesignVariables <- function(design.variables, attribute.levels, choices,
         else
             design <- sapply(design, as.numeric)
     }
+    else
+        design <- sapply(design, as.numeric)
+
     design <- convertDesign(as.matrix(design))
 
     processDesign(design, attribute.levels, choices, tasks,
@@ -101,6 +104,20 @@ processDesign <- function(design, attribute.levels, choices, tasks, subset,
                           covariates, simulated.priors, simulated.sample.size)
 {
     checkDesignColNames(design)
+
+    # Ensure any user attribute names don't conflict with non-attribute
+    # column names
+    for (nm in .non.attr.col.names)
+    {
+        conflict <- which(nm == names(attribute.levels))
+        if (length(conflict) > 0)
+        {
+            nms <- paste0(names(attribute.levels)[conflict],
+                          ".", 1:length(conflict))
+            names(attribute.levels)[conflict] <- nms
+            colnames(design)[conflict + length(.non.attr.col.names)] <- nms
+        }
+    }
 
     design.attributes <- design[, !colnames(design) %in% .non.attr.col.names, drop = FALSE]
     n.attributes <- ncol(design.attributes)
