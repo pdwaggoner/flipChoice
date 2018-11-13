@@ -62,7 +62,7 @@ print.ChoiceModelDesign <- function(x, css = NULL, nsmall = 2, digits = 2, ...)
 
     ## Frequencies
     cata("<details open=\"true\"><summary>Frequencies</summary>\n")
-    cata(makeFrequencyTable(b.o$singles, x$attribute.levels), fill = TRUE)
+    cata(makeFrequencyTable(b.o$singles), fill = TRUE)
     cata("</details>")
 
     ## Pairwise frequencies
@@ -121,22 +121,29 @@ addStatistics <- function(tfile, x, digits, nsmall)
     cata(paste0("<b>Algorithm: </b>", x$design.algorithm, "</td>"))
     cata("<td style=\"text-align: left;\">")
     cata(paste0("<b>D-error: </b>", format1(x$d.error), "</td></tr>"))
-    cata(paste0("<tr><td style=\"text-align: left;\">",
-                "<b>Mean version balance: </b>",
-                format1(b.o$mean.version.balance),
-                "</td>\n"))
-    cata(paste0("<td style=\"text-align: left;\">",
-                "<b>Across version balance: </b>",
-                format1(b.o$across.version.balance),
-                "</td></tr>\n"))
-    cata(paste0("<tr><td style=\"text-align: left;\">",
-                "<b>Mean version pairwise balance: </b>",
-                format1(b.o$mean.version.pairwise.balance),
-                "</td>\n"))
-    cata(paste0("<td style=\"text-align: left;\">",
-                "<b>Across version pairwise balance: </b>",
-                format1(b.o$across.version.pairwise.balance),
-                "</td></tr>\n"))
+    if (!is.null(b.o$mean.version.balance))
+    {  # not available for partial profiles with constant attributes
+        cata(paste0("<tr><td style=\"text-align: left;\">",
+                    "<b>Mean version balance: </b>",
+                    format1(b.o$mean.version.balance),
+                    "</td>\n"))
+        cata(paste0("<td style=\"text-align: left;\">",
+                    "<b>Across version balance: </b>",
+                    format1(b.o$across.version.balance),
+                    "</td></tr>\n"))
+    }
+
+    if (!is.null(b.o$across.version.pairwise.balance))
+    {  # not available for partial profiles with constant attributes
+      cata(paste0("<tr><td style=\"text-align: left;\">",
+                  "<b>Mean version pairwise balance: </b>",
+                  format1(b.o$mean.version.pairwise.balance),
+                  "</td>\n"))
+      cata(paste0("<td style=\"text-align: left;\">",
+                  "<b>Across version pairwise balance: </b>",
+                  format1(b.o$across.version.pairwise.balance),
+                  "</td></tr>\n"))
+    }
     cata("</tbody></table></details>\n\n")
     invisible()
 }
@@ -172,7 +179,7 @@ makeStandardErrorTable <- function(std.err, al, digits, nsmall)
 }
 
 #' @importFrom knitr kable
-makeFrequencyTable <- function(freq, al)
+makeFrequencyTable <- function(freq)
 {
     max.len <- max(vapply(freq, length, 0L))
     out <- matrix("", nrow = max.len, ncol = 2*length(freq))
